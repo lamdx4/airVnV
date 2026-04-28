@@ -79,6 +79,13 @@ Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng 
 *   **Phạm vi áp dụng:** Chỉ sử dụng Zustand để lưu trữ các trạng thái **Toàn cục (Global)** cần chia sẻ giữa nhiều trang độc lập (ví dụ: Authentication, User Profile, Dark/Light Mode).
 *   **Điều cấm:** *Không* dùng Zustand để cache dữ liệu trả về từ API. Việc quản lý cache/stale data hoàn toàn thuộc trách nhiệm của TanStack Query.
 
+### 5. Quy chuẩn Type-Safety (Nghiêm cấm dùng `any`)
+*   **Yêu cầu:** Mọi dữ liệu Request/Response khi giao tiếp API bắt buộc phải được mô hình hóa tường minh qua `interface` / `type` trong thư mục `src/features/{feature}/types/index.ts`.
+*   **Lợi ích:** Giúp IDE gợi ý code thông minh, bắt lỗi ngay khi code thay vì đợi crash runtime.
+
+### 6. Quản lý Form quy mô lớn (React Hook Form + Zod)
+*   **Khuyến nghị:** Khi làm việc với các Form phức tạp (>3 trường nhập liệu), thay vì dùng `useState` thủ công gây re-render liên tục, team thống nhất áp dụng bộ đôi `react-hook-form` và `zod` để tối ưu hiệu năng và validate dữ liệu tự động.
+
 ---
 
 ## 🆘 Khắc phục sự cố thường gặp
