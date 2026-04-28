@@ -1,5 +1,11 @@
-Environment.SetEnvironmentVariable("DOTNET_ASPIRE_CONTAINER_RUNTIME", "podman");
 var builder = DistributedApplication.CreateBuilder(args);
+
+// Đọc config môi trường
+var containerRuntime = builder.Configuration["ContainerRuntime"] ?? "docker";
+Environment.SetEnvironmentVariable("DOTNET_ASPIRE_CONTAINER_RUNTIME", containerRuntime);
+
+var kafkaHeap = builder.Configuration["KafkaHeap"] ?? "-Xms512m -Xmx512m";
+var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms512m -Xmx512m";
 
 // 1. Hạ tầng Dữ liệu (Infrastructure)
 var postgres = builder.AddPostgres("postgres")
@@ -14,11 +20,11 @@ var payDb = postgres.AddDatabase("paydb");
 var kafka = builder.AddKafka("kafka")
     .WithDataVolume("airbnb_kafka_data")
     .WithKafkaUI()
-    .WithEnvironment("KAFKA_HEAP_OPTS", "-Xms512m -Xmx512m");
+    .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
 
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
     .WithDataVolume("airbnb_es_data")
-    .WithEnvironment("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+    .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
 
 // 2. Debezium (CDC)
 var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
