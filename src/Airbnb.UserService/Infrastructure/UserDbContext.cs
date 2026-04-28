@@ -15,6 +15,9 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<User>().Property(x => x.Email).IsRequired().HasMaxLength(255);
         modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
         modelBuilder.Entity<User>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+        
+        // Enum to String
+        modelBuilder.Entity<User>().Property(x => x.Role).HasConversion<string>();
 
         modelBuilder.Entity<UserProfile>().ToTable("UserProfiles").HasKey(x => x.UserId);
         modelBuilder.Entity<UserProfile>().Property(x => x.FullName).IsRequired().HasMaxLength(255);
@@ -27,6 +30,9 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
 
         modelBuilder.Entity<UserLogin>().ToTable("UserLogins").HasKey(x => x.Id);
         modelBuilder.Entity<UserLogin>().HasIndex(x => new { x.Provider, x.ProviderKey }).IsUnique();
+        
+        // Enum to String
+        modelBuilder.Entity<UserLogin>().Property(x => x.Provider).HasConversion<string>();
 
         modelBuilder.Entity<UserLogin>()
             .HasOne<User>()

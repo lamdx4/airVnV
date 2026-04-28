@@ -6,11 +6,18 @@ public enum UserRole
     Host
 }
 
+public enum AuthProvider
+{
+    Local,
+    Google,
+    Facebook
+}
+
 public class User
 {
     public Guid Id { get; private set; }
     public string Email { get; private set; } = default!;
-    public string? HashedPassword { get; private set; } // Nullable cho Social Login
+    public string? HashedPassword { get; private set; } 
     public UserRole Role { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
@@ -20,7 +27,7 @@ public class User
 
     private User() { }
 
-    // 1. Khởi tạo cho Local User (Bắt buộc có Password)
+    // 1. Khởi tạo cho Local User
     public User(string email, string hashedPassword, UserRole role, string fullName)
     {
         if (string.IsNullOrWhiteSpace(hashedPassword))
@@ -34,11 +41,11 @@ public class User
         Profile = new UserProfile(Id, fullName);
     }
 
-    // 2. Khởi tạo cho Social User (Bắt buộc có Provider và Key)
-    public User(string email, UserRole role, string fullName, string provider, string providerKey)
+    // 2. Khởi tạo cho Social User
+    public User(string email, UserRole role, string fullName, AuthProvider provider, string providerKey)
     {
-        if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(providerKey))
-            throw new ArgumentException("Thông tin Provider là bắt buộc đối với tài khoản MXH.");
+        if (string.IsNullOrWhiteSpace(providerKey))
+            throw new ArgumentException("Thông tin Provider Key là bắt buộc.");
 
         Id = Guid.NewGuid();
         Email = email;
@@ -49,7 +56,7 @@ public class User
         AddLogin(provider, providerKey);
     }
 
-    public void AddLogin(string provider, string providerKey)
+    public void AddLogin(AuthProvider provider, string providerKey)
     {
         Logins.Add(new UserLogin(Id, provider, providerKey));
     }
@@ -76,12 +83,12 @@ public class UserLogin
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public string Provider { get; private set; } = default!;
+    public AuthProvider Provider { get; private set; }
     public string ProviderKey { get; private set; } = default!;
 
     private UserLogin() { }
 
-    public UserLogin(Guid userId, string provider, string providerKey)
+    public UserLogin(Guid userId, AuthProvider provider, string providerKey)
     {
         Id = Guid.NewGuid();
         UserId = userId;
