@@ -20,14 +20,33 @@ public class User
 
     private User() { }
 
-    public User(string email, string? hashedPassword, UserRole role, string fullName)
+    // 1. Khởi tạo cho Local User (Bắt buộc có Password)
+    public User(string email, string hashedPassword, UserRole role, string fullName)
     {
+        if (string.IsNullOrWhiteSpace(hashedPassword))
+            throw new ArgumentException("Mật khẩu là bắt buộc đối với tài khoản cục bộ.");
+
         Id = Guid.NewGuid();
         Email = email;
         HashedPassword = hashedPassword;
         Role = role;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
+    }
+
+    // 2. Khởi tạo cho Social User (Bắt buộc có Provider và Key)
+    public User(string email, UserRole role, string fullName, string provider, string providerKey)
+    {
+        if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(providerKey))
+            throw new ArgumentException("Thông tin Provider là bắt buộc đối với tài khoản MXH.");
+
+        Id = Guid.NewGuid();
+        Email = email;
+        HashedPassword = null;
+        Role = role;
+        CreatedAt = DateTime.UtcNow;
+        Profile = new UserProfile(Id, fullName);
+        AddLogin(provider, providerKey);
     }
 
     public void AddLogin(string provider, string providerKey)
