@@ -32,11 +32,11 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var user = new User(req.FullName, req.Email, req.Password, req.Role); 
+        var user = new User(req.Email, req.Password, req.Role, req.FullName); 
         
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
         
-        Response = new Response(user.Id, user.FullName, user.Email, user.Role);
+        Response = new Response(user.Id, user.Profile.FullName, user.Email, user.Role);
     }
 }

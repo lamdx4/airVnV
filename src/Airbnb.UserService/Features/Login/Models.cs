@@ -33,7 +33,9 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email, ct);
+        var user = await db.Users
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Email == req.Email, ct);
 
         if (user == null || user.HashedPassword != req.Password)
         {
@@ -49,6 +51,6 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             ]);
 
-        Response = new Response(jwtToken, user.FullName, user.Email, user.Role);
+        Response = new Response(jwtToken, user.Profile.FullName, user.Email, user.Role);
     }
 }
