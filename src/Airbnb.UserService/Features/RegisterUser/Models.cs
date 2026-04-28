@@ -5,8 +5,8 @@ using Airbnb.UserService.Infrastructure;
 
 namespace Airbnb.UserService.Features.RegisterUser;
 
-public record Request(string FullName, string Email, string Password);
-public record Response(Guid Id, string FullName, string Email);
+public record Request(string FullName, string Email, string Password, UserRole Role);
+public record Response(Guid Id, string FullName, string Email, UserRole Role);
 
 public class Validator : Validator<Request>
 {
@@ -15,6 +15,7 @@ public class Validator : Validator<Request>
         RuleFor(x => x.FullName).NotEmpty().MaximumLength(255);
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6);
+        RuleFor(x => x.Role).IsInEnum();
     }
 }
 
@@ -31,11 +32,11 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var user = new User(req.FullName, req.Email, req.Password); 
+        var user = new User(req.FullName, req.Email, req.Password, req.Role); 
         
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
         
-        Response = new Response(user.Id, user.FullName, user.Email);
+        Response = new Response(user.Id, user.FullName, user.Email, user.Role);
     }
 }

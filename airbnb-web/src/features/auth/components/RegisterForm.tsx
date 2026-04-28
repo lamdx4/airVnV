@@ -10,6 +10,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState<0 | 1>(0) // 0: Guest, 1: Host
   const [localError, setLocalError] = useState<string | null>(null)
   const registerMutation = useRegister()
 
@@ -22,7 +23,7 @@ export function RegisterForm() {
       return
     }
 
-    registerMutation.mutate({ fullName: name, email, password })
+    registerMutation.mutate({ fullName: name, email, password, role })
   }
 
   const errorMessage = localError || (registerMutation.error ? 'Đăng ký thất bại. Vui lòng kiểm tra lại!' : null);
@@ -47,6 +48,31 @@ export function RegisterForm() {
       )}
 
       <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3 mb-2">
+          <button
+            type="button"
+            onClick={() => setRole(0)}
+            className={`py-2.5 text-sm font-semibold rounded-xl transition-all ${
+              role === 0 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            Khách thuê
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole(1)}
+            className={`py-2.5 text-sm font-semibold rounded-xl transition-all ${
+              role === 1 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            Chủ nhà (Host)
+          </button>
+        </div>
+
         <Input
           type="text"
           placeholder="Họ và tên"
