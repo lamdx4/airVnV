@@ -58,12 +58,15 @@ Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng 
 
 ### 3. Ràng buộc Native AOT Readiness
 Để Microservices có thể build Native AOT (tiết kiệm 80% RAM), bắt buộc:
-* Mọi DTO mới tạo phải được khai báo trong `[JsonSerializable(typeof(MyDto))]` tại `JsonSerializerContext` của Microservice đó.
-* Tránh sử dụng Reflection/Dynamic code.
+* **Quy tắc JSON DTO:** Mọi DTO mới tạo phải được khai báo trong `[JsonSerializable(typeof(MyDto))]` tại `JsonSerializerContext` của Microservice đó.
+* **Chiến lược Resolver:** Sử dụng `JsonTypeInfoResolver.Combine` để ghép nối các Context. Nếu dùng thư viện ngoài, hãy kiểm tra khả năng tương thích AOT bằng lệnh `dotnet publish` ngay khi cài đặt.
+* **Tránh dynamic và object:** *Nghiêm cấm* dùng `dynamic` hoặc `object` trong các DTO vì chúng sẽ gây crash ứng dụng khi chạy ở chế độ AOT.
+* Tránh sử dụng Reflection bừa bãi.
 
-### 4. Quy chuẩn Giao tiếp giữa các Microservices
+### 4. Quy chuẩn Giao tiếp giữa các Microservices (Hệ thống Phân tán)
+* **Bắt buộc Outbox Pattern:** *Tuyệt đối không bắn Kafka trực tiếp từ Endpoint Handler.* Mọi sự kiện phải được lưu vào bảng Outbox trong cùng một Transaction với nghiệp vụ chính. Vi phạm điều này sẽ dẫn đến mất dữ liệu khi mạng lỗi.
+* **Idempotency (Tính nhất quán):** Mọi Consumer (như `SearchService`) phải được thiết kế để có thể xử lý một tin nhắn nhiều lần mà không gây sai lệch dữ liệu (Idempotent Consumer).
 * **Hạn chế gọi HTTP đồng bộ:** Tránh việc Service A gọi thẳng API Service B (gây thắt nút cổ chai).
-* **Ưu tiên Event-Driven:** Sử dụng Kafka để phát hành (Publish) và lắng nghe (Subscribe) sự kiện bất đồng bộ.
 
 ### 5. Xử lý Ngoại lệ & Logging
 * **Không ném Exception tùy tiện:** Sử dụng FluentValidation và FastEndpoints error handlers trả về mã lỗi 400/422 thống nhất.
@@ -89,22 +92,24 @@ Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng 
 * Được quyền can thiệp vào Navigation (`useNavigate`) hoặc cập nhật Store toàn cục (`useAuthStore`) khi API phản hồi.
 
 ### 3. UI Layer (`src/features/{feature}/components/` & `src/pages/`)
-
 * **Trách nhiệm:** Hiển thị giao diện trực quan cho người dùng.
 * **Quy tắc:** Sử dụng Custom Hook từ tầng 2. *Nghiêm cấm* gọi Axios trực tiếp trong UI!
 
-### 4. Quản lý State (Zustand)
+### 4. Thư mục Shared UI (`src/components/shared/` & `src/components/ui/`)
+* **Phân biệt rõ ràng:** Thư mục `src/components/ui/` chỉ chứa các UI nguyên tử độc lập (Button, Input từ shadcn). Thư mục `src/features/{feature}/components/` chỉ chứa các logic UI đặc thù của nghiệp vụ đó.
 
+### 5. Error Handling toàn cục (TanStack Query)
+* **Quy định:** Không viết hàng chục cái `if (error)` lẻ tẻ tại UI Layer. Hãy cấu hình Error Handling tập trung tại `QueryClient` (như hiện Toast thông báo lỗi tự động) hoặc dùng React `ErrorBoundary` bọc quanh Route.
+
+### 6. Quản lý State (Zustand)
 * **Phạm vi áp dụng:** Chỉ sử dụng Zustand để lưu trữ các trạng thái **Toàn cục (Global)** cần chia sẻ giữa nhiều trang độc lập (ví dụ: Authentication, User Profile, Dark/Light Mode).
 * **Điều cấm:** *Không* dùng Zustand để cache dữ liệu trả về từ API. Việc quản lý cache/stale data hoàn toàn thuộc trách nhiệm của TanStack Query.
 
-### 5. Quy chuẩn Type-Safety (Nghiêm cấm dùng `any`)
-
+### 7. Quy chuẩn Type-Safety (Nghiêm cấm dùng `any`)
 * **Yêu cầu:** Mọi dữ liệu Request/Response khi giao tiếp API bắt buộc phải được mô hình hóa tường minh qua `interface` / `type` trong thư mục `src/features/{feature}/types/index.ts`.
 * **Lợi ích:** Giúp IDE gợi ý code thông minh, bắt lỗi ngay khi code thay vì đợi crash runtime.
 
-### 6. Quản lý Form quy mô lớn (React Hook Form + Zod)
-
+### 8. Quản lý Form quy mô lớn (React Hook Form + Zod)
 * **Khuyến nghị:** Khi làm việc với các Form phức tạp (>3 trường nhập liệu), thay vì dùng `useState` thủ công gây re-render liên tục, team thống nhất áp dụng bộ đôi `react-hook-form` và `zod` để tối ưu hiệu năng và validate dữ liệu tự động.
 
 ---
