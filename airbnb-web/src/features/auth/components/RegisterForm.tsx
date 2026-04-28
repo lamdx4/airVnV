@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useRegister } from '../hooks/useAuth'
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -9,31 +10,22 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [localError, setLocalError] = useState<string | null>(null)
+  const registerMutation = useRegister()
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setSuccess(null)
+    setLocalError(null)
 
     if (password !== confirmPassword) {
-      setIsLoading(false)
-      setError('Mật khẩu xác nhận không khớp!')
+      setLocalError('Mật khẩu xác nhận không khớp!')
       return
     }
 
-    // Mock API Registration
-    setTimeout(() => {
-      setIsLoading(false)
-      setSuccess('Đăng ký thành công! Đang chuyển hướng sang đăng nhập...')
-      setTimeout(() => {
-        navigate('/login')
-      }, 1500)
-    }, 1200)
+    registerMutation.mutate({ fullName: name, email, password })
   }
+
+  const errorMessage = localError || (registerMutation.error ? 'Đăng ký thất bại. Vui lòng kiểm tra lại!' : null);
 
   return (
     <form onSubmit={handleRegister} className="space-y-4">
@@ -42,15 +34,15 @@ export function RegisterForm() {
         <p className="text-slate-500 text-sm mt-1">Gia nhập cộng đồng Airbnb</p>
       </div>
 
-      {error && (
+      {errorMessage && (
         <div className="p-3 rounded-xl text-sm font-medium text-center bg-red-50 text-red-600 border border-red-100">
-          {error}
+          {errorMessage}
         </div>
       )}
 
-      {success && (
+      {registerMutation.isSuccess && (
         <div className="p-3 rounded-xl text-sm font-medium text-center bg-green-50 text-green-700 border border-green-100">
-          {success}
+          Đăng ký thành công! Đang chuyển hướng sang đăng nhập...
         </div>
       )}
 
@@ -91,10 +83,10 @@ export function RegisterForm() {
 
       <Button
         type="submit"
-        disabled={isLoading}
+        disabled={registerMutation.isPending}
         className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
       >
-        {isLoading ? 'Đang tạo tài khoản...' : 'Đăng ký'}
+        {registerMutation.isPending ? 'Đang tạo tài khoản...' : 'Đăng ký'}
       </Button>
 
       <p className="text-center text-sm text-slate-600 pt-2">

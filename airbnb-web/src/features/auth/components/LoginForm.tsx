@@ -2,24 +2,24 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useLogin } from '../hooks/useAuth'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const loginMutation = useLogin()
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    // Mock API Authentication
-    setTimeout(() => {
-      setIsLoading(false)
-      setError('Email hoặc mật khẩu không đúng!')
-    }, 1000)
+    loginMutation.mutate({ email, password })
   }
+
+  const errorMessage = loginMutation.error
+    ? ((loginMutation.error as any).response?.status === 401 
+        ? 'Email hoặc mật khẩu không đúng!' 
+        : 'Đăng nhập thất bại. Vui lòng thử lại!')
+    : null;
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
@@ -28,9 +28,9 @@ export function LoginForm() {
         <p className="text-slate-500 text-sm mt-1">Chào mừng bạn quay trở lại</p>
       </div>
 
-      {error && (
+      {errorMessage && (
         <div className="p-3 rounded-xl text-sm font-medium text-center bg-red-50 text-red-600 border border-red-100">
-          {error}
+          {errorMessage}
         </div>
       )}
 
@@ -65,10 +65,10 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        disabled={isLoading}
+        disabled={loginMutation.isPending}
         className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
       >
-        {isLoading ? 'Đang xác thực...' : 'Đăng nhập'}
+        {loginMutation.isPending ? 'Đang xác thực...' : 'Đăng nhập'}
       </Button>
 
       <div className="flex items-center gap-4 my-2">

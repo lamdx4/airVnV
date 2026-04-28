@@ -25,21 +25,61 @@ Tài liệu này tổng hợp chuyên sâu về hệ sinh thái công nghệ áp
 
 ---
 
-## 🧑‍💻 Quy chuẩn Viết Code & Review
+## 🧑‍💻 Quy chuẩn Viết Code cho Microservices
 
-1. **Nguyên lý Clean Code**:
-   * Giữ các Method/Component ngắn gọn, tập trung vào 1 nhiệm vụ.
-   * Tách biệt Logic UI và Logic xử lý trạng thái.
-2. **Database Migration**:
-   * Không can thiệp tay vào cấu trúc Table. Sử dụng hoàn toàn EF Core Migrations.
+Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng tối đa. Khi tham gia viết code cho backend, toàn bộ team cần tuân thủ:
+
+### 1. Kiến trúc Vertical Slice Architecture (VSA)
+*   **Mô tả chuyên sâu:** Khác với mô hình N-Tier (phân tầng ngang) truyền thống làm phân tán code tính năng qua nhiều thư mục khác nhau, VSA đóng gói toàn bộ các khâu xử lý của một **Nghiệp vụ cụ thể (Use Case)** vào chung một nơi. Điều này tối đa hóa tính tự chủ (Cohesion), giảm thiểu phụ thuộc chéo (Coupling), và giúp việc mở rộng tính năng mới diễn ra độc lập, an toàn.
+*   **Tài liệu khuyên đọc:** [Vertical Slice Architecture - Jimmy Bogard](https://jimmybogard.com/vertical-slice-architecture/)
+
+### 2. Sử dụng FastEndpoints (Thay thế MVC)
+*   **Framework chính thức:** [FastEndpoints Documentation](https://fast-endpoints.com/)
+*   Áp dụng mô hình **REPR (Request-Endpoint-Response)**.
+*   Kế thừa `Endpoint<TRequest, TResponse>` thay vì tạo Controller cồng kềnh.
+*   *Mẫu Endpoint cơ bản:*
+    ```csharp
+    public class CreateBookingEndpoint : Endpoint<CreateBookingRequest, CreateBookingResponse>
+    {
+        public override async Task HandleAsync(CreateBookingRequest req, CancellationToken ct)
+        {
+            // Xử lý trực tiếp hoặc gọi Domain Entity
+            await SendAsync(new CreateBookingResponse { Success = true });
+        }
+    }
+    ```
+
+### 3. Ràng buộc Native AOT Readiness
+Để Microservices có thể build Native AOT (tiết kiệm 80% RAM), bắt buộc:
+*   Mọi DTO mới tạo phải được khai báo trong `[JsonSerializable(typeof(MyDto))]` tại `JsonSerializerContext` của Microservice đó.
+*   Tránh sử dụng Reflection/Dynamic code.
+
+### 4. Quản lý Database & Di chuyển (Migration)
+*   EF Core + PostgreSQL. Luôn tạo Migration qua CLI. Không sửa Schema tay.
+
+---
+
+## 🧑‍💻 Quy chuẩn Phân lớp Frontend (React)
+
+Để tránh việc code giao diện chồng chéo lên logic xử lý, frontend bắt buộc chia thành 3 Layer rõ rệt:
+
+### 1. API Layer (`src/features/{feature}/api/`)
+*   **Trách nhiệm:** Chỉ chứa các hàm gọi Axios thuần túy. 
+*   **Quy tắc:** *Tuyệt đối không* chứa state, logic điều hướng URL hay xử lý Token tại đây.
+
+### 2. Hooks Layer (`src/features/{feature}/hooks/`)
+*   **Trách nhiệm:** Bọc các API Fetcher bằng TanStack Query (`useQuery`, `useMutation`).
+*   Được quyền can thiệp vào Navigation (`useNavigate`) hoặc cập nhật Store toàn cục (`useAuthStore`) khi API phản hồi.
+
+### 3. UI Layer (`src/features/{feature}/components/` & `src/pages/`)
+*   **Trách nhiệm:** Hiển thị giao diện trực quan cho người dùng.
+*   **Quy tắc:** Sử dụng Custom Hook từ tầng 2. *Nghiêm cấm* gọi Axios trực tiếp trong UI!
 
 ---
 
 ## 🆘 Khắc phục sự cố thường gặp
 
-*   **Lỗi OOM (Out of Memory) do Kafka/Elasticsearch nuốt RAM:**
-    * Đã được khống chế Heap Size an toàn tại cấu hình AppHost.
-*   **Aspire không tìm thấy Runtime Container:**
-    * Đảm bảo Podman/Docker Engine của bạn đang ở chế độ hoạt động (Running).
+*   **Lỗi OOM (Out of Memory):** Do Kafka/Elasticsearch ngốn RAM, đã được khống chế Heap tối đa 512MB tại `appsettings.json` của AppHost.
+*   **Mất đồng bộ dữ liệu Tìm kiếm:** Kiểm tra xem container Debezium có kết nối được với Kafka và Postgres không.
 
-Hãy chủ động trao đổi qua Discord chung của team nếu gặp bất cứ khó khăn nào!
+Chúc các bạn Code vui vẻ! Mọi thắc mắc hãy tag Leader ngay trên PR.
