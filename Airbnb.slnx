@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Airbnb.BookingService/Airbnb.BookingService.csproj" />
+    <Project Path="src/Airbnb.Gateway/Airbnb.Gateway.csproj" />
+    <Project Path="src/Airbnb.PaymentService/Airbnb.PaymentService.csproj" />
+    <Project Path="src/Airbnb.PropertyService/Airbnb.PropertyService.csproj" />
+    <Project Path="src/Airbnb.SearchService/Airbnb.SearchService.csproj" />
+    <Project Path="src/Airbnb.UserService/Airbnb.UserService.csproj" />
+  </Folder>
+  <Project Path="Airbnb.AppHost/Airbnb.AppHost.csproj" />
+  <Project Path="Airbnb.Infrastructure.Configurator/Airbnb.Infrastructure.Configurator.csproj" />
+  <Project Path="Airbnb.ServiceDefaults/Airbnb.ServiceDefaults.csproj" />
+</Solution>

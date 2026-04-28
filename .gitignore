@@ -1,0 +1,25 @@
+# .NET Core / C#
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+
+# Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+
+# IDEs
+.idea/
+.agent/
+
+# Logs
+*.txt
+*.log
+log.txt
