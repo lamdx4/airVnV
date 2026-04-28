@@ -7,6 +7,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    public DbSet<UserLogin> UserLogins => Set<UserLogin>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,6 +23,15 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
             .HasOne<User>()
             .WithOne(u => u.Profile)
             .HasForeignKey<UserProfile>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserLogin>().ToTable("UserLogins").HasKey(x => x.Id);
+        modelBuilder.Entity<UserLogin>().HasIndex(x => new { x.Provider, x.ProviderKey }).IsUnique();
+
+        modelBuilder.Entity<UserLogin>()
+            .HasOne<User>()
+            .WithMany(u => u.Logins)
+            .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

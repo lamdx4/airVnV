@@ -10,16 +10,17 @@ public class User
 {
     public Guid Id { get; private set; }
     public string Email { get; private set; } = default!;
-    public string HashedPassword { get; private set; } = default!;
+    public string? HashedPassword { get; private set; } // Nullable cho Social Login
     public UserRole Role { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    // 1:1 Mapping
+    // Relationships
     public UserProfile Profile { get; private set; } = default!;
+    public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
 
     private User() { }
 
-    public User(string email, string hashedPassword, UserRole role, string fullName)
+    public User(string email, string? hashedPassword, UserRole role, string fullName)
     {
         Id = Guid.NewGuid();
         Email = email;
@@ -27,6 +28,11 @@ public class User
         Role = role;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
+    }
+
+    public void AddLogin(string provider, string providerKey)
+    {
+        Logins.Add(new UserLogin(Id, provider, providerKey));
     }
 }
 
@@ -44,5 +50,23 @@ public class UserProfile
     {
         UserId = userId;
         FullName = fullName;
+    }
+}
+
+public class UserLogin
+{
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public string Provider { get; private set; } = default!;
+    public string ProviderKey { get; private set; } = default!;
+
+    private UserLogin() { }
+
+    public UserLogin(Guid userId, string provider, string providerKey)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        Provider = provider;
+        ProviderKey = providerKey;
     }
 }
