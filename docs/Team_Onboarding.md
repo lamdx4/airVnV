@@ -75,6 +75,10 @@ Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng 
 *   **Trách nhiệm:** Hiển thị giao diện trực quan cho người dùng.
 *   **Quy tắc:** Sử dụng Custom Hook từ tầng 2. *Nghiêm cấm* gọi Axios trực tiếp trong UI!
 
+### 4. Quản lý State (Zustand)
+*   **Phạm vi áp dụng:** Chỉ sử dụng Zustand để lưu trữ các trạng thái **Toàn cục (Global)** cần chia sẻ giữa nhiều trang độc lập (ví dụ: Authentication, User Profile, Dark/Light Mode).
+*   **Điều cấm:** *Không* dùng Zustand để cache dữ liệu trả về từ API. Việc quản lý cache/stale data hoàn toàn thuộc trách nhiệm của TanStack Query.
+
 ---
 
 ## 🆘 Khắc phục sự cố thường gặp
