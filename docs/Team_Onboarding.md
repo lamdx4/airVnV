@@ -88,6 +88,24 @@ Dự án sử dụng lối thiết kế hiện đại để đạt hiệu năng 
 
 ---
 
+## 🛡️ Quy tắc Chặn Code Rác & Code Thừa (Tech Lead Quality Gates)
+
+Để bảo vệ codebase không bị "ô nhiễm" bởi code thừa hoặc code cẩu thả, toàn bộ team tuân thủ tuyệt đối:
+
+### 1. Sử dụng Pre-commit Hooks (Husky + Lint-staged)
+*   Hệ thống tự động chặn commit nếu code vi phạm tiêu chuẩn format hoặc lỗi cú pháp. Hãy đảm bảo bạn đã chạy `npm run lint` thành công trước khi đẩy code.
+
+### 2. Dọn dẹp Dead Code (Biến/Import không dùng tới)
+*   Bắt buộc bật cấu hình ESLint rule `no-unused-vars` (mức độ `Error`). Mọi dòng code thừa thãi cần được xóa bỏ ngay, không để lại kiểu "để dành sau này dùng".
+
+### 3. Quy chuẩn `console.log`
+*   *Tuyệt đối không* commit các câu lệnh `console.log` debug vào branch chính. Hãy dùng `console.error` khi thực sự cần log lỗi, hoặc xóa sạch trước khi tạo Pull Request.
+
+### 4. Văn hóa Code Review
+*   PR cần ít nhất 1 Senior/Lead duyệt qua trước khi Merge. Không được phép tự Merge code của mình vào `main`.
+
+---
+
 ## 🆘 Khắc phục sự cố thường gặp
 
 *   **Lỗi OOM (Out of Memory):** Do Kafka/Elasticsearch ngốn RAM, đã được khống chế Heap tối đa 512MB tại `appsettings.json` của AppHost.
