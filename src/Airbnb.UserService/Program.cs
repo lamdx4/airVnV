@@ -39,14 +39,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    if (builder.Environment.IsDevelopment())
-        options.SerializerOptions.TypeInfoResolver = UserJsonContext.Default;
-    else
-        options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
-            UserJsonContext.Default, new DefaultJsonTypeInfoResolver());
-});
+
 
 var app = builder.Build();
 
@@ -55,9 +48,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseFastEndpoints(c => {
-    c.Serializer.Options.TypeInfoResolver = UserJsonContext.Default;
-});
+app.UseFastEndpoints();
 
 if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
