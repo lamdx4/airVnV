@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<UserDbContext>("userdb");
 
-builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = "SuperSecretKeyThatIsAtLeast32CharsLong!!");
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!");
 builder.Services.AddAuthorization();
 
 builder.Services.AddFastEndpoints();

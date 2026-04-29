@@ -23,7 +23,13 @@ public class Validator : Validator<Request>
 public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
     private readonly UserDbContext db;
-    public Endpoint(UserDbContext db) => this.db = db;
+    private readonly IConfiguration config;
+
+    public Endpoint(UserDbContext db, IConfiguration config)
+    {
+        this.db = db;
+        this.config = config;
+    }
 
     public override void Configure()
     {
@@ -43,8 +49,9 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             return;
         }
 
+        var key = config["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!";
         var jwtToken = JWTBearer.CreateToken(
-            signingKey: "SuperSecretKeyThatIsAtLeast32CharsLong!!",
+            signingKey: key,
             expireAt: DateTime.UtcNow.AddDays(1),
             claims: [
                 new Claim("UserId", user.Id.ToString()),
