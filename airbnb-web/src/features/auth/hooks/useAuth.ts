@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { loginUser, registerUser, verifyEmail } from '../api/auth';
+import { loginUser, registerUser, verifyEmail, googleAuthUser } from '../api/auth';
 import type { LoginRequest, RegisterRequest, VerifyEmailRequest } from '../types';
 
 export const useLogin = () => {
@@ -46,7 +46,7 @@ export const useGoogleAuth = () => {
 
   return useMutation({
     mutationFn: (data: import('../types').GoogleAuthRequest) => googleAuthUser(data),
-    onSuccess: (data) => {
+    onSuccess: (data: import('../types').GoogleAuthResponse) => {
       if (data.accessToken && data.refreshToken) {
         loginStore.login(data.accessToken, data.refreshToken);
         navigate('/');

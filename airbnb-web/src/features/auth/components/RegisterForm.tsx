@@ -12,7 +12,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState<import('../types').UserRole>('User')
+  const [role] = useState<import('../types').UserRole>('User')
   const [localError, setLocalError] = useState<string | null>(null)
   const [otpCode, setOtpCode] = useState('')
   const [isOtpSent, setIsOtpSent] = useState(false)

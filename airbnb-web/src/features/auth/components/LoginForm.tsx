@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { useLogin, useGoogleAuth } from '../hooks/useAuth'
 import { GoogleLogin } from '@react-oauth/google'
 import { toast } from 'sonner'
+import { getFCMToken } from '@/lib/firebase'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -13,9 +14,10 @@ export function LoginForm() {
   const loginMutation = useLogin()
   const googleAuthMutation = useGoogleAuth()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    loginMutation.mutate({ email, password })
+    const fcmToken = await getFCMToken();
+    loginMutation.mutate({ email, password, fcmToken: fcmToken || undefined })
   }
 
   const errorMessage = loginMutation.error
@@ -82,9 +84,14 @@ export function LoginForm() {
 
       <div className="flex justify-center w-full py-1">
         <GoogleLogin
-          onSuccess={(credentialResponse) => {
+          onSuccess={async (credentialResponse) => {
             if (credentialResponse.credential) {
-              googleAuthMutation.mutate({ idToken: credentialResponse.credential, role: 'User' });
+              const fcmToken = await getFCMToken();
+              googleAuthMutation.mutate({ 
+                idToken: credentialResponse.credential, 
+                role: 'User',
+                fcmToken: fcmToken || undefined 
+              });
             }
           }}
           onError={() => {

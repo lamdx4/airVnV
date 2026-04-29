@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, VerifyEmailRequest, VerifyEmailResponse } from '../types';
+import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, VerifyEmailRequest, VerifyEmailResponse, GoogleAuthRequest, GoogleAuthResponse } from '../types';
 
 export const loginUser = async (data: LoginRequest): Promise<LoginResponse> => {
   const res = await api.post<LoginResponse>('/api/users/login', data);

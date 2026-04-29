@@ -3,6 +3,7 @@ export type UserRole = 'User' | 'Moderator' | 'Admin';
 export interface LoginRequest {
   email: string;
   password: string;
+  fcmToken?: string;
 }
 
 export interface LoginResponse {
@@ -41,6 +42,7 @@ export interface VerifyEmailResponse {
 export interface GoogleAuthRequest {
   idToken: string;
   role: UserRole;
+  fcmToken?: string;
 }
 
 export interface GoogleAuthResponse {
