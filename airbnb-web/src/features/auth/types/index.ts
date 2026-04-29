@@ -21,7 +21,18 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  id: string;
+  message: string;
+  otpCode?: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  otpCode: string;
+}
+
+export interface VerifyEmailResponse {
+  accessToken: string;
+  refreshToken: string;
   fullName: string;
   email: string;
   role: UserRole;

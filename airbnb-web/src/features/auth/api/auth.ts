@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../types';
+import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, VerifyEmailRequest, VerifyEmailResponse } from '../types';
 
 export const loginUser = async (data: LoginRequest): Promise<LoginResponse> => {
   const res = await api.post<LoginResponse>('/api/users/login', data);
@@ -8,5 +8,10 @@ export const loginUser = async (data: LoginRequest): Promise<LoginResponse> => {
 
 export const registerUser = async (data: RegisterRequest): Promise<RegisterResponse> => {
   const res = await api.post<RegisterResponse>('/api/users/register', data);
+  return res.data;
+};
+
+export const verifyEmail = async (data: VerifyEmailRequest): Promise<VerifyEmailResponse> => {
+  const res = await api.post<VerifyEmailResponse>('/api/users/verify-email', data);
   return res.data;
 };

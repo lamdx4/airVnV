@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { loginUser, registerUser } from '../api/auth';
-import type { LoginRequest, RegisterRequest } from '../types';
+import { loginUser, registerUser, verifyEmail } from '../api/auth';
+import type { LoginRequest, RegisterRequest, VerifyEmailRequest } from '../types';
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -20,12 +20,22 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-  const navigate = useNavigate();
-
   return useMutation({
     mutationFn: (data: RegisterRequest) => registerUser(data),
-    onSuccess: () => {
-      navigate('/login');
+  });
+};
+
+export const useVerifyEmail = () => {
+  const navigate = useNavigate();
+  const loginStore = useAuthStore();
+
+  return useMutation({
+    mutationFn: (data: VerifyEmailRequest) => verifyEmail(data),
+    onSuccess: (data) => {
+      if (data.accessToken && data.refreshToken) {
+        loginStore.login(data.accessToken, data.refreshToken);
+        navigate('/');
+      }
     },
   });
 };
