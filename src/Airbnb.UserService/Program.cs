@@ -26,6 +26,16 @@ builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configur
 builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 
@@ -39,6 +49,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
