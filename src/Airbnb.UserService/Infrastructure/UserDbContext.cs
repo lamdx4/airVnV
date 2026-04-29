@@ -10,6 +10,12 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().ToTable("Users").HasKey(x => x.Id);
