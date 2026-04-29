@@ -55,6 +55,7 @@ app.UseCors("AllowAll");
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    db.Database.EnsureDeleted();
     db.Database.EnsureCreated();
 }
 

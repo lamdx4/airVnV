@@ -36,7 +36,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<UserLogin>().Property(x => x.Provider).HasConversion<string>();
 
         modelBuilder.Entity<UserLogin>()
-            .HasOne<User>()
+            .HasOne(x => x.User)
             .WithMany(u => u.Logins)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -48,7 +48,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.RevokedAt).HasColumnType("timestamp with time zone");
 
         modelBuilder.Entity<UserRefreshToken>()
-            .HasOne<User>()
+            .HasOne(x => x.User)
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
