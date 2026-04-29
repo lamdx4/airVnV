@@ -72,6 +72,10 @@ var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
 
 // 6. Frontend (React Vite)
 builder.AddViteApp("frontend", "../airbnb-web")
+    .WithEndpoint("http", e => {
+        e.Port = 5173;
+        e.TargetPort = 5174;
+    })
     .WithReference(gateway)
     .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"));
 
