@@ -49,7 +49,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             return;
         }
 
-        var key = config["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!";
+        var key = config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
         var accessToken = JWTBearer.CreateToken(
             signingKey: key,
             expireAt: DateTime.UtcNow.AddMinutes(15), // Access Token ngắn hạn

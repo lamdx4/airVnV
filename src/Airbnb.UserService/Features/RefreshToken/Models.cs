@@ -52,7 +52,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         tokenRecord.Revoke();
 
         var user = tokenRecord.User;
-        var key = config["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!";
+        var key = config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
         
         var newAccessToken = JWTBearer.CreateToken(
             signingKey: key,
