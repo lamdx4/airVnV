@@ -11,8 +11,8 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data: LoginRequest) => loginUser(data),
     onSuccess: (data) => {
-      if (data.token) {
-        loginStore.login(data.token);
+      if (data.accessToken && data.refreshToken) {
+        loginStore.login(data.accessToken, data.refreshToken);
         navigate('/');
       }
     },

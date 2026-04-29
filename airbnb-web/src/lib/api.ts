@@ -12,7 +12,7 @@ export const api = axios.create({
 // Interceptor tự động đính kèm Token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('airbnb_token');
+    const token = localStorage.getItem('airbnb_access_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,7 +27,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Logout user hoặc redirect về trang Login
-      localStorage.removeItem('airbnb_token');
+      localStorage.removeItem('airbnb_access_token');
+      localStorage.removeItem('airbnb_refresh_token');
+      localStorage.removeItem('airbnb_user_id');
     }
     return Promise.reject(error);
   }

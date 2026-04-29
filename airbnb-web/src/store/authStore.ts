@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 
 interface AuthState {
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   userId: string | null;
   isAuthenticated: boolean;
-  login: (token: string) => void;
+  login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
 
@@ -27,23 +28,26 @@ function parseJwt(token: string) {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token: localStorage.getItem('airbnb_token'),
+  accessToken: localStorage.getItem('airbnb_access_token'),
+  refreshToken: localStorage.getItem('airbnb_refresh_token'),
   userId: localStorage.getItem('airbnb_user_id'),
-  isAuthenticated: !!localStorage.getItem('airbnb_token'),
+  isAuthenticated: !!localStorage.getItem('airbnb_access_token'),
 
-  login: (token: string) => {
-    const claims = parseJwt(token);
-    const userId = claims?.["sub"] || claims?.["X-User-Id"] || claims?.["id"] || null;
+  login: (accessToken: string, refreshToken: string) => {
+    const claims = parseJwt(accessToken);
+    const userId = claims?.["UserId"] || claims?.["sub"] || claims?.["id"] || null;
 
-    localStorage.setItem('airbnb_token', token);
+    localStorage.setItem('airbnb_access_token', accessToken);
+    localStorage.setItem('airbnb_refresh_token', refreshToken);
     if (userId) localStorage.setItem('airbnb_user_id', userId);
 
-    set({ token, userId, isAuthenticated: true });
+    set({ accessToken, refreshToken, userId, isAuthenticated: true });
   },
 
   logout: () => {
-    localStorage.removeItem('airbnb_token');
+    localStorage.removeItem('airbnb_access_token');
+    localStorage.removeItem('airbnb_refresh_token');
     localStorage.removeItem('airbnb_user_id');
-    set({ token: null, userId: null, isAuthenticated: false });
+    set({ accessToken: null, refreshToken: null, userId: null, isAuthenticated: false });
   },
 }));
