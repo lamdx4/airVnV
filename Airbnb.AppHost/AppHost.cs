@@ -9,6 +9,7 @@ var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms512m -Xmx512m";
 
 // 1. Hạ tầng Dữ liệu (Infrastructure)
 var postgres = builder.AddPostgres("postgres")
+    .WithDataVolume("airbnb_pg_data")
     .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical");
 
 var userDb = postgres.AddDatabase("userdb");
@@ -17,10 +18,12 @@ var bookDb = postgres.AddDatabase("bookdb");
 var payDb = postgres.AddDatabase("paydb");
 
 var kafka = builder.AddKafka("kafka")
+    .WithDataVolume("airbnb_kafka_data")
     .WithKafkaUI()
     .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
 
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
+    .WithDataVolume("airbnb_es_data")
     .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
 
 // 2. Debezium (CDC)
@@ -71,7 +74,8 @@ var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
 builder.AddViteApp("frontend", "../airbnb-web")
     .WithEndpoint("http", e => {
         e.Port = 5173;
-        e.TargetPort = 5174;
+        e.TargetPort = 5173;
+        e.IsProxied = false;
     })
     .WithReference(gateway)
     .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"));
