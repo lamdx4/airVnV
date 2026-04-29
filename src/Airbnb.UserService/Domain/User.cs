@@ -1,9 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace Airbnb.UserService.Domain;
 
+[JsonConverter(typeof(JsonStringEnumConverter<UserRole>))]
 public enum UserRole
 {
-    Guest,
-    Host
+    User,
+    Moderator,
+    Admin
 }
 
 public enum AuthProvider

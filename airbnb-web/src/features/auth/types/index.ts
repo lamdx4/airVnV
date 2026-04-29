@@ -1,4 +1,4 @@
-export type UserRole = 0 | 1; // 0 = Guest, 1 = Host
+export type UserRole = 'User' | 'Moderator' | 'Admin';
 
 export interface LoginRequest {
   email: string;
