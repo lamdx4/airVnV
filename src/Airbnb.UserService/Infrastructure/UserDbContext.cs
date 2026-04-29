@@ -44,6 +44,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<UserRefreshToken>().ToTable("UserRefreshTokens").HasKey(x => x.Id);
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.ExpiresAt).HasColumnType("timestamp with time zone");
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<UserRefreshToken>().Property(p => p.LoginAt).HasColumnType("timestamp with time zone");
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.RevokedAt).HasColumnType("timestamp with time zone");
 
         modelBuilder.Entity<UserRefreshToken>()

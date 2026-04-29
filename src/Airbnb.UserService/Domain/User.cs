@@ -112,6 +112,7 @@ public class UserRefreshToken
     public string Token { get; private set; } = default!;
     public DateTime ExpiresAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime LoginAt { get; private set; }
     public DateTime? RevokedAt { get; private set; }
 
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
@@ -126,6 +127,7 @@ public class UserRefreshToken
         Token = token;
         ExpiresAt = expiresAt;
         CreatedAt = DateTime.UtcNow;
+        LoginAt = DateTime.UtcNow;
     }
 
     public void Revoke()
