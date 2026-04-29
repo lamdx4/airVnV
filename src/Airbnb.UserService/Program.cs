@@ -5,7 +5,19 @@ using Airbnb.UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
 
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Initialize Firebase Admin SDK for Push Notifications
+if (File.Exists("firebase-service-account.json"))
+{
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = GoogleCredential.FromFile("firebase-service-account.json")
+    });
+}
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<UserDbContext>("userdb");
