@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Airbnb.UserService.Features.GoogleAuth;
 
 public record Request(string IdToken, UserRole Role);
-public record Response(string Token, string FullName, string Email, UserRole Role);
+public record Response(string AccessToken, string RefreshToken, string FullName, string Email, UserRole Role);
 
 public class Validator : Validator<Request>
 {
@@ -55,6 +55,9 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         var email = payload.Email;
         var fullName = payload.Name ?? "Guest User";
 
+        string token;
+        string refreshToken;
+
         // 1. Kịch bản 1: Đăng nhập bằng Google đã có liên kết
         var login = await db.UserLogins
             .Include(l => l.User)
@@ -65,8 +68,12 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
         if (user != null)
         {
-            var token = GenerateJwt(user);
-            Response = new Response(token, user.Profile.FullName, user.Email, user.Role);
+            token = GenerateJwt(user);
+            refreshToken = Guid.NewGuid().ToString("N");
+            user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+            await db.SaveChangesAsync(ct);
+
+            Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
             return;
         }
 
@@ -79,10 +86,12 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         if (user != null)
         {
             user.AddLogin(AuthProvider.Google, googleId);
+            token = GenerateJwt(user);
+            refreshToken = Guid.NewGuid().ToString("N");
+            user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
             await db.SaveChangesAsync(ct);
 
-            var token = GenerateJwt(user);
-            Response = new Response(token, user.Profile.FullName, user.Email, user.Role);
+            Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
             return;
         }
 
@@ -90,10 +99,12 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         user = new User(email, req.Role, fullName, AuthProvider.Google, googleId);
 
         db.Users.Add(user);
+        token = GenerateJwt(user);
+        refreshToken = Guid.NewGuid().ToString("N");
+        user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
         await db.SaveChangesAsync(ct);
 
-        var jwtToken = GenerateJwt(user);
-        Response = new Response(jwtToken, user.Profile.FullName, user.Email, user.Role);
+        Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
     }
 
     private string GenerateJwt(User user)
@@ -101,7 +112,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         var key = config["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!";
         return JWTBearer.CreateToken(
             signingKey: key,
-            expireAt: DateTime.UtcNow.AddDays(1),
+            expireAt: DateTime.UtcNow.AddMinutes(15),
             claims: [
                 new Claim("UserId", user.Id.ToString()),
                 new Claim(ClaimTypes.Role, user.Role.ToString())

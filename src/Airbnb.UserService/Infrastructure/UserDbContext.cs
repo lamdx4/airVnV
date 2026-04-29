@@ -8,6 +8,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
+    public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,17 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<UserLogin>()
             .HasOne<User>()
             .WithMany(u => u.Logins)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserRefreshToken>().ToTable("UserRefreshTokens").HasKey(x => x.Id);
+        modelBuilder.Entity<UserRefreshToken>().Property(p => p.ExpiresAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<UserRefreshToken>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<UserRefreshToken>().Property(p => p.RevokedAt).HasColumnType("timestamp with time zone");
+
+        modelBuilder.Entity<UserRefreshToken>()
+            .HasOne<User>()
+            .WithMany(u => u.RefreshTokens)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }

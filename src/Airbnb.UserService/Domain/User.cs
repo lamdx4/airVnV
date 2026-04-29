@@ -24,6 +24,7 @@ public class User
     // Relationships
     public UserProfile Profile { get; private set; } = default!;
     public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
+    public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
     private User() { }
 
@@ -60,6 +61,11 @@ public class User
     {
         Logins.Add(new UserLogin(Id, provider, providerKey));
     }
+
+    public void AddRefreshToken(string token, DateTime expiresAt)
+    {
+        RefreshTokens.Add(new UserRefreshToken(Id, token, expiresAt));
+    }
 }
 
 public class UserProfile
@@ -95,5 +101,35 @@ public class UserLogin
         UserId = userId;
         Provider = provider;
         ProviderKey = providerKey;
+    }
+}
+
+public class UserRefreshToken
+{
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public User User { get; private set; } = default!;
+    public string Token { get; private set; } = default!;
+    public DateTime ExpiresAt { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? RevokedAt { get; private set; }
+
+    public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    public bool IsActive => RevokedAt == null && !IsExpired;
+
+    private UserRefreshToken() { }
+
+    public UserRefreshToken(Guid userId, string token, DateTime expiresAt)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        Token = token;
+        ExpiresAt = expiresAt;
+        CreatedAt = DateTime.UtcNow;
+    }
+
+    public void Revoke()
+    {
+        RevokedAt = DateTime.UtcNow;
     }
 }

@@ -10,5 +10,7 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(Features.Login.Response))]
 [JsonSerializable(typeof(Features.GoogleAuth.Request))]
 [JsonSerializable(typeof(Features.GoogleAuth.Response))]
+[JsonSerializable(typeof(Features.RefreshToken.Request))]
+[JsonSerializable(typeof(Features.RefreshToken.Response))]
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class UserJsonContext : JsonSerializerContext { }

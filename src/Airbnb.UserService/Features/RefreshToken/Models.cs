@@ -6,17 +6,16 @@ using Airbnb.UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace Airbnb.UserService.Features.Login;
+namespace Airbnb.UserService.Features.RefreshToken;
 
-public record Request(string Email, string Password);
-public record Response(string AccessToken, string RefreshToken, string FullName, string Email, UserRole Role);
+public record Request(string RefreshToken);
+public record Response(string AccessToken, string RefreshToken);
 
 public class Validator : Validator<Request>
 {
     public Validator()
     {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Password).NotEmpty();
+        RuleFor(x => x.RefreshToken).NotEmpty();
     }
 }
 
@@ -33,35 +32,41 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override void Configure()
     {
-        Post("/api/users/login");
+        Post("/api/users/refresh-token");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var user = await db.Users
-            .Include(u => u.Profile)
-            .FirstOrDefaultAsync(u => u.Email == req.Email, ct);
+        var tokenRecord = await db.UserRefreshTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Token == req.RefreshToken, ct);
 
-        if (user == null || user.HashedPassword != req.Password)
+        if (tokenRecord == null || !tokenRecord.IsActive)
         {
-            await base.SendAsync(null!, 401, ct);
+            await SendAsync(null!, 401, ct);
             return;
         }
 
+        // Thu hồi Refresh Token hiện tại (Rotate)
+        tokenRecord.Revoke();
+
+        var user = tokenRecord.User;
         var key = config["Jwt:SigningKey"] ?? "SuperSecretKeyThatIsAtLeast32CharsLong!!";
-        var accessToken = JWTBearer.CreateToken(
+        
+        var newAccessToken = JWTBearer.CreateToken(
             signingKey: key,
-            expireAt: DateTime.UtcNow.AddMinutes(15), // Access Token ngắn hạn
+            expireAt: DateTime.UtcNow.AddMinutes(15),
             claims: [
                 new Claim("UserId", user.Id.ToString()),
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             ]);
 
-        var refreshToken = Guid.NewGuid().ToString("N");
-        user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+        var newRefreshToken = Guid.NewGuid().ToString("N");
+        user.AddRefreshToken(newRefreshToken, DateTime.UtcNow.AddDays(7));
+        
         await db.SaveChangesAsync(ct);
 
-        Response = new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
+        Response = new Response(newAccessToken, newRefreshToken);
     }
 }
