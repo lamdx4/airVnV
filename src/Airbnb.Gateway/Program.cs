@@ -36,6 +36,7 @@ builder.Services.AddCors(options =>
 // 2. YARP with Header Transformation
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddServiceDiscoveryDestinationResolver()
     .AddTransforms(transformBuilder =>
     {
         transformBuilder.AddRequestTransform(transformContext =>
