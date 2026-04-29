@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Airbnb.UserService.Domain;
 using Airbnb.UserService.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Airbnb.UserService.Features.RegisterUser;
 
@@ -32,6 +33,13 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        var exists = await db.Users.AnyAsync(u => u.Email == req.Email, ct);
+        if (exists)
+        {
+            await SendAsync(null!, 400, ct);
+            return;
+        }
+
         var user = new User(req.Email, req.Password, req.Role, req.FullName); 
         
         db.Users.Add(user);
