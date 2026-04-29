@@ -18,6 +18,9 @@ export default defineConfig({
   server: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
     host: true,
-    hmr: false,
+    strictPort: true,
+    hmr: {
+      clientPort: 5173,
+    },
   }
 })
