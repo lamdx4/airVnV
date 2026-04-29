@@ -10,10 +10,7 @@ var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms512m -Xmx512m";
 // 1. Hạ tầng Dữ liệu (Infrastructure)
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume("airbnb_pg_data")
-    .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical")
-    .WithEndpoint("tcp", e => {
-        e.Port = 5432;
-    });
+    .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical");
 
 var userDb = postgres.AddDatabase("userdb");
 var propDb = postgres.AddDatabase("propdb");
