@@ -3,11 +3,12 @@ using FluentValidation;
 using Airbnb.UserService.Domain;
 using Airbnb.UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Airbnb.UserService.Features.RegisterUser;
 
 public record Request(string FullName, string Email, string Password, UserRole Role);
-public record Response(Guid Id, string FullName, string Email, UserRole Role);
+public record Response(string Message, string? OtpCode);
 
 public class Validator : Validator<Request>
 {
@@ -23,7 +24,13 @@ public class Validator : Validator<Request>
 public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
     private readonly UserDbContext db;
-    public Endpoint(UserDbContext db) => this.db = db;
+    private readonly IMemoryCache cache;
+
+    public Endpoint(UserDbContext db, IMemoryCache cache)
+    {
+        this.db = db;
+        this.cache = cache;
+    }
 
     public override void Configure()
     {
@@ -40,11 +47,14 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             return;
         }
 
-        var user = new User(req.Email, req.Password, req.Role, req.FullName); 
+        // Tạo mã OTP ngẫu nhiên 6 số
+        var otp = new Random().Next(100000, 999999).ToString();
         
-        db.Users.Add(user);
-        await db.SaveChangesAsync(ct);
-        
-        Response = new Response(user.Id, user.Profile.FullName, user.Email, user.Role);
+        // Lưu thông tin payload + OTP vào MemoryCache 15 phút
+        var cacheKey = $"reg_{req.Email}";
+        cache.Set(cacheKey, (req, otp), TimeSpan.FromMinutes(15));
+
+        // Trả về mã OTP (Chỉ làm ở môi trường Dev/Học tập cho tiện FE)
+        Response = new Response("Mã OTP đã được tạo!", otp);
     }
 }
