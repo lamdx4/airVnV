@@ -11,7 +11,9 @@ var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms512m -Xmx512m";
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume("airbnb_pg_data")
     .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical")
-    .WithEndpoint(targetPort: 5432, port: 5432);
+    .WithEndpoint("tcp", e => {
+        e.Port = 5432;
+    });
 
 var userDb = postgres.AddDatabase("userdb");
 var propDb = postgres.AddDatabase("propdb");
