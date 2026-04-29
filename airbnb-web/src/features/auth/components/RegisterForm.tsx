@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useRegister, useVerifyEmail } from '../hooks/useAuth'
+import { useRegister, useVerifyEmail, useGoogleAuth } from '../hooks/useAuth'
+import { GoogleLogin } from '@react-oauth/google'
+import { toast } from 'sonner'
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -18,6 +20,7 @@ export function RegisterForm() {
 
   const registerMutation = useRegister()
   const verifyMutation = useVerifyEmail()
+  const googleAuthMutation = useGoogleAuth()
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault()
@@ -165,6 +168,26 @@ export function RegisterForm() {
       >
         {registerMutation.isPending ? 'Đang gửi yêu cầu...' : 'Đăng ký'}
       </Button>
+
+      <div className="flex items-center gap-4 my-2">
+        <div className="flex-1 h-px bg-slate-200"></div>
+        <span className="text-slate-400 text-xs uppercase">Hoặc</span>
+        <div className="flex-1 h-px bg-slate-200"></div>
+      </div>
+
+      <div className="flex justify-center w-full py-1">
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            if (credentialResponse.credential) {
+              googleAuthMutation.mutate({ idToken: credentialResponse.credential, role: 'User' });
+            }
+          }}
+          onError={() => {
+            toast.error('Đăng ký bằng Google thất bại!');
+          }}
+          useOneTap
+        />
+      </div>
 
       <p className="text-center text-sm text-slate-600 pt-2">
         Đã có tài khoản?{' '}

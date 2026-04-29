@@ -15,3 +15,8 @@ export const verifyEmail = async (data: VerifyEmailRequest): Promise<VerifyEmail
   const res = await api.post<VerifyEmailResponse>('/api/users/verify-email', data);
   return res.data;
 };
+
+export const googleAuthUser = async (data: GoogleAuthRequest): Promise<GoogleAuthResponse> => {
+  const res = await api.post<GoogleAuthResponse>('/api/users/google-auth', data);
+  return res.data;
+};

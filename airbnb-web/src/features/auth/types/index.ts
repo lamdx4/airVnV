@@ -37,3 +37,16 @@ export interface VerifyEmailResponse {
   email: string;
   role: UserRole;
 }
+
+export interface GoogleAuthRequest {
+  idToken: string;
+  role: UserRole;
+}
+
+export interface GoogleAuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+}

@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useLogin } from '../hooks/useAuth'
+import { useLogin, useGoogleAuth } from '../hooks/useAuth'
+import { GoogleLogin } from '@react-oauth/google'
+import { toast } from 'sonner'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const loginMutation = useLogin()
+  const googleAuthMutation = useGoogleAuth()
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,13 +80,19 @@ export function LoginForm() {
         <div className="flex-1 h-px bg-slate-200"></div>
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full h-12 border-slate-200 focus:border-rausch focus:ring-rausch rounded-xl font-medium text-slate-800 hover:bg-slate-50 flex items-center justify-center gap-2"
-      >
-        Tiếp tục với Google
-      </Button>
+      <div className="flex justify-center w-full py-1">
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            if (credentialResponse.credential) {
+              googleAuthMutation.mutate({ idToken: credentialResponse.credential, role: 'User' });
+            }
+          }}
+          onError={() => {
+            toast.error('Đăng nhập bằng Google thất bại!');
+          }}
+          useOneTap
+        />
+      </div>
 
       <p className="text-center text-sm text-slate-600 pt-2">
         Chưa có tài khoản?{' '}

@@ -39,3 +39,18 @@ export const useVerifyEmail = () => {
     },
   });
 };
+
+export const useGoogleAuth = () => {
+  const navigate = useNavigate();
+  const loginStore = useAuthStore();
+
+  return useMutation({
+    mutationFn: (data: import('../types').GoogleAuthRequest) => googleAuthUser(data),
+    onSuccess: (data) => {
+      if (data.accessToken && data.refreshToken) {
+        loginStore.login(data.accessToken, data.refreshToken);
+        navigate('/');
+      }
+    },
+  });
+};

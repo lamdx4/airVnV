@@ -5,6 +5,8 @@ import { Toaster, toast } from 'sonner'
 import './index.css'
 import App from './App.tsx'
 
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error: any) => {
@@ -18,11 +20,15 @@ const queryClient = new QueryClient({
   }),
 })
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-      <Toaster position="top-right" richColors closeButton />
-    </QueryClientProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+        <Toaster position="top-right" richColors closeButton />
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   </StrictMode>,
 )
