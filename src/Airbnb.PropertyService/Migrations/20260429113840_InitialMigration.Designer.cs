@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Airbnb.PropertyService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260429111922_UpdateModelFix")]
-    partial class UpdateModelFix
+    [Migration("20260429113840_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
