@@ -26,28 +26,25 @@ builder.Services.SwaggerDocument(o =>
 // 4. Staff-level JSON Source Gen SOP (Hybrid & Fail-fast)
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // Fail-fast: Nếu thiếu DTO trong context, app sẽ văng lỗi ngay lúc Dev
-        options.SerializerOptions.TypeInfoResolver = PropertyJsonContext.Default;
-    }
-    else
-    {
-        // Production: Combine với Fallback an toàn (nhưng ưu tiên AOT context trước)
-        options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
-            PropertyJsonContext.Default,
-            new DefaultJsonTypeInfoResolver()
-        );
-    }
+    options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+        PropertyJsonContext.Default, 
+        new DefaultJsonTypeInfoResolver());
 });
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // 5. Middleware pipeline
 app.UseFastEndpoints(c =>
 {
-    // Đồng bộ hóa JsonSerializerOptions cho FastEndpoints
-    c.Serializer.Options.TypeInfoResolver = PropertyJsonContext.Default;
+    c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+        PropertyJsonContext.Default, 
+        new DefaultJsonTypeInfoResolver());
 });
 
 if (app.Environment.IsDevelopment())
