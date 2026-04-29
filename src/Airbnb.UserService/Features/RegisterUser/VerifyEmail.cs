@@ -43,7 +43,7 @@ public class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, VerifyEmailRespo
     {
         var cacheKey = $"reg_{req.Email}";
         
-        if (!cache.TryGetValue(cacheKey, out (Request regData, string otp) cached))
+        if (!cache.TryGetValue(cacheKey, out (Request regData, string otp, int failedAttempts) cached))
         {
             await SendAsync(null!, 400, ct);
             return;
@@ -51,6 +51,19 @@ public class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, VerifyEmailRespo
 
         if (cached.otp != req.OtpCode)
         {
+            var newFailedAttempts = cached.failedAttempts + 1;
+
+            if (newFailedAttempts >= 5)
+            {
+                // Khóa/Hủy luôn phiên OTP này
+                cache.Remove(cacheKey);
+                await SendAsync(null!, 429, ct); // 429 Too Many Requests
+                return;
+            }
+
+            // Cập nhật lại số lần sai vào Cache
+            cache.Set(cacheKey, (cached.regData, cached.otp, newFailedAttempts), TimeSpan.FromMinutes(15));
+
             await SendAsync(null!, 400, ct);
             return;
         }

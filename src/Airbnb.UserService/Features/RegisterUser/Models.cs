@@ -52,7 +52,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         
         // Lưu thông tin payload + OTP vào MemoryCache 15 phút
         var cacheKey = $"reg_{req.Email}";
-        cache.Set(cacheKey, (req, otp), TimeSpan.FromMinutes(15));
+        cache.Set(cacheKey, (req, otp, 0), TimeSpan.FromMinutes(15));
 
         // Trả về mã OTP (Chỉ làm ở môi trường Dev/Học tập cho tiện FE)
         Response = new Response("Mã OTP đã được tạo!", otp);
