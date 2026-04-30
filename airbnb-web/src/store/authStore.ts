@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthState {
   accessToken: string | null;
@@ -9,20 +10,13 @@ interface AuthState {
   logout: () => void;
 }
 
-// Helper parse JWT claims không cần thư viện ngoài
-function parseJwt(token: string) {
+// Parse JWT claims safely
+function extractUserId(token: string): string | null {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window
-        .atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
+    const decoded = jwtDecode<Record<string, unknown>>(token);
+    return (decoded?.UserId ?? decoded?.sub ?? decoded?.id) as string | null;
+  } catch (error) {
+    console.warn('Failed to decode JWT token:', error);
     return null;
   }
 }
@@ -34,8 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!localStorage.getItem('airbnb_access_token'),
 
   login: (accessToken: string, refreshToken: string) => {
-    const claims = parseJwt(accessToken);
-    const userId = claims?.["UserId"] || claims?.["sub"] || claims?.["id"] || null;
+    const userId = extractUserId(accessToken);
 
     localStorage.setItem('airbnb_access_token', accessToken);
     localStorage.setItem('airbnb_refresh_token', refreshToken);

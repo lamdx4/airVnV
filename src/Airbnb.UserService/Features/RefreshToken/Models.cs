@@ -21,13 +21,13 @@ public class Validator : Validator<Request>
 
 public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
-    private readonly UserDbContext db;
-    private readonly IConfiguration config;
+    private readonly UserDbContext _db;
+    private readonly IConfiguration _config;
 
     public Endpoint(UserDbContext db, IConfiguration config)
     {
-        this.db = db;
-        this.config = config;
+        _db = db;
+        _config = config;
     }
 
     public override void Configure()
@@ -38,7 +38,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var tokenRecord = await db.UserRefreshTokens
+        var tokenRecord = await _db.UserRefreshTokens
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.Token == req.RefreshToken, ct);
 
@@ -52,20 +52,20 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         tokenRecord.Revoke();
 
         var user = tokenRecord.User;
-        var key = config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
+        var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
         
-        var newAccessToken = JWTBearer.CreateToken(
-            signingKey: key,
-            expireAt: DateTime.UtcNow.AddMinutes(15),
-            claims: [
-                new Claim("UserId", user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
-            ]);
+        var newAccessToken = JwtBearer.CreateToken(o =>
+        {
+            o.SigningKey = key;
+            o.ExpireAt = DateTime.UtcNow.AddMinutes(15);
+            o.User.Claims.Add(new Claim("UserId", user.Id.ToString()));
+            o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+        });
 
         var newRefreshToken = Guid.NewGuid().ToString("N");
         user.AddRefreshToken(newRefreshToken, DateTime.UtcNow.AddDays(7));
         
-        await db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(ct);
 
         Response = new Response(newAccessToken, newRefreshToken);
     }
