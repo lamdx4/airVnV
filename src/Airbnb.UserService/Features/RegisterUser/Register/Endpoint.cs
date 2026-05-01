@@ -20,7 +20,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         }
         catch (InvalidOperationException ex)
         {
-            await SendAsync(ApiResponse<Response>.FailureResult([ex.Message], "Registration failed"), 400, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult("USER_ALREADY_EXISTS", ex.Message), 400, ct);
         }
     }
 }

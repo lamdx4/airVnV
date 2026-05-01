@@ -21,7 +21,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         }
         catch (UnauthorizedAccessException)
         {
-            await SendAsync(null!, 401, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult("AUTH_INVALID_CREDENTIALS", "Email hoặc mật khẩu không chính xác"), 401, ct);
         }
     }
 }

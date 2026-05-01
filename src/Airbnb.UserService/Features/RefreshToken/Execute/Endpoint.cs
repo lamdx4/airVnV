@@ -20,7 +20,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         }
         catch (UnauthorizedAccessException)
         {
-            await SendAsync(null!, 401, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult("AUTH_TOKEN_INVALID", "Refresh token không hợp lệ hoặc đã hết hạn"), 401, ct);
         }
     }
 }

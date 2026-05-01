@@ -20,7 +20,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         }
         catch (Exception)
         {
-            await SendAsync(null!, 401, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult("AUTH_GOOGLE_FAILED", "Xác thực Google thất bại"), 401, ct);
         }
     }
 }

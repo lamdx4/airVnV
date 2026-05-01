@@ -129,6 +129,7 @@ public record ApiResponse<T>(
     T? Data, 
     string? Message = null, 
     bool Success = true, 
+    string? ErrorCode = null, 
     List<string>? Errors = null)
 {
     public DateTime Timestamp { get; } = DateTime.UtcNow;
@@ -138,5 +139,5 @@ public record ApiResponse<T>(
 ### Quy tắc:
 - **Success:** Trả về `ApiResponse<T>` với `Success = true`.
 - **Validation Error:** Framework tự động trả về `ErrorResponse` (400/422).
-- **Business/Auth Error:** Sử dụng HTTP Status Code phù hợp (401, 403, 404).
+- **Business/Auth Error:** Sử dụng HTTP Status Code phù hợp (401, 403, 404) kèm theo **ErrorCode** định danh (ví dụ: `USER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`).
 

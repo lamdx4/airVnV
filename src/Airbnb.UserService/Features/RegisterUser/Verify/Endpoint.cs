@@ -20,7 +20,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         }
         catch (InvalidOperationException ex)
         {
-            await SendAsync(ApiResponse<Response>.FailureResult([ex.Message], "Verification failed"), 400, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult("VERIFY_FAILED", ex.Message), 400, ct);
         }
     }
 }
