@@ -20,10 +20,24 @@ public class Validator : Validator<Request>
     }
 }
 
-// Application Layer: Handler
-public class LoginHandler(UserDbContext _db, IConfiguration _config)
+public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
-    public async Task<Response?> HandleAsync(Request req, CancellationToken ct)
+    private readonly UserDbContext _db;
+    private readonly IConfiguration _config;
+
+    public Endpoint(UserDbContext db, IConfiguration config)
+    {
+        _db = db;
+        _config = config;
+    }
+
+    public override void Configure()
+    {
+        Post("/api/users/login");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
@@ -31,7 +45,8 @@ public class LoginHandler(UserDbContext _db, IConfiguration _config)
 
         if (user == null || user.HashedPassword != req.Password)
         {
-            return null;
+            await base.SendAsync(null!, 401, ct);
+            return;
         }
 
         var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
@@ -47,29 +62,6 @@ public class LoginHandler(UserDbContext _db, IConfiguration _config)
         user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
         await _db.SaveChangesAsync(ct);
 
-        return new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
-    }
-}
-
-// Web Layer: Endpoint
-public class Endpoint(LoginHandler _handler) : FastEndpoints.Endpoint<Request, Response>
-{
-    public override void Configure()
-    {
-        Post("/api/users/login");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Request req, CancellationToken ct)
-    {
-        var result = await _handler.HandleAsync(req, ct);
-
-        if (result == null)
-        {
-            await base.SendAsync(null!, 401, ct);
-            return;
-        }
-
-        Response = result;
+        Response = new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
     }
 }

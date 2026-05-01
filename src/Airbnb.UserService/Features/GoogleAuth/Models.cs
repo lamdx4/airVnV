@@ -21,10 +21,24 @@ public class Validator : Validator<Request>
     }
 }
 
-// Application Layer: Handler
-public class GoogleAuthHandler(UserDbContext _db, IConfiguration _config)
+public class Endpoint : Endpoint<Request, Response>
 {
-    public async Task<Response?> HandleAsync(Request req, CancellationToken ct)
+    private readonly UserDbContext _db;
+    private readonly IConfiguration _config;
+    
+    public Endpoint(UserDbContext db, IConfiguration config)
+    {
+        _db = db;
+        _config = config;
+    }
+
+    public override void Configure()
+    {
+        Post("/api/users/google-auth");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         GoogleJsonWebSignature.Payload payload;
         try
@@ -33,12 +47,16 @@ public class GoogleAuthHandler(UserDbContext _db, IConfiguration _config)
         }
         catch (Exception)
         {
-            return null;
+            await SendAsync(null!, 401, ct);
+            return;
         }
 
         var googleId = payload.Subject;
         var email = payload.Email;
         var fullName = payload.Name ?? "Guest User";
+
+        string token;
+        string refreshToken;
 
         // 1. Kịch bản 1: Đăng nhập bằng Google đã có liên kết
         var login = await _db.UserLogins
@@ -50,7 +68,13 @@ public class GoogleAuthHandler(UserDbContext _db, IConfiguration _config)
 
         if (user != null)
         {
-            return await CreateAuthResponse(user, ct);
+            token = GenerateJwt(user);
+            refreshToken = Guid.NewGuid().ToString("N");
+            user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+            await _db.SaveChangesAsync(ct);
+
+            Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
+            return;
         }
 
         // 2. Kịch bản 2: Liên kết tài khoản qua Email
@@ -62,53 +86,36 @@ public class GoogleAuthHandler(UserDbContext _db, IConfiguration _config)
         if (user != null)
         {
             user.AddLogin(AuthProvider.Google, googleId);
-            return await CreateAuthResponse(user, ct);
+            token = GenerateJwt(user);
+            refreshToken = Guid.NewGuid().ToString("N");
+            user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+            await _db.SaveChangesAsync(ct);
+
+            Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
+            return;
         }
 
         // 3. Kịch bản 3: Đăng ký mới
         user = new User(email, req.Role, fullName, AuthProvider.Google, googleId);
+
         _db.Users.Add(user);
-        return await CreateAuthResponse(user, ct);
+        token = GenerateJwt(user);
+        refreshToken = Guid.NewGuid().ToString("N");
+        user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+        await _db.SaveChangesAsync(ct);
+
+        Response = new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
     }
 
-    private async Task<Response> CreateAuthResponse(User user, CancellationToken ct)
+    private string GenerateJwt(User user)
     {
         var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
-        var token = JwtBearer.CreateToken(o =>
+        return JwtBearer.CreateToken(o =>
         {
             o.SigningKey = key;
             o.ExpireAt = DateTime.UtcNow.AddMinutes(15);
             o.User.Claims.Add(new Claim("UserId", user.Id.ToString()));
             o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
         });
-
-        var refreshToken = Guid.NewGuid().ToString("N");
-        user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
-        await _db.SaveChangesAsync(ct);
-
-        return new Response(token, refreshToken, user.Profile.FullName, user.Email, user.Role);
-    }
-}
-
-// Web Layer: Endpoint
-public class Endpoint(GoogleAuthHandler _handler) : Endpoint<Request, Response>
-{
-    public override void Configure()
-    {
-        Post("/api/users/google-auth");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Request req, CancellationToken ct)
-    {
-        var result = await _handler.HandleAsync(req, ct);
-
-        if (result == null)
-        {
-            await SendAsync(null!, 401, ct);
-            return;
-        }
-
-        Response = result;
     }
 }

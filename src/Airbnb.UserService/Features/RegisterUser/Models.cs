@@ -21,15 +21,30 @@ public class Validator : Validator<Request>
     }
 }
 
-// Application Layer: Handler
-public class RegisterHandler(UserDbContext _db, IMemoryCache _cache)
+public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
-    public async Task<Response?> HandleAsync(Request req, CancellationToken ct)
+    private readonly UserDbContext _db;
+    private readonly IMemoryCache _cache;
+
+    public Endpoint(UserDbContext db, IMemoryCache cache)
+    {
+        _db = db;
+        _cache = cache;
+    }
+
+    public override void Configure()
+    {
+        Post("/api/users/register");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var exists = await _db.Users.AnyAsync(u => u.Email == req.Email, ct);
         if (exists)
         {
-            return null;
+            await SendAsync(null!, 400, ct);
+            return;
         }
 
         // Tạo mã OTP ngẫu nhiên 6 số
@@ -39,29 +54,7 @@ public class RegisterHandler(UserDbContext _db, IMemoryCache _cache)
         var cacheKey = $"reg_{req.Email}";
         _cache.Set(cacheKey, (req, otp, 0), TimeSpan.FromMinutes(15));
 
-        return new Response("Mã OTP đã được tạo!", otp);
-    }
-}
-
-// Web Layer: Endpoint
-public class Endpoint(RegisterHandler _handler) : FastEndpoints.Endpoint<Request, Response>
-{
-    public override void Configure()
-    {
-        Post("/api/users/register");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Request req, CancellationToken ct)
-    {
-        var result = await _handler.HandleAsync(req, ct);
-
-        if (result == null)
-        {
-            await SendAsync(null!, 400, ct);
-            return;
-        }
-
-        Response = result;
+        // Trả về mã OTP (Chỉ làm ở môi trường Dev/Học tập cho tiện FE)
+        Response = new Response("Mã OTP đã được tạo!", otp);
     }
 }

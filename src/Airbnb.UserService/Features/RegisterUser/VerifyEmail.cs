@@ -20,16 +20,33 @@ public class VerifyEmailValidator : Validator<VerifyEmailRequest>
     }
 }
 
-// Application Layer: Handler
-public class VerifyEmailHandler(UserDbContext _db, IMemoryCache _cache, IConfiguration _config)
+public class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, VerifyEmailResponse>
 {
-    public async Task<VerifyEmailResponse?> HandleAsync(VerifyEmailRequest req, CancellationToken ct)
+    private readonly UserDbContext _db;
+    private readonly IMemoryCache _cache;
+    private readonly IConfiguration _config;
+
+    public VerifyEmailEndpoint(UserDbContext db, IMemoryCache cache, IConfiguration config)
+    {
+        _db = db;
+        _cache = cache;
+        _config = config;
+    }
+
+    public override void Configure()
+    {
+        Post("/api/users/verify-email");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(VerifyEmailRequest req, CancellationToken ct)
     {
         var cacheKey = $"reg_{req.Email}";
         
         if (!_cache.TryGetValue(cacheKey, out (Request regData, string otp, int failedAttempts) cached))
         {
-            return null;
+            await SendAsync(null!, 400, ct);
+            return;
         }
 
         if (cached.otp != req.OtpCode)
@@ -38,12 +55,17 @@ public class VerifyEmailHandler(UserDbContext _db, IMemoryCache _cache, IConfigu
 
             if (newFailedAttempts >= 5)
             {
+                // Khóa/Hủy luôn phiên OTP này
                 _cache.Remove(cacheKey);
-                throw new InvalidOperationException("Too many failed attempts");
+                await SendAsync(null!, 429, ct); // 429 Too Many Requests
+                return;
             }
 
+            // Cập nhật lại số lần sai vào Cache
             _cache.Set(cacheKey, (cached.regData, cached.otp, newFailedAttempts), TimeSpan.FromMinutes(15));
-            return null;
+
+            await SendAsync(null!, 400, ct);
+            return;
         }
 
         // OTP Đúng -> Tiến hành tạo tài khoản vào Postgres
@@ -69,36 +91,6 @@ public class VerifyEmailHandler(UserDbContext _db, IMemoryCache _cache, IConfigu
         // Dọn dẹp Cache
         _cache.Remove(cacheKey);
 
-        return new VerifyEmailResponse(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
-    }
-}
-
-// Web Layer: Endpoint
-public class VerifyEmailEndpoint(VerifyEmailHandler _handler) : Endpoint<VerifyEmailRequest, VerifyEmailResponse>
-{
-    public override void Configure()
-    {
-        Post("/api/users/verify-email");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(VerifyEmailRequest req, CancellationToken ct)
-    {
-        try
-        {
-            var result = await _handler.HandleAsync(req, ct);
-
-            if (result == null)
-            {
-                await SendAsync(null!, 400, ct);
-                return;
-            }
-
-            Response = result;
-        }
-        catch (InvalidOperationException ex) when (ex.Message == "Too many failed attempts")
-        {
-            await SendAsync(null!, 429, ct);
-        }
+        Response = new VerifyEmailResponse(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
     }
 }

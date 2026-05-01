@@ -2,79 +2,118 @@
 trigger: always_on
 ---
 
-# 🛠️ Quy tắc Dự án AirVnV (Project Rules)
+# 🧱 FINAL RULE – FASTENDPOINTS (TEAM-SAFE)
 
-Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Developer khi tham gia phát triển dự án AirVnV, được tổng hợp từ tài liệu BA, Kiến trúc và Quy chuẩn kỹ thuật.
-
----
-
-## 🏛️ 1. Kiến trúc Hệ thống (System Architecture)
-
-### 1.1 Microservices & Database
-
-- **Độc lập Dữ liệu:** Áp dụng mô hình **Database-per-Microservice**. Tuyệt đối không truy vấn chéo database giữa các service.
-- **Tham chiếu:** Chỉ được tham chiếu các Entity của service khác thông qua **ID (Guid)**.
-- **Orchestration:** Sử dụng **.NET Aspire** để quản lý Service Discovery và Configuration. Không gán cứng (hardcode) chuỗi kết nối.
-
-### 1.2 Giao tiếp liên dịch vụ (Inter-service Communication)
-
-- **CDC (Change Data Capture):** Sử dụng **Debezium** để đồng bộ dữ liệu từ `PropertyService` (Postgres) sang `SearchService` (Elasticsearch). Không gọi API đồng bộ để cập nhật Search Index.
-- **Event-Driven:** Sử dụng **Kafka** cho các logic nghiệp vụ chéo (ví dụ: Thanh toán thành công -> Cập nhật trạng thái Đặt phòng).
-- **Transactional Outbox:** Bắt buộc lưu Event vào bảng `Outbox` trong cùng một Transaction với logic nghiệp vụ chính. KHÔNG bắn Kafka trực tiếp từ Handler.
-- **Idempotency:** Mọi Consumer phải có cơ chế chống trùng lặp (ví dụ: bảng `ProcessedEvent`).
+Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Developer khi tham gia phát triển dự án AirVnV.
 
 ---
 
-## 💻 2. Quy chuẩn Backend (.NET)
+## 🏛️ 1. Structure (bắt buộc, không tranh luận)
 
-### 2.1 Cấu trúc mã nguồn (Vertical Slice Architecture)
+```text
+/Features
+  /<FeatureName>
+    /<UseCase>
+       Endpoint.cs
+       Request.cs        (nếu có input)
+       Response.cs
+       Handler.cs        (nếu cần)
+       Validator.cs      (optional)
+```
 
-- **Vertical Slices:** Đóng gói toàn bộ DTO, Endpoint, và Logic của một nghiệp vụ (Use Case) vào chung một thư mục/class. Loại bỏ Controllers kiểu MVC truyền thống.
-- **REPR Pattern:** Sử dụng **FastEndpoints**. Mỗi Class kế thừa `Endpoint<TRequest, TResponse>` đại diện cho một API.
-
-### 2.2 Native AOT Readiness (Bắt buộc)
-
-- **JSON DTOs:** Mọi DTO phải được khai báo trong `[JsonSerializable]` tại `JsonSerializerContext` của service đó.
-- **Nghiêm cấm:** Không sử dụng `dynamic`, `object`, hoặc `Reflection` bừa bãi trong các luồng xử lý DTO.
-
-### 2.3 Domain & Logic
-
-- **Rich Domain Model:** Logic nghiệp vụ và các quy tắc thay đổi trạng thái phải nằm trong Domain Entity (ví dụ: `User.cs`, `Booking.cs`). Tránh Anemic Domain Model.
-- **Validation:** Sử dụng **FluentValidation** cho dữ liệu đầu vào. Trả về mã lỗi 400/422 thống nhất qua FastEndpoints.
-- **Database:** Sử dụng **EF Core**. Mọi thay đổi schema phải thực hiện qua **Migrations CLI**.
-
-### 2.4 Endpoint Design Rule
-
-- Query đơn giản (read-only, không logic) → có thể truy cập DbContext trực tiếp
-- Command / nghiệp vụ → bắt buộc đi qua Handler (Application layer)
-- Không đặt business logic trong Endpoint
+### Rule:
+- 1 folder = 1 use case (GetProfile, UpdateProfile…)
+- Không tạo “Services”, “Utils” lung tung trong Feature
+- Không share Handler giữa các UseCase
+- Mục tiêu: **mở folder là thấy toàn bộ nghiệp vụ**
 
 ---
 
-## 🎨 3. Quy chuẩn Frontend (React)
+## ⚔️ 2. Command (WRITE) – BẮT BUỘC CQRS
 
-### 3.1 Phân lớp Layer
-
-- **Layer 1 (API):** Chỉ chứa các hàm Axios thuần túy. Không chứa state.
-- **Layer 2 (Hooks):** Bọc API bằng **TanStack Query** (`useQuery`, `useMutation`). Quản lý cache và logic điều hướng.
-- **Layer 3 (UI):** Chỉ hiển thị giao diện. Gọi Logic qua Custom Hooks. **Nghiêm cấm gọi Axios trực tiếp trong UI.**
-
-### 3.2 State Management
-
-- **Zustand:** Chỉ dùng cho Global State (Auth, Theme). Không dùng để cache dữ liệu API.
-- **TanStack Query:** Chịu trách nhiệm hoàn toàn việc quản lý dữ liệu từ server.
-
-### 3.3 UI Patterns
-
-- **Atomic Design:** Sử dụng bộ UI **shadcn/ui** (Atoms) để lắp ghép giao diện.
-- **Type-Safety:** Nghiêm cấm sử dụng `any`. Mọi Request/Response phải có `interface` rõ ràng.
-- **Forms:** Sử dụng `react-hook-form` + `zod` cho các form phức tạp.
+- Tất cả logic thay đổi dữ liệu → bắt buộc dùng **ICommand**
+- Structure bắt buộc:
+  - Request implements `ICommand<Response>`
+  - Handler implements `ICommandHandler<Command, Response>`
+- Endpoint:
+  - KHÔNG chứa business logic
+  - Chỉ gọi: `Response = await req.ExecuteAsync(ct);`
+- Mọi side-effect (Kafka, Outbox…) phải nằm trong Handler
+- Không có exception cho quy tắc này.
 
 ---
 
-## 🛡️ 4. Quy tắc Chung & Chất lượng Code
+## 👀 3. Query (READ) – 2 chế độ rõ ràng
 
-- **Clean Code:** Xóa bỏ hoàn toàn Dead code, biến/import không sử dụng.
-- **Logging:** Sử dụng **ILogger<T>** (Structured Logging). Nghiêm cấm `Console.WriteLine()` (Backend) và `console.log()` (Frontend).
-- **Security:** Mọi API phải đi qua **YARP Gateway**. Authentication thực hiện bằng **JWT Bearer**.
-- **Git:** Không tự ý merge vào `main`. Tuân thủ workflow của dự án.
+### ✅ Mode 1: Simple Query (mặc định)
+- Viết trực tiếp trong Endpoint
+- Chỉ được phép:
+  - LINQ query
+  - Projection → DTO
+  - Mapping đơn giản
+- KHÔNG được:
+  - if/else business
+  - loop xử lý logic
+  - gọi service/domain
+
+### ✅ Mode 2: Complex Query
+- Bắt buộc tạo Handler (POCO class)
+- Dùng khi:
+  - có business logic
+  - có nhiều bước xử lý
+  - cần reuse
+- Không dùng ICommand cho Query (tránh over-engineer)
+
+---
+
+## 🧠 4. Business Logic (rule sống còn)
+
+- Business logic KHÔNG được nằm trong Endpoint
+- Phải nằm ở:
+  - **Handler** (Application logic - Orchestration)
+  - hoặc **Domain Entity** (Core logic - Rich Domain Model)
+- Endpoint chỉ:
+  - nhận request
+  - gọi handler / db
+  - trả response
+- Nếu thấy Endpoint có “if business” → sai ngay.
+
+---
+
+## 🧩 5. Domain Boundary
+
+- Logic nghiệp vụ quan trọng → nằm trong Domain
+- Handler chỉ:
+  - điều phối (orchestrate)
+  - gọi Domain
+  - save DB
+- Không viết business rule lớn trong Handler để tránh "god class".
+
+---
+
+## 🚨 6. Anti-chaos (cực quan trọng)
+
+- Không được tự tạo abstraction ngoài guideline
+- Không được:
+  - tạo Service layer tùy ý
+  - inject DbContext lung tung nhiều nơi
+  - viết logic trong Endpoint
+- Nếu không chắc → dùng **Command + Handler**.
+
+---
+
+## ⚡ 7. Simplicity Guard (tránh over-engineer)
+
+- Không tạo Handler nếu chỉ là read đơn giản và không có business logic.
+- Không dùng ICommand cho Query.
+- Ưu tiên code rõ ràng hơn là đúng pattern một cách máy móc.
+
+---
+
+## 🤖 8. AI Rule (Dành cho AI Agents)
+
+- Luôn tuân thủ Command rule cho write.
+- Không tự tạo pattern mới.
+- Không thêm abstraction nếu không cần.
+- Nếu logic đơn giản → ưu tiên viết trực tiếp.
+- Mọi DTO phải khai báo `[JsonSerializable]` tại `JsonSerializerContext` (Native AOT Readiness).
