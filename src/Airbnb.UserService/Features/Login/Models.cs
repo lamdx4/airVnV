@@ -20,24 +20,10 @@ public class Validator : Validator<Request>
     }
 }
 
-public class Endpoint : FastEndpoints.Endpoint<Request, Response>
+// Application Layer: Handler
+public class LoginHandler(UserDbContext _db, IConfiguration _config)
 {
-    private readonly UserDbContext _db;
-    private readonly IConfiguration _config;
-
-    public Endpoint(UserDbContext db, IConfiguration config)
-    {
-        _db = db;
-        _config = config;
-    }
-
-    public override void Configure()
-    {
-        Post("/api/users/login");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Request req, CancellationToken ct)
+    public async Task<Response?> HandleAsync(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
@@ -45,8 +31,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
         if (user == null || user.HashedPassword != req.Password)
         {
-            await base.SendAsync(null!, 401, ct);
-            return;
+            return null;
         }
 
         var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
@@ -62,6 +47,29 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
         await _db.SaveChangesAsync(ct);
 
-        Response = new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
+        return new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
+    }
+}
+
+// Web Layer: Endpoint
+public class Endpoint(LoginHandler _handler) : FastEndpoints.Endpoint<Request, Response>
+{
+    public override void Configure()
+    {
+        Post("/api/users/login");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Request req, CancellationToken ct)
+    {
+        var result = await _handler.HandleAsync(req, ct);
+
+        if (result == null)
+        {
+            await base.SendAsync(null!, 401, ct);
+            return;
+        }
+
+        Response = result;
     }
 }

@@ -40,6 +40,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 
+// Register Application Handlers
+builder.Services.AddScoped<Airbnb.UserService.Features.RegisterUser.RegisterHandler>();
+builder.Services.AddScoped<Airbnb.UserService.Features.RegisterUser.VerifyEmailHandler>();
+builder.Services.AddScoped<Airbnb.UserService.Features.Login.LoginHandler>();
+builder.Services.AddScoped<Airbnb.UserService.Features.GoogleAuth.GoogleAuthHandler>();
+builder.Services.AddScoped<Airbnb.UserService.Features.RefreshToken.RefreshTokenHandler>();
+builder.Services.AddScoped<Airbnb.UserService.Features.Profile.UpdateHandler>();
+
 
 
 builder.Services.ConfigureHttpJsonOptions(options =>

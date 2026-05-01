@@ -19,24 +19,10 @@ public class Validator : Validator<Request>
     }
 }
 
-public class Endpoint : FastEndpoints.Endpoint<Request, Response>
+// Application Layer: Handler
+public class RefreshTokenHandler(UserDbContext _db, IConfiguration _config)
 {
-    private readonly UserDbContext _db;
-    private readonly IConfiguration _config;
-
-    public Endpoint(UserDbContext db, IConfiguration config)
-    {
-        _db = db;
-        _config = config;
-    }
-
-    public override void Configure()
-    {
-        Post("/api/users/refresh-token");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Request req, CancellationToken ct)
+    public async Task<Response?> HandleAsync(Request req, CancellationToken ct)
     {
         var tokenRecord = await _db.UserRefreshTokens
             .Include(t => t.User)
@@ -44,8 +30,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
         if (tokenRecord is not { IsActive: true })
         {
-            await SendAsync(null!, 401, ct);
-            return;
+            return null;
         }
 
         // Thu hồi Refresh Token hiện tại (Rotate)
@@ -67,6 +52,29 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         
         await _db.SaveChangesAsync(ct);
 
-        Response = new Response(newAccessToken, newRefreshToken);
+        return new Response(newAccessToken, newRefreshToken);
+    }
+}
+
+// Web Layer: Endpoint
+public class Endpoint(RefreshTokenHandler _handler) : FastEndpoints.Endpoint<Request, Response>
+{
+    public override void Configure()
+    {
+        Post("/api/users/refresh-token");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Request req, CancellationToken ct)
+    {
+        var result = await _handler.HandleAsync(req, ct);
+
+        if (result == null)
+        {
+            await SendAsync(null!, 401, ct);
+            return;
+        }
+
+        Response = result;
     }
 }
