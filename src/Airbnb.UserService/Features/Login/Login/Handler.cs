@@ -5,11 +5,13 @@ using System.Security.Claims;
 using Airbnb.UserService.Infrastructure;
 using Airbnb.UserService.Domain;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.Login.Login;
 
-public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, Response>
+public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
+    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
@@ -17,7 +19,6 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         if (user == null || user.HashedPassword != req.Password)
         {
-            // Trong Handler ta có thể quăng lỗi để Endpoint xử lý hoặc trả về null
             throw new UnauthorizedAccessException("Invalid credentials");
         }
 
@@ -33,17 +34,16 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         var refreshToken = Guid.NewGuid().ToString("N");
         
-        // Domain Logic
         user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
         
         await _db.SaveChangesAsync(ct);
 
-        return new Response(
+        return ApiResponse<Response>.SuccessResult(new Response(
             accessToken, 
             refreshToken, 
             user.Profile.FullName, 
             user.Email, 
             user.Role
-        );
+        ), "Login successful");
     }
 }

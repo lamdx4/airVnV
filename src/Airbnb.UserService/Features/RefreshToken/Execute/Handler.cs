@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Airbnb.UserService.Infrastructure;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.RefreshToken.Execute;
 
-public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, Response>
+public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
+    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.RefreshTokens)
@@ -37,6 +39,6 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         await _db.SaveChangesAsync(ct);
 
-        return new Response(accessToken, newRefreshToken);
+        return ApiResponse<Response>.SuccessResult(new Response(accessToken, newRefreshToken), "Token refreshed successfully");
     }
 }

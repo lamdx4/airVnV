@@ -117,3 +117,26 @@ Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Deve
 - Không thêm abstraction nếu không cần.
 - Nếu logic đơn giản → ưu tiên viết trực tiếp.
 - Mọi DTO phải khai báo `[JsonSerializable]` tại `JsonSerializerContext` (Native AOT Readiness).
+
+---
+
+## 💎 9. Unified Response Format (Bắt buộc)
+
+Tất cả các API phản hồi thành công (200, 201) phải được bọc trong một Envelope chuẩn:
+
+```csharp
+public record ApiResponse<T>(
+    T? Data, 
+    string? Message = null, 
+    bool Success = true, 
+    List<string>? Errors = null)
+{
+    public DateTime Timestamp { get; } = DateTime.UtcNow;
+}
+```
+
+### Quy tắc:
+- **Success:** Trả về `ApiResponse<T>` với `Success = true`.
+- **Validation Error:** Framework tự động trả về `ErrorResponse` (400/422).
+- **Business/Auth Error:** Sử dụng HTTP Status Code phù hợp (401, 403, 404).
+

@@ -6,11 +6,13 @@ using FirebaseAdmin.Auth;
 using Airbnb.UserService.Infrastructure;
 using Airbnb.UserService.Domain;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.GoogleAuth.Execute;
 
-public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, Response>
+public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
+    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
     {
         FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(req.IdToken, ct);
         string email = decodedToken.Claims["email"].ToString()!;
@@ -46,6 +48,6 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         await _db.SaveChangesAsync(ct);
 
-        return new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
+        return ApiResponse<Response>.SuccessResult(new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role), "Google authentication successful");
     }
 }

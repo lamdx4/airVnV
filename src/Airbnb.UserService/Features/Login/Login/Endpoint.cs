@@ -1,8 +1,10 @@
 using FastEndpoints;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.Login.Login;
 
-public class Endpoint : Endpoint<Request, Response>
+public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {

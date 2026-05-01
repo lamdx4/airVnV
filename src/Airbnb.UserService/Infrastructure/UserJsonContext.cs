@@ -1,28 +1,36 @@
 using System.Text.Json.Serialization;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Infrastructure;
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 // --- Login ---
+[JsonSerializable(typeof(ApiResponse<Features.Login.Login.Response>), TypeInfoPropertyName = "LoginApiResponse")]
+[JsonSerializable(typeof(Features.Login.Login.Response), TypeInfoPropertyName = "LoginResponseData")]
 [JsonSerializable(typeof(Features.Login.Login.Request), TypeInfoPropertyName = "LoginRequest")]
-[JsonSerializable(typeof(Features.Login.Login.Response), TypeInfoPropertyName = "LoginResponse")]
 
 // --- Registration ---
+[JsonSerializable(typeof(ApiResponse<Features.RegisterUser.Register.Response>), TypeInfoPropertyName = "RegisterApiResponse")]
+[JsonSerializable(typeof(Features.RegisterUser.Register.Response), TypeInfoPropertyName = "RegisterResponseData")]
 [JsonSerializable(typeof(Features.RegisterUser.Register.Request), TypeInfoPropertyName = "RegisterRequest")]
-[JsonSerializable(typeof(Features.RegisterUser.Register.Response), TypeInfoPropertyName = "RegisterResponse")]
+[JsonSerializable(typeof(ApiResponse<Features.RegisterUser.Verify.Response>), TypeInfoPropertyName = "VerifyApiResponse")]
+[JsonSerializable(typeof(Features.RegisterUser.Verify.Response), TypeInfoPropertyName = "VerifyResponseData")]
 [JsonSerializable(typeof(Features.RegisterUser.Verify.Request), TypeInfoPropertyName = "VerifyRequest")]
-[JsonSerializable(typeof(Features.RegisterUser.Verify.Response), TypeInfoPropertyName = "VerifyResponse")]
 
 // --- Auth Utils ---
+[JsonSerializable(typeof(ApiResponse<Features.RefreshToken.Execute.Response>), TypeInfoPropertyName = "RefreshTokenApiResponse")]
+[JsonSerializable(typeof(Features.RefreshToken.Execute.Response), TypeInfoPropertyName = "RefreshTokenResponseData")]
 [JsonSerializable(typeof(Features.RefreshToken.Execute.Request), TypeInfoPropertyName = "RefreshTokenRequest")]
-[JsonSerializable(typeof(Features.RefreshToken.Execute.Response), TypeInfoPropertyName = "RefreshTokenResponse")]
+[JsonSerializable(typeof(ApiResponse<Features.GoogleAuth.Execute.Response>), TypeInfoPropertyName = "GoogleAuthApiResponse")]
+[JsonSerializable(typeof(Features.GoogleAuth.Execute.Response), TypeInfoPropertyName = "GoogleAuthResponseData")]
 [JsonSerializable(typeof(Features.GoogleAuth.Execute.Request), TypeInfoPropertyName = "GoogleAuthRequest")]
-[JsonSerializable(typeof(Features.GoogleAuth.Execute.Response), TypeInfoPropertyName = "GoogleAuthResponse")]
 
 // --- Profile ---
-[JsonSerializable(typeof(Features.Profile.Get.Response), TypeInfoPropertyName = "GetProfileResponse")]
+[JsonSerializable(typeof(ApiResponse<Features.Profile.Get.Response>), TypeInfoPropertyName = "GetProfileApiResponse")]
+[JsonSerializable(typeof(Features.Profile.Get.Response), TypeInfoPropertyName = "GetProfileResponseData")]
+[JsonSerializable(typeof(ApiResponse<Features.Profile.Update.Response>), TypeInfoPropertyName = "UpdateProfileApiResponse")]
+[JsonSerializable(typeof(Features.Profile.Update.Response), TypeInfoPropertyName = "UpdateProfileResponseData")]
 [JsonSerializable(typeof(Features.Profile.Update.Request), TypeInfoPropertyName = "UpdateProfileRequest")]
-[JsonSerializable(typeof(Features.Profile.Update.Response), TypeInfoPropertyName = "UpdateProfileResponse")]
 
 // --- Shared ---
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]

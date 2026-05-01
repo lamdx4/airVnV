@@ -1,13 +1,15 @@
 using FastEndpoints;
 using FluentValidation;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.RegisterUser.Register;
 
 public record Request(
     string Email, 
     string Password, 
     string FullName
-) : ICommand<Response>;
+) : ICommand<ApiResponse<Response>>;
 
 public record Response(string Message);
 

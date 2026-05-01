@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Airbnb.UserService.Infrastructure;
 using System.Security.Claims;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.Profile.Get;
 
-public class Endpoint(UserDbContext _db) : EndpointWithoutRequest<Response>
+public class Endpoint(UserDbContext _db) : EndpointWithoutRequest<ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -21,8 +23,8 @@ public class Endpoint(UserDbContext _db) : EndpointWithoutRequest<Response>
             return;
         }
 
-        // Mode 1: Simple Query - Viết trực tiếp LINQ + Projection
-        var response = await _db.Users
+        // Mode 1: Simple Query
+        var data = await _db.Users
             .Include(u => u.Profile)
             .Where(u => u.Id == userId)
             .Select(u => new Response(
@@ -36,12 +38,12 @@ public class Endpoint(UserDbContext _db) : EndpointWithoutRequest<Response>
             ))
             .FirstOrDefaultAsync(ct);
 
-        if (response == null)
+        if (data == null)
         {
             await SendAsync(null!, 404, ct);
             return;
         }
 
-        Response = response;
+        Response = ApiResponse<Response>.SuccessResult(data);
     }
 }

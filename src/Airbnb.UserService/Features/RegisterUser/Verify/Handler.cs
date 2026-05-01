@@ -3,11 +3,13 @@ using Microsoft.Extensions.Caching.Memory;
 using Airbnb.UserService.Infrastructure;
 using Airbnb.UserService.Domain;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.RegisterUser.Verify;
 
-public class Handler(UserDbContext _db, IMemoryCache _cache) : ICommandHandler<Request, Response>
+public class Handler(UserDbContext _db, IMemoryCache _cache) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
+    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
     {
         if (!_cache.TryGetValue($"verify_{req.Email}", out (User user, string code) cached))
         {
@@ -26,6 +28,6 @@ public class Handler(UserDbContext _db, IMemoryCache _cache) : ICommandHandler<R
         // Dọn cache
         _cache.Remove($"verify_{req.Email}");
 
-        return new Response("Email verified and account created successfully.");
+        return ApiResponse<Response>.SuccessResult(new Response("Email verified and account created successfully."), "Verification successful");
     }
 }

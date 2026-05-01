@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Airbnb.UserService.Infrastructure;
 using System.Text.Json.Serialization;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.Profile.Update;
 
-public class Handler(UserDbContext _db) : ICommandHandler<Request, Response>
+public class Handler(UserDbContext _db) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<Response> ExecuteAsync(Request cmd, CancellationToken ct)
+    public async Task<ApiResponse<Response>> ExecuteAsync(Request cmd, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
@@ -15,12 +17,11 @@ public class Handler(UserDbContext _db) : ICommandHandler<Request, Response>
 
         if (user == null) throw new InvalidOperationException("User not found");
 
-        // Logic Domain nằm trong Entity (Rule 5)
         user.Profile.UpdateInfo(cmd.FullName, cmd.AvatarUrl, cmd.PhoneNumber, cmd.Bio);
         
         await _db.SaveChangesAsync(ct);
 
-        return new Response(
+        return ApiResponse<Response>.SuccessResult(new Response(
             user.Id,
             user.Email,
             user.Profile.FullName,
@@ -28,6 +29,6 @@ public class Handler(UserDbContext _db) : ICommandHandler<Request, Response>
             user.Profile.PhoneNumber,
             user.Profile.Bio,
             user.Role
-        );
+        ), "Profile updated successfully");
     }
 }

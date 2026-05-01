@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Airbnb.UserService.Domain;
 using System.Text.Json.Serialization;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Profile.Update;
 
@@ -9,7 +10,7 @@ public record Request(
     string? AvatarUrl,
     string? PhoneNumber,
     string? Bio
-) : ICommand<Response>
+) : ICommand<ApiResponse<Response>>
 {
     [JsonIgnore]
     public Guid UserId { get; set; }

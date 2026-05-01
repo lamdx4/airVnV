@@ -1,8 +1,10 @@
 using FastEndpoints;
 
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.UserService.Features.RegisterUser.Register;
 
-public class Endpoint : Endpoint<Request, Response>
+public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -18,7 +20,7 @@ public class Endpoint : Endpoint<Request, Response>
         }
         catch (InvalidOperationException ex)
         {
-            await SendAsync(new Response(ex.Message), 400, ct);
+            await SendAsync(ApiResponse<Response>.FailureResult([ex.Message], "Registration failed"), 400, ct);
         }
     }
 }
