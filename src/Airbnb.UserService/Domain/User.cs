@@ -87,6 +87,14 @@ public class UserProfile
         UserId = userId;
         FullName = fullName;
     }
+
+    public void UpdateInfo(string fullName, string? avatarUrl, string? phoneNumber, string? bio)
+    {
+        FullName = fullName;
+        AvatarUrl = avatarUrl;
+        PhoneNumber = phoneNumber;
+        Bio = bio;
+    }
 }
 
 public class UserLogin
