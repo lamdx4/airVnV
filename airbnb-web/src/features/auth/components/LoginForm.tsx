@@ -20,6 +20,17 @@ export function LoginForm() {
     loginMutation.mutate({ email, password, fcmToken: fcmToken || undefined })
   }
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (credentialResponse?.credential) {
+      const fcmToken = await getFCMToken();
+      googleAuthMutation.mutate({ 
+        idToken: credentialResponse.credential, 
+        role: 'User',
+        fcmToken: fcmToken || undefined 
+      });
+    }
+  }
+
   const errorMessage = loginMutation.error
     ? ((loginMutation.error as any).response?.status === 401 
         ? 'Email hoặc mật khẩu không đúng!' 
@@ -27,7 +38,7 @@ export function LoginForm() {
     : null;
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
+    <form onSubmit={(e) => void handleLogin(e)} className="space-y-4">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Đăng nhập</h1>
         <p className="text-slate-500 text-sm mt-1">Chào mừng bạn quay trở lại</p>
@@ -84,16 +95,7 @@ export function LoginForm() {
 
       <div className="flex justify-center w-full py-1">
         <GoogleLogin
-          onSuccess={async (credentialResponse) => {
-            if (credentialResponse.credential) {
-              const fcmToken = await getFCMToken();
-              googleAuthMutation.mutate({ 
-                idToken: credentialResponse.credential, 
-                role: 'User',
-                fcmToken: fcmToken || undefined 
-              });
-            }
-          }}
+          onSuccess={(credentialResponse) => { void handleGoogleSuccess(credentialResponse); }}
           onError={() => {
             toast.error('Đăng nhập bằng Google thất bại!');
           }}

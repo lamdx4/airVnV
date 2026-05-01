@@ -22,13 +22,13 @@ public class Validator : Validator<Request>
 
 public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
-    private readonly UserDbContext db;
-    private readonly IConfiguration config;
+    private readonly UserDbContext _db;
+    private readonly IConfiguration _config;
 
     public Endpoint(UserDbContext db, IConfiguration config)
     {
-        this.db = db;
-        this.config = config;
+        _db = db;
+        _config = config;
     }
 
     public override void Configure()
@@ -39,7 +39,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var user = await db.Users
+        var user = await _db.Users
             .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Email == req.Email, ct);
 
@@ -49,18 +49,18 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             return;
         }
 
-        var key = config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
-        var accessToken = JWTBearer.CreateToken(
-            signingKey: key,
-            expireAt: DateTime.UtcNow.AddMinutes(15), // Access Token ngắn hạn
-            claims: [
-                new Claim("UserId", user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
-            ]);
+        var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
+        var accessToken = JwtBearer.CreateToken(o =>
+        {
+            o.SigningKey = key;
+            o.ExpireAt = DateTime.UtcNow.AddMinutes(15);
+            o.User.Claims.Add(new Claim("UserId", user.Id.ToString()));
+            o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+        });
 
         var refreshToken = Guid.NewGuid().ToString("N");
         user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
-        await db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(ct);
 
         Response = new Response(accessToken, refreshToken, user.Profile.FullName, user.Email, user.Role);
     }

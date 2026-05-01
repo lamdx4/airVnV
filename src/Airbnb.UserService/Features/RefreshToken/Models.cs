@@ -42,7 +42,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.Token == req.RefreshToken, ct);
 
-        if (tokenRecord == null || !tokenRecord.IsActive)
+        if (tokenRecord is not { IsActive: true })
         {
             await SendAsync(null!, 401, ct);
             return;

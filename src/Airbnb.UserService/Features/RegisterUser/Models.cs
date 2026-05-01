@@ -23,13 +23,13 @@ public class Validator : Validator<Request>
 
 public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 {
-    private readonly UserDbContext db;
-    private readonly IMemoryCache cache;
+    private readonly UserDbContext _db;
+    private readonly IMemoryCache _cache;
 
     public Endpoint(UserDbContext db, IMemoryCache cache)
     {
-        this.db = db;
-        this.cache = cache;
+        _db = db;
+        _cache = cache;
     }
 
     public override void Configure()
@@ -40,7 +40,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var exists = await db.Users.AnyAsync(u => u.Email == req.Email, ct);
+        var exists = await _db.Users.AnyAsync(u => u.Email == req.Email, ct);
         if (exists)
         {
             await SendAsync(null!, 400, ct);
@@ -52,7 +52,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         
         // Lưu thông tin payload + OTP vào MemoryCache 15 phút
         var cacheKey = $"reg_{req.Email}";
-        cache.Set(cacheKey, (req, otp, 0), TimeSpan.FromMinutes(15));
+        _cache.Set(cacheKey, (req, otp, 0), TimeSpan.FromMinutes(15));
 
         // Trả về mã OTP (Chỉ làm ở môi trường Dev/Học tập cho tiện FE)
         Response = new Response("Mã OTP đã được tạo!", otp);

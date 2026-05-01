@@ -15,7 +15,8 @@ if (File.Exists("firebase-service-account.json"))
 {
     FirebaseApp.Create(new AppOptions()
     {
-        Credential = GoogleCredential.FromFile("firebase-service-account.json")
+        Credential = CredentialFactory.FromFile<ServiceAccountCredential>("firebase-service-account.json")
+            .ToGoogleCredential()
     });
 }
 
