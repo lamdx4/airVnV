@@ -9,7 +9,8 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/images");
-        Summary(s => s.Summary = "Thêm hình ảnh cho chỗ ở (Host only)");
+        AllowFileUploads(); // multipart/form-data
+        Summary(s => s.Summary = "Add image to property (Host only, Server-side upload)");
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

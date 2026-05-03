@@ -1,4 +1,5 @@
 using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
 
 namespace Airbnb.Infrastructure.Media;
@@ -36,7 +37,6 @@ public class CloudinaryMediaProvider : IMediaProvider
             parameters.Add("public_id", publicId);
         }
 
-        // Tạo chữ ký từ Cloudinary SDK
         var signature = _cloudinary.Api.SignParameters(parameters);
 
         return new SignatureResponse(
@@ -46,5 +46,36 @@ public class CloudinaryMediaProvider : IMediaProvider
             _options.CloudName,
             folder
         );
+    }
+
+    public async Task<MediaUploadResult> UploadAsync(Stream fileStream, string fileName, string folder, CancellationToken ct = default)
+    {
+        var uploadParams = new ImageUploadParams
+        {
+            File = new FileDescription(fileName, fileStream),
+            Folder = folder,
+            // Can add default transformation here if needed
+            Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+        };
+
+        var uploadResult = await _cloudinary.UploadAsync(uploadParams, ct);
+
+        if (uploadResult.Error != null)
+        {
+            throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
+        }
+
+        return new MediaUploadResult(
+            uploadResult.SecureUrl,
+            uploadResult.PublicId
+        );
+    }
+
+    public async Task<bool> DeleteAsync(string publicId, CancellationToken ct = default)
+    {
+        var deleteParams = new DeletionParams(publicId);
+        var result = await _cloudinary.DestroyAsync(deleteParams);
+        
+        return result.Result == "ok";
     }
 }
