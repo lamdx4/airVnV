@@ -12,6 +12,7 @@ using Polly.Retry;
 using Polly.Timeout;
 using Polly.CircuitBreaker;
 using Microsoft.Extensions.Http.Resilience;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -120,6 +121,9 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
+        // Đăng ký Middleware xử lý lỗi toàn cục đầu tiên trong pipeline
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+
         if (app.Environment.IsDevelopment())
         {
             app.MapHealthChecks(HealthEndpointPath);

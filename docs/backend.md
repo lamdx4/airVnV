@@ -204,3 +204,18 @@ public record ApiResponse<T>(
 - **Success:** Trả về `ApiResponse<T>` với `Success = true`.
 - **Validation Error:** Framework tự động trả về `ErrorResponse` (400/422).
 - **Business/Auth Error:** Sử dụng HTTP Status Code phù hợp (401, 403, 404) kèm theo **ErrorCode** định danh (ví dụ: `USER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`).
+
+---
+
+## 🛡️ 11. Error Handling Policy (Bắt buộc)
+
+- **Cấm xử lý lỗi thủ công:** Tuyệt đối không dùng `try-catch` trong Handler/Endpoint để đóng gói `ApiResponse` thất bại.
+- **Tín hiệu lỗi:** 
+    - Sử dụng `NotFoundException` khi không tìm thấy tài nguyên.
+    - **Bắt buộc:** Sử dụng `BusinessException(message, errorCode)` cho tất cả các vi phạm logic nghiệp vụ. 
+    - **Cấm:** Không sử dụng các Exception mặc định của hệ thống (như `InvalidOperationException`, `Exception`) để đại diện cho lỗi nghiệp vụ.
+- **Global Middleware:** Mọi Exception sẽ được `ExceptionHandlingMiddleware` tự động bắt và đóng gói vào `ApiResponse<T>` với `Success = false`.
+- **Swagger Documentation (Quan trọng):** Mỗi Endpoint phải mô tả danh sách các `ErrorCode` có thể trả về trong phần `Summary` bằng định dạng Markdown:
+    - Sử dụng `s.Description` để liệt kê các `ErrorCode` (Dùng Bold và List).
+    - Sử dụng `s.Responses[400]` hoặc `s.Responses[404]` để mô tả ý nghĩa tổng quát của nhóm lỗi đó.
+    - Mục tiêu: Frontend nhìn vào Swagger là biết chính xác cần bắt (catch) những lỗi nghiệp vụ nào.

@@ -1,6 +1,7 @@
 using Airbnb.PropertyService.Domain.Entities;
 using Airbnb.PropertyService.Domain.Enums;
 using Airbnb.PropertyService.Domain.ValueObjects;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Domain;
 
@@ -18,41 +19,34 @@ public class Property : AggregateRoot
     public string Description { get; private set; } = default!;
     public string Slug { get; private set; } = default!;
 
-    // Hybrid Address – 3 concerns rõ ràng:
-    // [1] Location: source of truth cho geo-query
+    // Hybrid Address
     public double Latitude { get; private set; }
     public double Longitude { get; private set; }
-    // [2] Classification: index được, FK -> AdminDivision
     public string CountryCode { get; private set; } = default!;
     public string? Admin1Code { get; private set; }
     public string? Admin2Code { get; private set; }
-    // [3] Display: precomputed, FE render thẳng
     public string DisplayAddress { get; private set; } = default!;
-    public AddressRaw AddressRaw { get; private set; } = default!; // JSONB
+    public AddressRaw AddressRaw { get; private set; } = default!;
 
-    // Core Complex Types – JSONB
+    // Core Complex Types
     public Pricing Pricing { get; private set; } = default!;
     public PropertyCapacity Capacity { get; private set; } = default!;
     public HouseRules HouseRules { get; private set; } = default!;
 
     public PropertyStatus Status { get; private set; }
-    public string? SuspensionReason { get; private set; } // Persisted, không mất khi resume
+    public string? SuspensionReason { get; private set; }
 
-    // DateTimeOffset – timezone-aware cho multi-country
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
 
-    // Navigation properties – encapsulated
     private readonly List<PropertyImage> _images = new();
     public IReadOnlyCollection<PropertyImage> Images => _images.AsReadOnly();
 
     private readonly List<PropertyAmenity> _propertyAmenities = new();
     public IReadOnlyCollection<PropertyAmenity> PropertyAmenities => _propertyAmenities.AsReadOnly();
 
-    // EF Core constructor
     private Property() { }
 
-    // ---- Factory Method ----
     public static Property Create(
         Guid hostId,
         string title,
@@ -69,14 +63,10 @@ public class Property : AggregateRoot
         string? admin1Code = null,
         string? admin2Code = null)
     {
-        if (hostId == Guid.Empty) throw new ArgumentException("HostId cannot be empty.");
-        if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title cannot be empty.");
-        if (string.IsNullOrWhiteSpace(slug)) throw new ArgumentException("Slug cannot be empty.");
-        if (latitude is < -90 or > 90) throw new ArgumentOutOfRangeException(nameof(latitude));
-        if (longitude is < -180 or > 180) throw new ArgumentOutOfRangeException(nameof(longitude));
-        if (string.IsNullOrWhiteSpace(countryCode) || countryCode.Length != 2)
-            throw new ArgumentException("CountryCode must be ISO 3166-1 alpha-2 (2 chars).");
-
+        if (hostId == Guid.Empty) throw new BusinessException("HostId cannot be empty.", "PROPERTY_HOST_REQUIRED");
+        if (string.IsNullOrWhiteSpace(title)) throw new BusinessException("Title cannot be empty.", "PROPERTY_TITLE_REQUIRED");
+        if (string.IsNullOrWhiteSpace(slug)) throw new BusinessException("Slug cannot be empty.", "PROPERTY_SLUG_REQUIRED");
+        
         return new Property
         {
             Id = Guid.NewGuid(),
@@ -99,13 +89,14 @@ public class Property : AggregateRoot
         };
     }
 
-    // ---- Status Transitions (guarded) ----
     public void Submit()
     {
         if (Status != PropertyStatus.Draft)
-            throw new InvalidOperationException("Only Draft can be submitted for review.");
+            throw new BusinessException("Only Draft properties can be submitted for review.", "PROPERTY_INVALID_STATUS");
+        
         if (!_images.Any(i => i.Type == ImageType.Cover))
-            throw new InvalidOperationException("A cover image is required before submission.");
+            throw new BusinessException("A cover image is required before submission.", "PROPERTY_COVER_IMAGE_REQUIRED");
+            
         Status = PropertyStatus.PendingReview;
         UpdatedAt = DateTimeOffset.UtcNow;
         Raise(new PropertySubmittedEvent(Id, HostId));
@@ -114,7 +105,8 @@ public class Property : AggregateRoot
     public void Approve()
     {
         if (Status != PropertyStatus.PendingReview)
-            throw new InvalidOperationException("Only PendingReview can be approved.");
+            throw new BusinessException("Only properties pending review can be approved.", "PROPERTY_NOT_IN_REVIEW");
+            
         Status = PropertyStatus.Published;
         UpdatedAt = DateTimeOffset.UtcNow;
         Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude));
@@ -123,9 +115,11 @@ public class Property : AggregateRoot
     public void Suspend(string reason)
     {
         if (Status != PropertyStatus.Published)
-            throw new InvalidOperationException("Only Published can be suspended.");
+            throw new BusinessException("Only published properties can be suspended.", "PROPERTY_NOT_PUBLISHED");
+            
         if (string.IsNullOrWhiteSpace(reason))
-            throw new ArgumentException("Suspension reason is required.");
+            throw new BusinessException("Suspension reason is required.", "PROPERTY_SUSPENSION_REASON_REQUIRED");
+            
         Status = PropertyStatus.Suspended;
         SuspensionReason = reason;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -135,7 +129,8 @@ public class Property : AggregateRoot
     public void Reinstate()
     {
         if (Status != PropertyStatus.Suspended)
-            throw new InvalidOperationException("Only Suspended can be reinstated.");
+            throw new BusinessException("Only suspended properties can be reinstated.", "PROPERTY_NOT_SUSPENDED");
+            
         Status = PropertyStatus.Published;
         SuspensionReason = null;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -145,55 +140,52 @@ public class Property : AggregateRoot
     public void Archive()
     {
         if (Status is not (PropertyStatus.Published or PropertyStatus.Suspended))
-            throw new InvalidOperationException("Only Published or Suspended properties can be archived.");
+            throw new BusinessException("Only Published or Suspended properties can be archived.", "PROPERTY_INVALID_ARCHIVE_STATUS");
+            
         Status = PropertyStatus.Archived;
         UpdatedAt = DateTimeOffset.UtcNow;
         Raise(new PropertyArchivedEvent(Id));
     }
 
-    // ---- Domain Behaviors ----
-    public void UpdatePricing(Pricing newPricing)
-    {
-        ArgumentNullException.ThrowIfNull(newPricing);
-        Pricing = newPricing;
-        UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PricingUpdatedEvent(Id, newPricing.BasePrice, newPricing.CurrencyCode));
-    }
-
     public void AddAmenity(Guid amenityId, string? additionalInfo = null)
     {
         if (_propertyAmenities.Any(a => a.AmenityId == amenityId))
-            throw new InvalidOperationException("Amenity already added.");
+            throw new BusinessException("Amenity already added to this property.", "PROPERTY_AMENITY_EXISTS");
+            
         _propertyAmenities.Add(new PropertyAmenity(Id, amenityId, additionalInfo));
     }
 
     public void RemoveAmenity(Guid amenityId)
     {
         var amenity = _propertyAmenities.FirstOrDefault(a => a.AmenityId == amenityId)
-            ?? throw new InvalidOperationException("Amenity not found.");
+            ?? throw new BusinessException("Amenity not found on this property.", "PROPERTY_AMENITY_NOT_FOUND");
+            
         _propertyAmenities.Remove(amenity);
     }
 
     public void AddImage(PropertyImage image)
     {
         ArgumentNullException.ThrowIfNull(image);
+        
         if (image.Type == ImageType.Cover && _images.Any(i => i.Type == ImageType.Cover))
-            throw new InvalidOperationException("A cover image already exists.");
+            throw new BusinessException("A cover image already exists for this property.", "PROPERTY_COVER_IMAGE_EXISTS");
+            
         _images.Add(image);
     }
 
     public void RemoveImage(Guid imageId)
     {
         var image = _images.FirstOrDefault(i => i.Id == imageId)
-            ?? throw new InvalidOperationException("Image not found.");
+            ?? throw new BusinessException("Image not found.", "PROPERTY_IMAGE_NOT_FOUND");
 
         if (image.Type == ImageType.Cover
             && Status == PropertyStatus.Published
             && _images.Count(i => i.Type == ImageType.Cover) == 1)
-            throw new InvalidOperationException("Cannot remove the only cover image of a published property.");
+            throw new BusinessException("Cannot remove the only cover image of a published property.", "PROPERTY_CANNOT_REMOVE_LAST_COVER");
 
         _images.Remove(image);
     }
+
     public void UpdateCoreInfo(
         string? title,
         string? description,
@@ -203,7 +195,8 @@ public class Property : AggregateRoot
     {
         if (title is not null)
         {
-            if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title cannot be empty.");
+            if (string.IsNullOrWhiteSpace(title)) 
+                throw new BusinessException("Title cannot be empty.", "PROPERTY_TITLE_REQUIRED");
             Title = title;
         }
         if (description is not null) Description = description;
@@ -213,14 +206,9 @@ public class Property : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>
-    /// Soft guard – chỉ Draft hoặc Archived mới được xóa.
-    /// EF sẽ thực hiện hard delete ở Handler.
-    /// </summary>
     public void EnsureCanDelete()
     {
         if (Status is not (PropertyStatus.Draft or PropertyStatus.Archived))
-            throw new InvalidOperationException(
-                "Only Draft or Archived properties can be deleted.");
+            throw new BusinessException("Only Draft or Archived properties can be deleted.", "PROPERTY_CANNOT_BE_DELETED");
     }
 }

@@ -9,7 +9,15 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/api/properties/{PropertyId}");
-        Summary(s => s.Summary = "Cập nhật thông tin chỗ ở (Host only, partial update)");
+        Summary(s => {
+            s.Summary = "Update property information (Host only, partial update)";
+            s.Description = "Possible Error Codes: \n" +
+                            "- **PROPERTY_NOT_FOUND**: Property not found or access denied.\n" +
+                            "- **PROPERTY_TITLE_REQUIRED**: Title cannot be empty.";
+            s.Responses[200] = "Property updated successfully.";
+            s.Responses[400] = "Invalid input or business rule violation.";
+            s.Responses[404] = "Property not found.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

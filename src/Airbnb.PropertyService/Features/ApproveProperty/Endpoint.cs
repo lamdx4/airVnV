@@ -9,7 +9,14 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/approve");
-        Summary(s => s.Summary = "Admin duyệt chỗ ở (PendingReview → Published)");
+        Summary(s => {
+            s.Summary = "Admin approve property (PendingReview → Published)";
+            s.Description = "Possible Error Codes: \n" +
+                            "- **PROPERTY_NOT_FOUND**: Property not found.\n" +
+                            "- **PROPERTY_NOT_IN_REVIEW**: Only properties pending review can be approved.";
+            s.Responses[200] = "Property approved and published.";
+            s.Responses[400] = "Property not in correct state.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

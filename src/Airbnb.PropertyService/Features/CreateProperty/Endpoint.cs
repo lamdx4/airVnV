@@ -16,8 +16,13 @@ public class Endpoint(IMediator mediator)
         Post("/api/properties");
         Summary(s =>
         {
-            s.Summary = "Tạo mới địa điểm lưu trú";
-            s.Description = "Command handler chứa toàn bộ logic. Endpoint chỉ dispatch.";
+            s.Summary = "Create a new property listing (Draft)";
+            s.Description = "Possible Error Codes: \n" +
+                            "- **PROPERTY_TITLE_REQUIRED**: Title is mandatory.\n" +
+                            "- **PROPERTY_SLUG_REQUIRED**: Slug is mandatory.\n" +
+                            "- **PROPERTY_HOST_REQUIRED**: Host identifier is missing.";
+            s.Responses[201] = "Property created successfully in Draft mode.";
+            s.Responses[400] = "Validation or business rule failure.";
         });
     }
 

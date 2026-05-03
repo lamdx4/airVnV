@@ -9,7 +9,14 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/suspend");
-        Summary(s => s.Summary = "Admin suspend chỗ ở (Published → Suspended)");
+        Summary(s => {
+            s.Summary = "Admin suspends property (Published → Suspended)";
+            s.Description = "Possible Error Codes: \n" +
+                            "- **PROPERTY_NOT_FOUND**: Property not found.\n" +
+                            "- **PROPERTY_NOT_PUBLISHED**: Only published properties can be suspended.\n" +
+                            "- **PROPERTY_SUSPENSION_REASON_REQUIRED**: Reason is mandatory.";
+            s.Responses[200] = "Property suspended.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

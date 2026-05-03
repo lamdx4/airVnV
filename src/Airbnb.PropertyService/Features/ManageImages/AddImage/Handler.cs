@@ -19,11 +19,7 @@ public sealed class Handler(AppDbContext db, IMediaProvider mediaProvider)
             .FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.HostId == req.RequesterId, ct)
             ?? throw new NotFoundException("Property not found or access denied.");
 
-        // Check business rule: Only 1 cover image allowed
-        if (req.Type == Domain.Enums.ImageType.Cover && property.Images.Any(i => i.Type == Domain.Enums.ImageType.Cover))
-            throw new InvalidOperationException("A cover image already exists for this property.");
-
-        // Upload file
+        // --- THỰC HIỆN UPLOAD ---
         using var stream = req.File.OpenReadStream();
         var uploadResult = await mediaProvider.UploadAsync(stream, req.File.FileName, "properties", ct);
 

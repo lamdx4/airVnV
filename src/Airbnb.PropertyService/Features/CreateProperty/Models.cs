@@ -66,12 +66,12 @@ public class Validator : FastEndpoints.Validator<Request>
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(255);
         RuleFor(x => x.Slug).NotEmpty().MaximumLength(300)
-            .Matches("^[a-z0-9-]+$").WithMessage("Slug chỉ được chứa chữ thường, số và dấu gạch ngang.");
+            .Matches("^[a-z0-9-]+$").WithMessage("Slug can only contain lowercase letters, numbers, and hyphens.");
         RuleFor(x => x.BasePrice).GreaterThan(0);
         RuleFor(x => x.CurrencyCode).NotEmpty().Length(3)
-            .WithMessage("Currency phải theo chuẩn ISO 4217 (VND, USD...).");
+            .WithMessage("Currency must follow ISO 4217 standard (e.g., VND, USD).");
         RuleFor(x => x.CountryCode).NotEmpty().Length(2)
-            .WithMessage("CountryCode phải theo chuẩn ISO 3166-1 alpha-2.");
+            .WithMessage("CountryCode must follow ISO 3166-1 alpha-2 standard.");
         RuleFor(x => x.Latitude).InclusiveBetween(-90, 90);
         RuleFor(x => x.Longitude).InclusiveBetween(-180, 180);
         RuleFor(x => x.DisplayAddress).NotEmpty().MaximumLength(500);

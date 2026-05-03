@@ -9,7 +9,13 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/reinstate");
-        Summary(s => s.Summary = "Admin khôi phục chỗ ở (Suspended → Published)");
+        Summary(s => {
+            s.Summary = "Admin reinstates property (Suspended → Published)";
+            s.Description = "Possible Error Codes: \n" +
+                            "- **PROPERTY_NOT_FOUND**: Property not found.\n" +
+                            "- **PROPERTY_NOT_SUSPENDED**: Only suspended properties can be reinstated.";
+            s.Responses[200] = "Property reinstated.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
