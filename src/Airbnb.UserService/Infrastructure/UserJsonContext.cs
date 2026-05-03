@@ -32,6 +32,12 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(Features.Profile.Update.Response), TypeInfoPropertyName = "UpdateProfileResponseData")]
 [JsonSerializable(typeof(Features.Profile.Update.Request), TypeInfoPropertyName = "UpdateProfileRequest")]
 
+// --- Media ---
+[JsonSerializable(typeof(ApiResponse<Features.Media.GetSignature.Response>), TypeInfoPropertyName = "GetSignatureApiResponse")]
+[JsonSerializable(typeof(Features.Media.GetSignature.Response), TypeInfoPropertyName = "GetSignatureResponseData")]
+[JsonSerializable(typeof(Features.Media.GetSignature.Request), TypeInfoPropertyName = "GetSignatureRequest")]
+[JsonSerializable(typeof(Airbnb.Infrastructure.Media.SignatureResponse))]
+
 // --- Shared ---
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class UserJsonContext : JsonSerializerContext { }

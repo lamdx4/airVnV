@@ -9,5 +9,7 @@
   </Folder>
   <Project Path="Airbnb.AppHost/Airbnb.AppHost.csproj" />
   <Project Path="Airbnb.Infrastructure.Configurator/Airbnb.Infrastructure.Configurator.csproj" />
+  <Project Path="Airbnb.Infrastructure.Media/Airbnb.Infrastructure.Media.csproj" />
   <Project Path="Airbnb.ServiceDefaults/Airbnb.ServiceDefaults.csproj" />
+  <Project Path="Airbnb.SharedKernel/Airbnb.SharedKernel.csproj" />
 </Solution>

@@ -41,7 +41,7 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         try
         {
-            var payment = new Payment(req.BookingId, req.Amount);
+            var payment = Payment.Create(req.BookingId, req.Amount);
             db.Payments.Add(payment);
             
             // Giả lập thanh toán thành công

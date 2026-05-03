@@ -53,9 +53,16 @@ export function RegisterForm() {
     verifyMutation.mutate({ email, otpCode })
   }
 
+  const regApiError = registerMutation.error as any;
+  const verifyApiError = verifyMutation.error as any;
+
   const errorMessage = localError || 
-    (registerMutation.error ? 'Đăng ký thất bại. Email có thể đã tồn tại!' : null) ||
-    (verifyMutation.error ? 'Mã OTP không hợp lệ hoặc đã hết hạn!' : null);
+    (regApiError 
+      ? (regApiError.errorCode === 'USER_ALREADY_EXISTS' ? 'Email này đã tồn tại trong hệ thống!' : regApiError.message || 'Đăng ký thất bại!') 
+      : null) ||
+    (verifyApiError 
+      ? (verifyApiError.errorCode === 'VERIFY_FAILED' ? 'Mã OTP không đúng hoặc đã hết hạn!' : verifyApiError.message || 'Xác thực thất bại!') 
+      : null);
 
   // 1. Giao diện Nhập mã OTP
   if (isOtpSent) {

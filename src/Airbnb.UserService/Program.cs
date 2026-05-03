@@ -7,6 +7,7 @@ using System.Text.Json.Serialization.Metadata;
 
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Airbnb.Infrastructure.Media;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ if (File.Exists("firebase-service-account.json"))
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<UserDbContext>("userdb");
+
+builder.Services.AddMediaServices(builder.Configuration);
 
 builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration."));
 builder.Services.AddAuthorization();

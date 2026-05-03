@@ -52,7 +52,10 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             return;
         }
 
-        var booking = new Booking(req.PropertyId, req.UserId, req.CheckIn, req.CheckOut, req.TotalPrice);
+        var booking = Booking.Create(req.PropertyId, req.UserId,
+            new DateTimeOffset(req.CheckIn, TimeSpan.Zero),
+            new DateTimeOffset(req.CheckOut, TimeSpan.Zero),
+            req.TotalPrice);
         
         db.Bookings.Add(booking);
         await db.SaveChangesAsync(ct);

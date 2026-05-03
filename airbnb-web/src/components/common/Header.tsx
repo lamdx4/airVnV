@@ -51,14 +51,22 @@ export default function Header() {
           </div>
 
           {isMenuOpen && (
-            <div className="absolute top-12 right-0 bg-white shadow-lg rounded-xl py-2 border border-gray-200/80 w-48 flex flex-col z-50">
+            <div className="absolute top-12 right-0 bg-white shadow-lg rounded-xl py-2 border border-gray-200/80 w-52 flex flex-col z-50">
               {isAuthenticated ? (
-                <button
-                  onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
-                  className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-normal text-red-500 transition"
-                >
-                  Đăng xuất
-                </button>
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate('/profile'); setIsMenuOpen(false); }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
+                  >
+                    Hồ sơ cá nhân
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-normal text-red-500 transition"
+                  >
+                    Đăng xuất
+                  </button>
+                </>
               ) : (
                 <>
                   <button

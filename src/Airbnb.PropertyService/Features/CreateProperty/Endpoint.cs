@@ -1,41 +1,29 @@
 using FastEndpoints;
-using Airbnb.PropertyService.Domain;
-using Airbnb.PropertyService.Infrastructure;
+using Mediator;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Features.CreateProperty;
 
-public class Endpoint : FastEndpoints.Endpoint<Request, Response>
+/// <summary>
+/// Endpoint chỉ làm 1 việc: bridge HTTP → Mediator → Response.
+/// Không có business logic. Không biết DB, Domain tồn tại.
+/// </summary>
+public class Endpoint(IMediator mediator)
+    : FastEndpoints.Endpoint<Request, ApiResponse<Response>>
 {
-    private readonly AppDbContext db;
-    public Endpoint(AppDbContext db) => this.db = db;
-
     public override void Configure()
     {
         Post("/api/properties");
-        Summary(s => {
+        Summary(s =>
+        {
             s.Summary = "Tạo mới địa điểm lưu trú";
-            s.Description = "Triển khai bằng Vertical Slice và Rich Domain Model";
+            s.Description = "Command handler chứa toàn bộ logic. Endpoint chỉ dispatch.";
         });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var address = new AddressVO(
-            req.CountryCode, 
-            req.City, 
-            req.StateProvince, 
-            req.Ward,
-            req.StreetLine1, 
-            req.StreetLine2, 
-            req.PostalCode, 
-            req.Latitude, 
-            req.Longitude
-        );
-        var property = new Property(req.HostId, req.Name, req.Description, req.PricePerNight, address);
-        
-        db.Properties.Add(property);
-        await db.SaveChangesAsync(ct);
-        
-        Response = new Response(property.Id, property.Name);
+        var result = await mediator.Send(req, ct);
+        await SendAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

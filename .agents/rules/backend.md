@@ -2,7 +2,9 @@
 trigger: always_on
 ---
 
-# 🧱 FINAL RULE – FASTENDPOINTS (TEAM-SAFE)
+
+
+# 🧱 FINAL RULE – FASTENDPOINTS + MEDIATOR (TEAM-SAFE)
 
 Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Developer khi tham gia phát triển dự án AirVnV.
 
@@ -15,54 +17,104 @@ Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Deve
   /<FeatureName>
     /<UseCase>
        Endpoint.cs
-       Request.cs        (nếu có input)
+       Request.cs        (implements ICommand hoặc IQuery từ Mediator)
        Response.cs
-       Handler.cs        (nếu cần)
-       Validator.cs      (optional)
+       Handler.cs        (ICommandHandler hoặc IQueryHandler)
+       Validator.cs      (optional – FastEndpoints.Validator<Request>)
 ```
 
-### Rule:
+### Rule
+
 - 1 folder = 1 use case (GetProfile, UpdateProfile…)
-- Không tạo “Services”, “Utils” lung tung trong Feature
+- Không tạo "Services", "Utils" lung tung trong Feature
 - Không share Handler giữa các UseCase
 - Mục tiêu: **mở folder là thấy toàn bộ nghiệp vụ**
 
 ---
 
-## ⚔️ 2. Command (WRITE) – BẮT BUỘC CQRS
+## ⚔️ 2. Command (WRITE) – BẮT BUỘC Mediator
 
-- Tất cả logic thay đổi dữ liệu → bắt buộc dùng **ICommand**
+- Tất cả logic thay đổi dữ liệu → bắt buộc dùng **Mediator.ICommand**
 - Structure bắt buộc:
-  - Request implements `ICommand<Response>`
-  - Handler implements `ICommandHandler<Command, Response>`
+  - `Request.cs` implements `Mediator.ICommand<Response>`
+  - `Handler.cs` implements `ICommandHandler<Request, Response>`
 - Endpoint:
   - KHÔNG chứa business logic
-  - Chỉ gọi: `Response = await req.ExecuteAsync(ct);`
-- Mọi side-effect (Kafka, Outbox…) phải nằm trong Handler
+  - Chỉ gọi: `await mediator.Send(req, ct)`
+- Mọi side-effect (MassTransit Outbox, Domain Events) phải nằm trong Handler
 - Không có exception cho quy tắc này.
+
+```csharp
+// Request.cs – Request IS the Command
+public record CreatePropertyRequest(...) : Mediator.ICommand<CreatePropertyResponse>;
+
+// Handler.cs
+public sealed class CreatePropertyHandler(AppDbContext db, DomainEventPublisher publisher)
+    : ICommandHandler<CreatePropertyRequest, CreatePropertyResponse>
+{
+    public async ValueTask<CreatePropertyResponse> Handle(
+        CreatePropertyRequest req, CancellationToken ct)
+    {
+        // Business logic + domain events + SaveChanges
+    }
+}
+
+// Endpoint.cs – thin, chỉ dispatch
+public class Endpoint(IMediator mediator)
+    : FastEndpoints.Endpoint<CreatePropertyRequest, ApiResponse<CreatePropertyResponse>>
+{
+    public override async Task HandleAsync(CreatePropertyRequest req, CancellationToken ct)
+    {
+        var result = await mediator.Send(req, ct);
+        await SendAsync(ApiResponse<CreatePropertyResponse>.SuccessResult(result), cancellation: ct);
+    }
+}
+```
 
 ---
 
-## 👀 3. Query (READ) – 2 chế độ rõ ràng
+## 👀 3. Query (READ) – Mediator.IQuery
 
-### ✅ Mode 1: Simple Query (mặc định)
-- Viết trực tiếp trong Endpoint
-- Chỉ được phép:
-  - LINQ query
-  - Projection → DTO
-  - Mapping đơn giản
-- KHÔNG được:
-  - if/else business
-  - loop xử lý logic
-  - gọi service/domain
+- Tất cả read operations → dùng **Mediator.IQuery**
+- Structure bắt buộc:
+  - `Request.cs` implements `Mediator.IQuery<Response>`
+  - `Handler.cs` implements `IQueryHandler<Request, Response>`
+- Endpoint:
+  - KHÔNG chứa business logic hay LINQ
+  - Chỉ gọi: `await mediator.Send(req, ct)`
+- **Không còn phân biệt Simple/Complex Query** – mọi query đều có Handler.
 
-### ✅ Mode 2: Complex Query
-- Bắt buộc tạo Handler (POCO class)
-- Dùng khi:
-  - có business logic
-  - có nhiều bước xử lý
-  - cần reuse
-- Không dùng ICommand cho Query (tránh over-engineer)
+```csharp
+// Request.cs
+public record GetPropertyRequest(Guid PropertyId) : Mediator.IQuery<GetPropertyResponse>;
+
+// Handler.cs
+public sealed class GetPropertyHandler(AppDbContext db)
+    : IQueryHandler<GetPropertyRequest, GetPropertyResponse>
+{
+    public async ValueTask<GetPropertyResponse> Handle(
+        GetPropertyRequest req, CancellationToken ct)
+    {
+        return await db.Properties
+            .AsNoTracking()
+            .Where(p => p.Id == req.PropertyId)
+            .Select(p => new GetPropertyResponse(p.Id, p.Title, p.Status))
+            .FirstOrDefaultAsync(ct)
+            ?? throw new NotFoundException("Property not found.");
+    }
+}
+
+// Endpoint.cs – giống hệt Command endpoint
+public class Endpoint(IMediator mediator)
+    : FastEndpoints.Endpoint<GetPropertyRequest, ApiResponse<GetPropertyResponse>>
+{
+    public override async Task HandleAsync(GetPropertyRequest req, CancellationToken ct)
+    {
+        var result = await mediator.Send(req, ct);
+        await SendAsync(ApiResponse<GetPropertyResponse>.SuccessResult(result), cancellation: ct);
+    }
+}
+```
 
 ---
 
@@ -70,13 +122,13 @@ Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Deve
 
 - Business logic KHÔNG được nằm trong Endpoint
 - Phải nằm ở:
-  - **Handler** (Application logic - Orchestration)
-  - hoặc **Domain Entity** (Core logic - Rich Domain Model)
+  - **Handler** (Application logic – Orchestration)
+  - hoặc **Domain Entity** (Core logic – Rich Domain Model)
 - Endpoint chỉ:
   - nhận request
-  - gọi handler / db
+  - gọi `mediator.Send()`
   - trả response
-- Nếu thấy Endpoint có “if business” → sai ngay.
+- Nếu thấy Endpoint có "if business" hay LINQ → sai ngay.
 
 ---
 
@@ -102,42 +154,58 @@ Dưới đây là tập hợp các quy tắc bắt buộc cho AI Agents và Deve
 
 ---
 
-## ⚡ 7. Simplicity Guard (tránh over-engineer)
+## ⚡ 7. Simplicity Guard
 
-- Không tạo Handler nếu chỉ là read đơn giản và không có business logic.
-- Không dùng ICommand cho Query.
+- Không tạo Handler nếu chỉ là health check hay static response (không có DB, không có domain).
+- Không dùng `ICommand` cho Query (type safety: `IQuery` cho read, `ICommand` cho write).
 - Ưu tiên code rõ ràng hơn là đúng pattern một cách máy móc.
 
 ---
 
-## 🤖 8. AI Rule (Dành cho AI Agents)
+## ⚠️ 8. Lưu ý namespace (quan trọng)
 
-- Luôn tuân thủ Command rule cho write.
+FastEndpoints cũng có `ICommand<>` – **conflict với Mediator**.
+Luôn dùng fully-qualified name:
+
+```csharp
+// ✅ Đúng – tránh ambiguous reference
+public record MyRequest(...) : Mediator.ICommand<MyResponse>;
+
+// ❌ Sai – ambiguous giữa FastEndpoints.ICommand và Mediator.ICommand
+public record MyRequest(...) : ICommand<MyResponse>;
+```
+
+---
+
+## 🤖 9. AI Rule (Dành cho AI Agents)
+
+- Luôn tuân thủ Command rule cho write: `Mediator.ICommand` + `ICommandHandler`.
+- Luôn tuân thủ Query rule cho read: `Mediator.IQuery` + `IQueryHandler`.
+- Endpoint luôn thin: chỉ `mediator.Send()`.
 - Không tự tạo pattern mới.
 - Không thêm abstraction nếu không cần.
-- Nếu logic đơn giản → ưu tiên viết trực tiếp.
 - Mọi DTO phải khai báo `[JsonSerializable]` tại `JsonSerializerContext` (Native AOT Readiness).
 
 ---
 
-## 💎 9. Unified Response Format (Bắt buộc)
+## 💎 10. Unified Response Format (Bắt buộc)
 
 Tất cả các API phản hồi thành công (200, 201) phải được bọc trong một Envelope chuẩn:
 
 ```csharp
 public record ApiResponse<T>(
-    T? Data, 
-    string? Message = null, 
-    bool Success = true, 
-    string? ErrorCode = null, 
+    T? Data,
+    string? Message = null,
+    bool Success = true,
+    string? ErrorCode = null,
     List<string>? Errors = null)
 {
     public DateTime Timestamp { get; } = DateTime.UtcNow;
 }
 ```
 
-### Quy tắc:
+### Quy tắc
+
 - **Success:** Trả về `ApiResponse<T>` với `Success = true`.
 - **Validation Error:** Framework tự động trả về `ErrorResponse` (400/422).
 - **Business/Auth Error:** Sử dụng HTTP Status Code phù hợp (401, 403, 404) kèm theo **ErrorCode** định danh (ví dụ: `USER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`).
-

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Airbnb.ServiceDefaults\Airbnb.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Airbnb.SharedKernel\Airbnb.SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -10,6 +11,14 @@
     <PackageReference Include="FastEndpoints.Swagger" Version="5.30.0" />
     <PackageReference Include="Mapster" Version="10.0.7" />
     <PackageReference Include="Mapster.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="MassTransit" Version="9.1.0" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.1.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,5 +31,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Airbnb.PropertyService.Tests" />
+  </ItemGroup>
 
 </Project>

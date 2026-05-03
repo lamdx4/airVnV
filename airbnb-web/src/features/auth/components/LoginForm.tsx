@@ -31,10 +31,11 @@ export function LoginForm() {
     }
   }
 
-  const errorMessage = loginMutation.error
-    ? ((loginMutation.error as any).response?.status === 401 
-        ? 'Email hoặc mật khẩu không đúng!' 
-        : 'Đăng nhập thất bại. Vui lòng thử lại!')
+  const apiError = loginMutation.error as any;
+  const errorMessage = apiError
+    ? (apiError.errorCode === 'AUTH_INVALID_CREDENTIALS'
+        ? 'Email hoặc mật khẩu không chính xác!'
+        : apiError.message || 'Đăng nhập thất bại. Vui lòng thử lại!')
     : null;
 
   return (

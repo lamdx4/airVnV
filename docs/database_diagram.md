@@ -109,7 +109,7 @@ erDiagram
 
 ## Chú giải kiến trúc
 
-*   **Độc lập Dữ liệu:** Mỗi Microservice tự quản lý schema của mình. Dữ liệu cross-service được tham chiếu thông qua ID (GUID).
-*   **Outbox Pattern:** Tại `paydb`, bảng `OutboxEvent` được lưu cùng transaction với `Payment` để đảm bảo Debezium chắc chắn sẽ pick up event và đẩy lên Kafka mà không lo lỗi Dual-write.
-*   **Idempotency:** Tại `bookdb`, bảng `ProcessedEvent` giữ vai trò rào chắn bảo vệ logic xử lý Booking (Consumer), giúp hệ thống an toàn chặn đứng mọi sự kiện bị lặp lại do retries hoặc lỗi mạng.
-*   **Search Sync:** `PropertyDoc` trong Elasticsearch là một "bản chiếu" (projection/read-model) từ bảng `Property` (Postgres) thông qua luồng CDC, đảm bảo Search Engine luôn đồng bộ với Source of Truth.
+* **Độc lập Dữ liệu:** Mỗi Microservice tự quản lý schema của mình. Dữ liệu cross-service được tham chiếu thông qua ID (GUID).
+* **Outbox Pattern:** Tại `paydb`, bảng `OutboxEvent` được lưu cùng transaction với `Payment` để đảm bảo Debezium chắc chắn sẽ pick up event và đẩy lên Kafka mà không lo lỗi Dual-write.
+* **Idempotency:** Tại `bookdb`, bảng `ProcessedEvent` giữ vai trò rào chắn bảo vệ logic xử lý Booking (Consumer), giúp hệ thống an toàn chặn đứng mọi sự kiện bị lặp lại do retries hoặc lỗi mạng.
+* **Search Sync:** `PropertyDoc` trong Elasticsearch là một "bản chiếu" (projection/read-model) từ bảng `Property` (Postgres) thông qua luồng CDC, đảm bảo Search Engine luôn đồng bộ với Source of Truth.

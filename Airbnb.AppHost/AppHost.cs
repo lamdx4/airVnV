@@ -26,6 +26,11 @@ var kafka = builder.AddKafka("kafka")
     .WithKafkaUI()
     .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
 
+// RabbitMQ – Domain Events + MassTransit Saga (PropertyService, BookingService, v.v.)
+var rabbit = builder.AddRabbitMQ("rabbitmq")
+    .WithDataVolume("airbnb_rabbit_data")
+    .WithManagementPlugin(); // UI: http://localhost:15672
+
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
     .WithDataVolume("airbnb_es_data")
     .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
@@ -52,11 +57,11 @@ var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
 
 var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
     .WithReference(propDb)
-    .WithReference(kafka);
+    .WithReference(rabbit);
 
 var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice")
     .WithReference(bookDb)
-    .WithReference(kafka);
+    .WithReference(rabbit);
 
 var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
     .WithReference(payDb)
