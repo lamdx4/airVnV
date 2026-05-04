@@ -44,7 +44,7 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddScoped<DomainEventPublisher>();
 
 // 4. Mediator (source-generated CQRS dispatch – zero reflection)
-builder.Services.AddMediator();
+builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
 
 // 3. FastEndpoints & Swagger
 builder.Services.AddFastEndpoints();
