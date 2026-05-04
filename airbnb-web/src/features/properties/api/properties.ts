@@ -67,4 +67,8 @@ export const propertiesApi = {
 
   removeAmenity: (propertyId: string, amenityId: string): Promise<void> => 
     api.delete(`/api/properties/${propertyId}/amenities/${amenityId}`),
+
+  // Get all available amenities
+  getAvailableAmenities: (): Promise<Amenity[]> => 
+    api.get('/api/amenities'),
 };

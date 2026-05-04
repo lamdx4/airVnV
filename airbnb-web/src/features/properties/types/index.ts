@@ -41,6 +41,13 @@ export interface HouseRules {
   flexibleCheckOut: boolean;
 }
 
+export interface Amenity {
+  id: string;
+  name: string;
+  category: string;
+  iconCode?: string;
+}
+
 export interface PropertyImage {
   id: string;
   url: string;

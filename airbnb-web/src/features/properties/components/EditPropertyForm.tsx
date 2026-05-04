@@ -18,6 +18,7 @@ import {
 } from 'hugeicons-react';
 import { useProperty, useUpdateProperty } from '../hooks/useProperties';
 import { ImageManager } from './ImageManager';
+import { AmenityManager } from './AmenityManager';
 import { toast } from 'sonner';
 
 const schema = z.object({
@@ -221,13 +222,11 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
           </TabsContent>
 
           <TabsContent value="amenities">
-             <div className="p-8 border-2 border-dashed rounded-3xl text-center space-y-4 bg-slate-50/50">
-                <Task01Icon className="mx-auto h-12 w-12 text-slate-300" />
-                <div>
-                  <h3 className="text-lg font-semibold">Amenities Coming Soon</h3>
-                  <p className="text-muted-foreground">Manage property features and comforts.</p>
-                </div>
-             </div>
+             <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+               <CardContent className="pt-6">
+                 <AmenityManager propertyId={propertyId} selectedAmenities={property.amenities} />
+               </CardContent>
+             </Card>
           </TabsContent>
         </div>
       </Tabs>

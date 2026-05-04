@@ -126,3 +126,32 @@ export const useRemoveImage = () => {
     }
   });
 };
+
+export const useAvailableAmenities = () => {
+  return useQuery({
+    queryKey: ['amenities', 'available'],
+    queryFn: () => propertiesApi.getAvailableAmenities(),
+  });
+};
+
+export const useAddAmenity = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ propertyId, amenityId }: { propertyId: string, amenityId: string }) => 
+      propertiesApi.addAmenity(propertyId, amenityId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });
+    }
+  });
+};
+
+export const useRemoveAmenity = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ propertyId, amenityId }: { propertyId: string, amenityId: string }) => 
+      propertiesApi.removeAmenity(propertyId, amenityId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });
+    }
+  });
+};
