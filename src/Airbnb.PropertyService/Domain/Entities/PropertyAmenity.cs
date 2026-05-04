@@ -14,5 +14,10 @@ public class PropertyAmenity
         AdditionalInfo = additionalInfo;
     }
 
+    internal void UpdateInfo(string? additionalInfo)
+    {
+        AdditionalInfo = additionalInfo;
+    }
+
     private PropertyAmenity() { } // EF Core
 }

@@ -1,74 +1,64 @@
 import { api } from '@/lib/api';
-import { PropertyDTO, PropertyStatus, CreatePropertyRequest, PagedResponse, PaginationParams } from '../types';
+import type { Property, Amenity, EditPropertyInput } from '../types';
 
 export const propertiesApi = {
-  // Get all properties of current host
-  getMyProperties: (params: PaginationParams): Promise<PagedResponse<PropertyDTO>> => 
-    api.get('/api/properties/my', { params }),
+  // Get all properties for current host
+  getMyProperties: (page = 1, pageSize = 10): Promise<{ data: Property[], totalCount: number }> => 
+    api.get('/api/properties/my', { params: { page, pageSize } }),
 
-  // Get single property details
-  getProperty: (id: string): Promise<PropertyDTO> => 
-    api.get(`/api/properties/${id}`),
-
-  // Create new property
-  createProperty: (data: CreatePropertyRequest): Promise<{ id: string }> => 
+  // Create property
+  createProperty: (data: any): Promise<{ id: string, slug: string }> =>
     api.post('/api/properties', data),
 
-  // Update property
-  updateProperty: (id: string, data: Partial<CreatePropertyRequest>): Promise<{ id: string, updatedAt: string }> => 
-    api.patch(`/api/properties/${id}`, data),
+  // Get single property details
+  getProperty: (id: string): Promise<Property> => 
+    api.get(`/api/properties/${id}`),
 
-  // Delete property
-  deleteProperty: (id: string): Promise<{ id: string, message: string }> => 
-    api.delete(`/api/properties/${id}`),
+  // Update core info
+  updateProperty: (id: string, data: EditPropertyInput): Promise<void> => 
+    api.put(`/api/properties/${id}`, data),
 
-  // --- Status Transitions ---
-  submitProperty: (id: string): Promise<{ id: string }> => 
-    api.post(`/api/properties/${id}/submit`),
+  // Update location
+  updateLocation: (id: string, data: any): Promise<void> =>
+    api.put(`/api/properties/${id}/location`, data),
 
-  approveProperty: (id: string): Promise<{ id: string }> => 
-    api.post(`/api/properties/${id}/approve`),
+  // Update status (Publish/Archive)
+  updateStatus: (propertyId: string, status: number): Promise<void> =>
+    api.patch(`/api/properties/${propertyId}/status`, { status }),
 
-  suspendProperty: (id: string, reason: string): Promise<{ id: string }> => 
-    api.post(`/api/properties/${id}/suspend`, { reason }),
-
-  reinstateProperty: (id: string): Promise<{ id: string }> => 
-    api.post(`/api/properties/${id}/reinstate`),
-
-  archiveProperty: (id: string): Promise<{ id: string }> => 
-    api.post(`/api/properties/${id}/archive`),
-
-  // --- Media Management ---
-  addImage: (propertyId: string, file: File, type: number): Promise<{ id: string, url: string }> => {
+  // Images
+  addImages: (propertyId: string, files: File[], type: number): Promise<void> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type.toString());
+    files.forEach(file => formData.append('Files', file));
+    formData.append('Type', type.toString());
     return api.post(`/api/properties/${propertyId}/images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
-  removeImage: (propertyId: string, imageId: string): Promise<void> => 
+  removeImage: (propertyId: string, imageId: string): Promise<void> =>
     api.delete(`/api/properties/${propertyId}/images/${imageId}`),
 
-  // Bulk add images
-  addImages: (propertyId: string, files: File[], type: number): Promise<{ images: { id: string, url: string }[] }> => {
-    const formData = new FormData();
-    files.forEach(file => formData.append('Files', file));
-    formData.append('Type', type.toString());
-    return api.post(`/api/properties/${propertyId}/images/bulk`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-  },
+  reorderImages: (propertyId: string, orders: { imageId: string, displayOrder: number }[]): Promise<void> =>
+    api.put(`/api/properties/${propertyId}/images/reorder`, { orders }),
 
-  // --- Amenity Management ---
-  addAmenity: (propertyId: string, amenityId: string, additionalInfo?: string): Promise<void> => 
-    api.post(`/api/properties/${propertyId}/amenities/${amenityId}`, { additionalInfo }),
-
-  removeAmenity: (propertyId: string, amenityId: string): Promise<void> => 
-    api.delete(`/api/properties/${propertyId}/amenities/${amenityId}`),
-
-  // Get all available amenities
+  // Amenities
   getAvailableAmenities: (): Promise<Amenity[]> => 
     api.get('/api/amenities'),
+
+  addAmenity: (propertyId: string, amenityId: string): Promise<void> =>
+    api.post(`/api/properties/${propertyId}/amenities`, { amenityId }),
+
+  removeAmenity: (propertyId: string, amenityId: string): Promise<void> =>
+    api.delete(`/api/properties/${propertyId}/amenities/${amenityId}`),
+
+  updateAmenityInfo: (propertyId: string, amenityId: string, additionalInfo: string): Promise<void> =>
+    api.patch(`/api/properties/${propertyId}/amenities/${amenityId}`, { additionalInfo }),
+
+  // Availability/Calendar
+  blockDates: (propertyId: string, data: { startDate: string, endDate: string, note?: string }): Promise<void> =>
+    api.post(`/api/properties/${propertyId}/availability/block`, data),
+
+  removeAvailability: (propertyId: string, availabilityId: string): Promise<void> =>
+    api.delete(`/api/properties/${propertyId}/availability/${availabilityId}`),
 };

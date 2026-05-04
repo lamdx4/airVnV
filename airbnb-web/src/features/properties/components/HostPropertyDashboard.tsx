@@ -1,305 +1,235 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+  PlusSignIcon, 
+  MoreHorizontalIcon, 
+  ViewIcon, 
+  Edit02Icon, 
+  Delete02Icon,
+  Search01Icon,
+  FilterIcon,
+  Home01Icon,
+  ArrowRight02Icon, 
+  ArrowLeft02Icon,
+  Tick02Icon
+} from 'hugeicons-react';
+import { useMyProperties } from '../hooks/useProperties';
+import { PropertyStatus } from '../types';
+import { getStatusColor, getStatusText } from '../utils/status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import { 
-  MoreHorizontalIcon, 
-  PlusSignIcon, 
-  ViewIcon, 
-  PencilEdit01Icon, 
-  Delete02Icon, 
-  Archive02Icon, 
-  SentIcon, 
-  Image01Icon,
-  Search01Icon,
-  Cancel01Icon
-} from 'hugeicons-react';
-import { useMyProperties, useSubmitProperty, useArchiveProperty, useDeleteProperty } from '../hooks/useProperties';
-import { CreatePropertyDialog } from './CreatePropertyDialog';
-import { getStatusConfig } from '../utils/status';
-import { PropertyStatus } from '../types';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { Search as SearchIcon, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const HostPropertyDashboard: React.FC = () => {
-  const [page, setPage] = React.useState(1);
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [debouncedSearch, setDebouncedSearch] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState<string>('all');
-  
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
   const pageSize = 5;
+  
+  const { data, isLoading } = useMyProperties(page, pageSize);
+  const properties = data?.data || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
-  // Debounce search term
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 when searching
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const { data, isLoading, error } = useMyProperties({ 
-    pageNumber: page, 
-    pageSize,
-    searchTerm: debouncedSearch || undefined,
-    status: statusFilter === 'all' ? undefined : parseInt(statusFilter)
-  });
-  const properties = data?.items;
-
-  const submitMutation = useSubmitProperty();
-  const archiveMutation = useArchiveProperty();
-  const deleteMutation = useDeleteProperty();
-
-  if (isLoading) return <div className="p-8 text-center">Loading your properties...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">Error loading properties</div>;
-
-  const handleSubmit = async (id: string) => {
-    try {
-      await submitMutation.mutateAsync(id);
-      toast.success('Property submitted for review!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to submit property');
-    }
-  };
-
-  const handleArchive = async (id: string) => {
-    try {
-      await archiveMutation.mutateAsync(id);
-      toast.success('Property archived successfully');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to archive property');
-    }
-  };
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your Listings</h1>
-          <p className="text-muted-foreground">Manage your properties and track their status.</p>
+          <h1 className="text-3xl font-bold text-hof">Your Listings</h1>
+          <p className="text-slate-500 mt-1">Manage your properties and track their performance.</p>
         </div>
-        <CreatePropertyDialog />
+        <Button 
+          onClick={() => navigate('/host/homes/new')}
+          className="bg-rausch hover:bg-rausch-dark text-white rounded-2xl h-12 px-6 gap-2 font-bold shadow-lg shadow-rausch/20"
+        >
+          <PlusSignIcon className="h-5 w-5" />
+          Create New Listing
+        </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
-        <div className="relative w-full md:w-96">
-          <Search01Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by title..." 
-            className="pl-10 pr-10 bg-white"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-rausch transition-colors"
-            >
-              <Cancel01Icon className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Status:</span>
-          <Select 
-            value={statusFilter} 
-            onValueChange={(value) => {
-              setStatusFilter(value);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[180px] bg-white">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Listings</SelectItem>
-              <SelectItem value={PropertyStatus.Draft.toString()}>Draft</SelectItem>
-              <SelectItem value={PropertyStatus.PendingReview.toString()}>Pending Review</SelectItem>
-              <SelectItem value={PropertyStatus.Published.toString()}>Published</SelectItem>
-              <SelectItem value={PropertyStatus.Suspended.toString()}>Suspended</SelectItem>
-              <SelectItem value={PropertyStatus.Archived.toString()}>Archived</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Stats Bar (Optional/Placeholder for future) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <StatCard label="Total Listings" value={totalCount.toString()} icon={Home01Icon} color="bg-blue-50 text-blue-600" />
+         <StatCard label="Active" value={properties.filter(p => p.status === PropertyStatus.Published).length.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
+         <StatCard label="Drafts" value={properties.filter(p => p.status === PropertyStatus.Draft).length.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
       </div>
 
-      <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow>
-              <TableHead className="w-[300px]">Property</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Updated At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {properties?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                  You don't have any listings yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              properties?.map((property) => {
-                const status = getStatusConfig(property.status);
-                return (
-                  <TableRow key={property.id} className="hover:bg-slate-50 transition-colors">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-16 h-12 rounded-md bg-slate-100 flex items-center justify-center overflow-hidden border">
-                          {property.images.find(img => img.type === 0)?.url ? (
-                            <img 
-                              src={property.images.find(img => img.type === 0)?.url} 
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Image01Icon className="text-slate-400 h-6 w-6" />
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="line-clamp-1">{property.title}</span>
-                          <span className="text-xs text-muted-foreground">{property.capacity.guestCount} guests · {property.capacity.bedroomCount} BR</span>
-                        </div>
+      {/* Filter & Search */}
+      <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border shadow-sm">
+        <div className="flex-1 relative">
+            <Search01Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input 
+                placeholder="Search by title or location..."
+                className="w-full pl-12 pr-4 py-2 rounded-xl border-none focus:ring-2 ring-rausch/20 outline-none text-sm"
+            />
+        </div>
+        <Button variant="outline" className="rounded-xl border-slate-200 gap-2">
+            <FilterIcon className="h-4 w-4" />
+            Filters
+        </Button>
+      </div>
+
+      {/* Desktop Table / Mobile Cards */}
+      <div className="bg-white rounded-[2rem] border shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 border-bottom">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Listing</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Price</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Location</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {properties.map((property) => (
+                <tr key={property.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-xl overflow-hidden border bg-slate-100 shrink-0">
+                        <img 
+                            src={property.images?.find(i => i.type === 1)?.url || 'https://placehold.co/100x100?text=No+Img'} 
+                            className="h-full w-full object-cover" 
+                            alt={property.title}
+                        />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`${status.color} px-2 py-0.5 font-medium border`}>
-                        {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-semibold">${property.pricing.basePrice}</span>
-                      <span className="text-xs text-muted-foreground ml-1">/ night</span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm max-w-[150px] truncate">
-                      {property.displayAddress}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(property.updatedAt || property.createdAt), 'MMM d, yyyy')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontalIcon className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem>
-                            <ViewIcon className="mr-2 h-4 w-4" /> View Listing
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/host/homes/${property.id}/edit`)}>
-                            <PencilEdit01Icon className="mr-2 h-4 w-4" /> Edit Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Image01Icon className="mr-2 h-4 w-4" /> Manage Images
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuSeparator />
-                          
-                          {property.status === 0 && ( // Draft
-                            <DropdownMenuItem 
-                              onClick={() => handleSubmit(property.id)}
-                              className="text-amber-600 focus:text-amber-600 focus:bg-amber-50"
-                            >
-                              <SentIcon className="mr-2 h-4 w-4" /> Submit for Review
-                            </DropdownMenuItem>
-                          )}
-                          
-                          {(property.status === 2 || property.status === 3) && ( // Published or Suspended
-                            <DropdownMenuItem 
-                              onClick={() => handleArchive(property.id)}
-                              className="text-gray-600"
-                            >
-                              <Archive02Icon className="mr-2 h-4 w-4" /> Archive Listing
-                            </DropdownMenuItem>
-                          )}
-
-                          <DropdownMenuItem className="text-rose-600 focus:text-rose-600 focus:bg-rose-50">
-                            <Delete02Icon className="mr-2 h-4 w-4" /> Delete Listing
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination Controls */}
-      {data && data.totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 py-4">
-          <p className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{(data.pageNumber - 1) * data.pageSize + 1}</span> to{' '}
-            <span className="font-medium">
-              {Math.min(data.pageNumber * data.pageSize, data.totalCount)}
-            </span>{' '}
-            of <span className="font-medium">{data.totalCount}</span> results
-          </p>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={!data.hasPreviousPage}
-            >
-              Previous
-            </Button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
-                <Button
-                  key={p}
-                  variant={p === data.pageNumber ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </Button>
+                      <div className="min-w-0">
+                        <p className="font-bold text-hof truncate max-w-[240px] group-hover:text-rausch transition-colors">{property.title}</p>
+                        <p className="text-xs text-slate-400 mt-1 truncate max-w-[200px]">{property.description}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge className={`${getStatusColor(property.status)} border-none px-3 py-1`}>
+                      {getStatusText(property.status)}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-bold text-hof">${property.basePrice}</span>
+                    <span className="text-xs text-slate-400"> / night</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600 truncate max-w-[150px] inline-block">{property.displayAddress || 'Not set'}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-10 w-10 p-0 rounded-full hover:bg-white hover:shadow-md">
+                          <MoreHorizontalIcon className="h-5 w-5 text-slate-400" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl shadow-xl border-slate-100">
+                        <DropdownMenuItem onClick={() => navigate(`/host/homes/${property.id}/edit`)} className="rounded-xl gap-3 py-2 cursor-pointer">
+                          <Edit02Icon className="h-4 w-4 text-blue-500" />
+                          Edit Listing
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-xl gap-3 py-2 cursor-pointer">
+                          <ViewIcon className="h-4 w-4 text-slate-500" />
+                          View Live
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-xl gap-3 py-2 text-rausch cursor-pointer focus:text-rausch focus:bg-rausch/5">
+                          <Delete02Icon className="h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+
+        {properties.length === 0 && (
+          <div className="py-20 text-center flex flex-col items-center gap-4">
+            <div className="p-6 bg-slate-50 rounded-full">
+              <Home01Icon className="h-12 w-12 text-slate-300" />
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-              disabled={!data.hasNextPage}
+            <div>
+              <p className="text-xl font-bold text-hof">No listings found</p>
+              <p className="text-slate-500">Get started by creating your first property listing.</p>
+            </div>
+            <Button 
+                onClick={() => navigate('/host/homes/new')}
+                className="bg-hof text-white rounded-xl px-8 mt-2"
             >
-              Next
+                Create Listing
             </Button>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-6 border-t flex items-center justify-between bg-slate-50/30">
+            <p className="text-xs text-slate-500 font-medium">
+              Showing <span className="font-bold text-hof">{(page - 1) * pageSize + 1}</span> to{' '}
+              <span className="font-bold text-hof">{Math.min(page * pageSize, totalCount)}</span> of{' '}
+              <span className="font-bold text-hof">{totalCount}</span> results
+            </p>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-lg h-9 w-9 p-0"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                <ArrowLeft02Icon className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Button 
+                    key={p}
+                    variant={p === page ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-lg h-9 w-9 p-0"
+                    onClick={() => setPage(p)}
+                >
+                    {p}
+                </Button>
+              ))}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-lg h-9 w-9 p-0"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                <ArrowRight02Icon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+const StatCard: React.FC<{ label: string, value: string, icon: any, color: string }> = ({ label, value, icon: Icon, color }) => (
+    <div className="bg-white p-6 rounded-3xl border shadow-sm flex items-center gap-4">
+        <div className={`p-3 rounded-2xl ${color}`}>
+            <Icon className="h-6 w-6" />
+        </div>
+        <div>
+            <p className="text-xs font-bold uppercase text-slate-400 tracking-wider">{label}</p>
+            <p className="text-2xl font-black text-hof mt-0.5">{value}</p>
+        </div>
+    </div>
+);
+
+const DashboardSkeleton = () => (
+    <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
+        <div className="h-20 bg-slate-100 rounded-3xl" />
+        <div className="grid grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-100 rounded-3xl" />)}
+        </div>
+        <div className="h-96 bg-slate-100 rounded-[2rem]" />
+    </div>
+);

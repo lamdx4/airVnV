@@ -1,18 +1,23 @@
 import { PropertyStatus } from '../types';
 
-export const getStatusConfig = (status: PropertyStatus) => {
+export const getStatusText = (status: PropertyStatus): string => {
   switch (status) {
-    case PropertyStatus.Draft:
-      return { label: 'Draft', color: 'bg-slate-100 text-slate-700 border-slate-200' };
-    case PropertyStatus.PendingReview:
-      return { label: 'Pending Review', color: 'bg-amber-100 text-amber-700 border-amber-200' };
-    case PropertyStatus.Published:
-      return { label: 'Published', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
-    case PropertyStatus.Suspended:
-      return { label: 'Suspended', color: 'bg-rose-100 text-rose-700 border-rose-200' };
-    case PropertyStatus.Archived:
-      return { label: 'Archived', color: 'bg-gray-200 text-gray-800 border-gray-300' };
-    default:
-      return { label: 'Unknown', color: 'bg-gray-100 text-gray-600' };
+    case PropertyStatus.Draft: return 'Draft';
+    case PropertyStatus.PendingReview: return 'Pending Review';
+    case PropertyStatus.Published: return 'Active';
+    case PropertyStatus.Suspended: return 'Suspended';
+    case PropertyStatus.Archived: return 'Archived';
+    default: return 'Unknown';
+  }
+};
+
+export const getStatusColor = (status: PropertyStatus): string => {
+  switch (status) {
+    case PropertyStatus.Draft: return 'bg-slate-100 text-slate-600';
+    case PropertyStatus.PendingReview: return 'bg-amber-100 text-amber-600';
+    case PropertyStatus.Published: return 'bg-green-100 text-green-600';
+    case PropertyStatus.Suspended: return 'bg-red-100 text-red-600';
+    case PropertyStatus.Archived: return 'bg-slate-200 text-slate-500';
+    default: return 'bg-slate-100 text-slate-400';
   }
 };

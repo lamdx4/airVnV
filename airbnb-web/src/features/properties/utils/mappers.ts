@@ -1,8 +1,8 @@
-import { CreatePropertyFormData, CreatePropertyRequest } from '../types';
+import type { CreatePropertyFormData, CreatePropertyRequest } from '../types';
 
 /**
  * Mapper chuyển đổi dữ liệu từ Form sang định dạng Request của Backend.
- * Không dùng 'any', đảm bảo Type Safety.
+ * Đảm bảo đồng bộ với cấu hình API mới nhất.
  */
 export const toCreatePropertyRequest = (formData: CreatePropertyFormData): CreatePropertyRequest => {
   return {
@@ -15,15 +15,9 @@ export const toCreatePropertyRequest = (formData: CreatePropertyFormData): Creat
       .replace(/[^\w-]+/g, ''),
     latitude: formData.latitude,
     longitude: formData.longitude,
-    countryCode: 'VN', // Có thể lấy từ Geocoding sau này
+    countryCode: 'VN',
     displayAddress: formData.displayAddress,
-    addressRaw: {
-      street: formData.displayAddress,
-      city: 'Ho Chi Minh City', // Giả định theo latitude/longitude
-      state: 'HCMC',
-      country: 'Vietnam',
-      zipCode: '70000',
-    },
+    streetAddress: formData.displayAddress,
     pricing: {
       basePrice: formData.basePrice,
       currencyCode: 'USD',

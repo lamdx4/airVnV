@@ -30,4 +30,9 @@ public class PropertyImage
             DisplayOrder = order
         };
     }
+
+    public void UpdateOrder(int newOrder)
+    {
+        DisplayOrder = newOrder;
+    }
 }

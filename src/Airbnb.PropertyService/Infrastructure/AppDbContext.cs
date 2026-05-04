@@ -20,5 +20,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PropertyImageConfiguration());
         modelBuilder.ApplyConfiguration(new AmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAmenityConfiguration());
+        modelBuilder.ApplyConfiguration(new PropertyAvailabilityConfiguration());
     }
 }

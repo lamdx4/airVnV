@@ -17,7 +17,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { PlusSignIcon, Location01Icon } from 'hugeicons-react';
 import { useCreateProperty } from '../hooks/useProperties';
 import { toCreatePropertyRequest } from '../utils/mappers';
-import { CreatePropertyFormData } from '../types';
 import { toast } from 'sonner';
 
 // Leaflet imports

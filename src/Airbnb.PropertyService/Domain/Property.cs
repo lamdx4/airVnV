@@ -45,6 +45,9 @@ public class Property : AggregateRoot
     private readonly List<PropertyAmenity> _propertyAmenities = new();
     public IReadOnlyCollection<PropertyAmenity> PropertyAmenities => _propertyAmenities.AsReadOnly();
 
+    private readonly List<PropertyAvailability> _availabilities = new();
+    public IReadOnlyCollection<PropertyAvailability> Availabilities => _availabilities.AsReadOnly();
+
     private Property() { }
 
     public static Property Create(
@@ -107,6 +110,30 @@ public class Property : AggregateRoot
         if (Status != PropertyStatus.PendingReview)
             throw new BusinessException("Only properties pending review can be approved.", "PROPERTY_NOT_IN_REVIEW");
             
+        Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude));
+    }
+
+    public void Publish()
+    {
+        if (Status is not (PropertyStatus.Draft or PropertyStatus.PendingReview))
+            throw new BusinessException("Only Draft or Pending Review properties can be published.", "PROPERTY_INVALID_STATUS");
+
+        // Strict validation for high-quality listing
+        if (string.IsNullOrWhiteSpace(Title) || Title.Length < 10)
+            throw new BusinessException("Title must be at least 10 characters long.", "PROPERTY_TITLE_TOO_SHORT");
+
+        if (string.IsNullOrWhiteSpace(Description) || Description.Length < 20)
+            throw new BusinessException("Description must be at least 20 characters long.", "PROPERTY_DESCRIPTION_TOO_SHORT");
+
+        if (Pricing.BasePrice <= 0)
+            throw new BusinessException("Base price must be greater than 0.", "PROPERTY_PRICE_REQUIRED");
+
+        if (_images.Count < 5)
+            throw new BusinessException("At least 5 images are required to publish.", "PROPERTY_MIN_IMAGES_REQUIRED");
+
+        if (!_images.Any(i => i.Type == ImageType.Cover))
+            throw new BusinessException("A cover image is required before publishing.", "PROPERTY_COVER_IMAGE_REQUIRED");
+
         Status = PropertyStatus.Published;
         UpdatedAt = DateTimeOffset.UtcNow;
         Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude));
@@ -147,6 +174,12 @@ public class Property : AggregateRoot
         Raise(new PropertyArchivedEvent(Id));
     }
 
+    public void UpdateStatus(PropertyStatus status)
+    {
+        Status = status;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void AddAmenity(Guid amenityId, string? additionalInfo = null)
     {
         if (_propertyAmenities.Any(a => a.AmenityId == amenityId))
@@ -161,6 +194,15 @@ public class Property : AggregateRoot
             ?? throw new BusinessException("Amenity not found on this property.", "PROPERTY_AMENITY_NOT_FOUND");
             
         _propertyAmenities.Remove(amenity);
+    }
+
+    public void UpdateAmenityInfo(Guid amenityId, string? additionalInfo)
+    {
+        var amenity = _propertyAmenities.FirstOrDefault(a => a.AmenityId == amenityId)
+            ?? throw new BusinessException("Amenity not found on this property.", "PROPERTY_AMENITY_NOT_FOUND");
+            
+        amenity.UpdateInfo(additionalInfo);
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void AddImage(PropertyImage image)
@@ -206,9 +248,58 @@ public class Property : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void UpdateLocation(
+        double latitude,
+        double longitude,
+        string countryCode,
+        string displayAddress,
+        AddressRaw addressRaw,
+        string? admin1Code = null,
+        string? admin2Code = null)
+    {
+        Latitude = latitude;
+        Longitude = longitude;
+        CountryCode = countryCode.ToUpperInvariant();
+        DisplayAddress = displayAddress;
+        AddressRaw = addressRaw;
+        Admin1Code = admin1Code;
+        Admin2Code = admin2Code;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void EnsureCanDelete()
     {
         if (Status is not (PropertyStatus.Draft or PropertyStatus.Archived))
             throw new BusinessException("Only Draft or Archived properties can be deleted.", "PROPERTY_CANNOT_BE_DELETED");
+    }
+
+    public void BlockDates(DateOnly start, DateOnly end, string? note = null)
+    {
+        if (start < DateOnly.FromDateTime(DateTime.Today))
+            throw new BusinessException("Cannot block dates in the past.", "PROPERTY_INVALID_DATE_RANGE");
+
+        _availabilities.Add(PropertyAvailability.Create(Id, start, end, AvailabilityType.Blocked, note));
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void RemoveAvailability(Guid availabilityId)
+    {
+        var item = _availabilities.FirstOrDefault(a => a.Id == availabilityId)
+            ?? throw new BusinessException("Availability record not found.", "PROPERTY_AVAILABILITY_NOT_FOUND");
+        
+        _availabilities.Remove(item);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void ReorderImages(List<Features.ManageImages.ReorderImages.ImageOrderUpdate> orders)
+    {
+        foreach (var order in orders)
+        {
+            var image = _images.FirstOrDefault(i => i.Id == order.ImageId)
+                ?? throw new BusinessException($"Image {order.ImageId} not found.", "PROPERTY_IMAGE_NOT_FOUND");
+            
+            image.UpdateOrder(order.DisplayOrder);
+        }
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 }
