@@ -1,17 +1,8 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react';
 import { 
-  Wifi01Icon, 
-  Tv01Icon, 
-  SwimmingPoolIcon, 
-  Kitchen01Icon,
-  ParkingIcon,
-  SnowflakeIcon,
-  WashingMachine01Icon,
   Loading03Icon,
-  Tick02Icon,
-  ActivityIcon
+  Tick02Icon
 } from 'hugeicons-react';
 import { PropertyAmenity } from '../types';
 import { useAvailableAmenities, useAddAmenity, useRemoveAmenity } from '../hooks/useProperties';
@@ -21,18 +12,6 @@ interface AmenityManagerProps {
   propertyId: string;
   selectedAmenities: PropertyAmenity[];
 }
-
-// Map icon code to component
-const IconMap: Record<string, React.ReactNode> = {
-  'wifi': <Wifi01Icon className="h-6 w-6" />,
-  'tv': <Tv01Icon className="h-6 w-6" />,
-  'pool': <SwimmingPoolIcon className="h-6 w-6" />,
-  'kitchen': <Kitchen01Icon className="h-6 w-6" />,
-  'parking': <ParkingIcon className="h-6 w-6" />,
-  'ac': <SnowflakeIcon className="h-6 w-6" />,
-  'washer': <WashingMachine01Icon className="h-6 w-6" />,
-  'gym': <ActivityIcon className="h-6 w-6" />,
-};
 
 export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, selectedAmenities }) => {
   const { data: availableAmenities, isLoading } = useAvailableAmenities();
@@ -59,7 +38,6 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
     </div>
   );
 
-  // Group amenities by category
   const categories = Array.from(new Set(availableAmenities?.map(a => a.category) || []));
 
   return (
@@ -70,6 +48,11 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {availableAmenities?.filter(a => a.category === category).map(amenity => {
               const active = isSelected(amenity.id);
+              // Đảm bảo icon name có prefix 'hugeicons:' nếu DB chỉ lưu mỗi suffix
+              const iconName = amenity.iconCode?.startsWith('hugeicons:') 
+                ? amenity.iconCode 
+                : `hugeicons:${amenity.iconCode || 'tick-02'}`;
+
               return (
                 <button
                   key={amenity.id}
@@ -83,7 +66,7 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
                   `}
                 >
                   <div className={`${active ? 'text-rausch' : 'text-slate-400'}`}>
-                    {IconMap[amenity.iconCode || ''] || <Tick02Icon className="h-6 w-6" />}
+                    <Icon icon={iconName} className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{amenity.name}</p>
