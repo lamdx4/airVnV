@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import HostDashboard from './pages/HostDashboard';
+import EditProperty from './pages/EditProperty';
 import { AirbnbLogin } from './features/auth/components/AirbnbLogin';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/host/homes" element={<HostDashboard />} />
+            <Route path="/host/homes/:id/edit" element={<EditProperty />} />
             <Route path="/login" element={<AirbnbLogin view="login" />} />
             <Route path="/register" element={<AirbnbLogin view="register" />} />
             <Route path="/forgot-password" element={<AirbnbLogin view="forgot-password" />} />

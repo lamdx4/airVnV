@@ -19,10 +19,10 @@ public record PropertyResponse(
     string? CoverImageUrl,
     int GuestCount,
     int BedroomCount,
-    DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt
 );
-    
+
 public record PagedResponse<T>(
     List<T> Items,
     int TotalCount,
@@ -42,4 +42,4 @@ public record InternalRequest(
     int PageSize,
     string? SearchTerm,
     int? Status
-) : Request(PageNumber, PageSize, SearchTerm, Status);
+) : Mediator.IQuery<PagedResponse<PropertyResponse>>; // Handler sẽ handle cái này trực tiếp

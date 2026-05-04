@@ -20,7 +20,8 @@ public class Endpoint(IMediator mediator)
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         // Trích xuất UserId từ Header (được Gateway gắn vào)
-        if (!HeaderExists("X-User-Id") || !Guid.TryParse(Header("X-User-Id"), out var userId))
+        var userIdStr = HttpContext.Request.Headers["X-User-Id"].ToString();
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
             throw new UnauthorizedAccessException("User identification missing.");
         }

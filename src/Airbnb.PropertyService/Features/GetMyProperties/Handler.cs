@@ -6,14 +6,13 @@ using Airbnb.PropertyService.Domain.Enums;
 namespace Airbnb.PropertyService.Features.GetMyProperties;
 
 public sealed class Handler(AppDbContext db)
-    : IQueryHandler<Request, PagedResponse<PropertyResponse>>
+    : IQueryHandler<InternalRequest, PagedResponse<PropertyResponse>>
 {
-    public async ValueTask<PagedResponse<PropertyResponse>> Handle(Request req, CancellationToken ct)
+    public async ValueTask<PagedResponse<PropertyResponse>> Handle(InternalRequest req, CancellationToken ct)
     {
-        // Phải cast req sang internal request có RequesterId (được set từ Endpoint)
         var query = db.Properties
             .AsNoTracking()
-            .Where(p => p.HostId == (req as InternalRequest).RequesterId);
+            .Where(p => p.HostId == req.RequesterId);
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(req.SearchTerm))
@@ -39,7 +38,10 @@ public sealed class Handler(AppDbContext db)
                 p.DisplayAddress,
                 (int)p.Status,
                 p.Pricing.BasePrice,
-                p.Images.Where(i => i.Type == ImageType.Cover).Select(i => i.Url).FirstOrDefault(),
+                p.Images
+                    .Where(i => i.Type == ImageType.Cover)
+                    .Select(i => i.Url.ToString())
+                    .FirstOrDefault(),
                 p.Capacity.GuestCount,
                 p.Capacity.BedroomCount,
                 p.CreatedAt,

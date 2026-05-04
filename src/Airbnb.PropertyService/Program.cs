@@ -5,6 +5,7 @@ using Airbnb.PropertyService.Infrastructure.Messaging;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
+using Airbnb.Infrastructure.Media;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,9 @@ builder.AddServiceDefaults();
 
 // 2. Database - Npgsql (Tự động lấy connection string "propdb" từ Aspire)
 builder.AddNpgsqlDbContext<AppDbContext>("propdb");
+
+// 2.1 Media Services (Cloudinary)
+builder.Services.AddMediaServices(builder.Configuration);
 
 // 3. MassTransit + RabbitMQ + EF Core Outbox
 builder.Services.AddMassTransit(x =>

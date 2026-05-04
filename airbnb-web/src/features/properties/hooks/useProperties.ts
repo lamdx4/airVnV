@@ -104,3 +104,25 @@ export const useReinstateProperty = () => {
     },
   });
 };
+
+export const useAddImages = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ propertyId, files, type }: { propertyId: string, files: File[], type: number }) => 
+      propertiesApi.addImages(propertyId, files, type),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });
+    }
+  });
+};
+
+export const useRemoveImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ propertyId, imageId }: { propertyId: string, imageId: string }) => 
+      propertiesApi.removeImage(propertyId, imageId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });
+    }
+  });
+};

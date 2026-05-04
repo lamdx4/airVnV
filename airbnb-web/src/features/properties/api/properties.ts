@@ -51,6 +51,16 @@ export const propertiesApi = {
   removeImage: (propertyId: string, imageId: string): Promise<void> => 
     api.delete(`/api/properties/${propertyId}/images/${imageId}`),
 
+  // Bulk add images
+  addImages: (propertyId: string, files: File[], type: number): Promise<{ images: { id: string, url: string }[] }> => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('Files', file));
+    formData.append('Type', type.toString());
+    return api.post(`/api/properties/${propertyId}/images/bulk`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
   // --- Amenity Management ---
   addAmenity: (propertyId: string, amenityId: string, additionalInfo?: string): Promise<void> => 
     api.post(`/api/properties/${propertyId}/amenities/${amenityId}`, { additionalInfo }),

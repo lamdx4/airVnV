@@ -216,7 +216,7 @@ export const HostPropertyDashboard: React.FC = () => {
                           <DropdownMenuItem>
                             <ViewIcon className="mr-2 h-4 w-4" /> View Listing
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/host/homes/${property.id}/edit`)}>
                             <PencilEdit01Icon className="mr-2 h-4 w-4" /> Edit Details
                           </DropdownMenuItem>
                           <DropdownMenuItem>
