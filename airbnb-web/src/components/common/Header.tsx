@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Globe, Menu, User } from 'lucide-react';
+import { Search01Icon, Globe02Icon, Menu01Icon, UserIcon } from 'hugeicons-react';
 import { useAuthStore } from '@/store/authStore';
 
 export default function Header() {
@@ -30,24 +30,27 @@ export default function Header() {
         <span className="font-medium text-hof px-2 border-r border-gray-200">Tuần bất kỳ</span>
         <span className="text-foggy px-2">Thêm khách</span>
         <div className="bg-rausch text-white p-2 rounded-full">
-          <Search className="h-4 w-4" />
+          <Search01Icon className="h-4 w-4" />
         </div>
       </div>
 
       {/* User Menu */}
       <div className="flex items-center gap-4 text-sm text-hof font-medium">
-        <span className="hover:bg-gray-100 px-4 py-2 rounded-full cursor-pointer hidden md:block">
+        <span 
+          onClick={() => navigate('/host/homes')}
+          className="hover:bg-gray-100 px-4 py-2 rounded-full cursor-pointer hidden md:block"
+        >
           Cho thuê chỗ ở qua Airbnb
         </span>
-        <Globe className="h-5 w-5 text-foggy hover:bg-gray-100 rounded-full p-1 box-content cursor-pointer" />
+        <Globe02Icon className="h-5 w-5 text-foggy hover:bg-gray-100 rounded-full p-1 box-content cursor-pointer" />
 
         <div 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-2 hover:shadow-md transition cursor-pointer relative"
         >
-          <Menu className="h-4 w-4 text-foggy" />
+          <Menu01Icon className="h-4 w-4 text-foggy" />
           <div className="bg-gray-500 text-white rounded-full p-1">
-            <User className="h-4 w-4" />
+            <UserIcon className="h-4 w-4" />
           </div>
 
           {isMenuOpen && (
@@ -59,6 +62,12 @@ export default function Header() {
                     className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
                   >
                     Hồ sơ cá nhân
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
+                  >
+                    Quản lý chỗ ở
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
