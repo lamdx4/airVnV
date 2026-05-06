@@ -1,11 +1,16 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Mediator;
+using Microsoft.Extensions.DependencyInjection;
+
 using Airbnb.PropertyService.Infrastructure;
 using Airbnb.PropertyService.Infrastructure.Messaging;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
 using Airbnb.Infrastructure.Media;
+
+[assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,13 +49,13 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddScoped<DomainEventPublisher>();
 
 // 4. Mediator (source-generated CQRS dispatch – zero reflection)
-builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
+builder.Services.AddMediator();
 
 // 3. FastEndpoints & Swagger
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o => 
 {
-    o.DocumentSettings = s => 
+    o.DocumentSettings = s =>   
     {
         s.Title = "Airbnb Property Service API";
         s.Version = "v1";

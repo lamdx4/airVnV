@@ -43,7 +43,7 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
             o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
         });
 
-        var refreshToken = Guid.NewGuid().ToString("N");
+        var refreshToken = Guid.CreateVersion7().ToString("N");
         user.AddRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
 
         await _db.SaveChangesAsync(ct);

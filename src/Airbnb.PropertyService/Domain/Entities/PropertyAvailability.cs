@@ -23,7 +23,7 @@ public class PropertyAvailability
 
         return new PropertyAvailability
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             PropertyId = propertyId,
             StartDate = startDate,
             EndDate = endDate,

@@ -19,7 +19,7 @@ public record PropertyPublishedEvent(
     double Latitude,
     double Longitude) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }
@@ -31,7 +31,7 @@ public record PropertySuspendedEvent(
     Guid PropertyId,
     string Reason) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }
@@ -43,7 +43,7 @@ public record PropertyReinstatedEvent(
     Guid PropertyId,
     Guid HostId) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }
@@ -54,7 +54,7 @@ public record PropertyReinstatedEvent(
 public record PropertyArchivedEvent(
     Guid PropertyId) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }
@@ -66,7 +66,7 @@ public record PropertySubmittedEvent(
     Guid PropertyId,
     Guid HostId) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }
@@ -79,7 +79,7 @@ public record PricingUpdatedEvent(
     decimal NewBasePrice,
     string CurrencyCode) : IDomainEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; } = Guid.CreateVersion7();
     public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
 }

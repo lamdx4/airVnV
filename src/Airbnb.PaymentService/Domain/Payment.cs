@@ -30,7 +30,7 @@ public class Payment : AggregateRoot
 
         return new Payment
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             BookingId = bookingId,
             Amount = amount,
             Status = PaymentStatus.Pending,
@@ -65,7 +65,7 @@ public class Payment : AggregateRoot
 public class OutboxEvent
 {
     [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     public string EventType { get; set; } = default!;
     public string Payload { get; set; } = default!;
     public string? TraceId { get; set; }

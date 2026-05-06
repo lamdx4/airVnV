@@ -8,6 +8,10 @@ using System.Text.Json.Serialization.Metadata;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Airbnb.Infrastructure.Media;
+using MassTransit;
+using Mediator;
+
+[assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +33,32 @@ builder.Services.AddMediaServices(builder.Configuration);
 builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration."));
 builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
+
+// Thêm Mediator
+builder.Services.AddMediator();
+
+// Thêm MassTransit + RabbitMQ + EF Core Outbox
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.AddEntityFrameworkOutbox<UserDbContext>(o =>
+    {
+        o.QueryDelay = TimeSpan.FromSeconds(1);
+        o.UsePostgres();
+        o.UseBusOutbox(); 
+    });
+
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+        });
+        cfg.ConfigureEndpoints(ctx);
+    });
+});
 
 builder.Services.AddCors(options =>
 {

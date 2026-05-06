@@ -292,6 +292,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                     initialLat={property.latitude} 
                     initialLng={property.longitude}
                     initialAddress={property.displayAddress || ''}
+                    initialSubDivisions={property.subDivisions}
                 />
             )}
 

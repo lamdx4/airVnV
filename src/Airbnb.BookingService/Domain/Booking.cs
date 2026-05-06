@@ -34,7 +34,7 @@ public class Booking : AggregateRoot
 
         return new Booking
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             PropertyId = propertyId,
             UserId = userId,
             CheckIn = checkIn,

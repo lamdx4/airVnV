@@ -20,6 +20,7 @@ var userDb = postgres.AddDatabase("userdb");
 var propDb = postgres.AddDatabase("propdb");
 var bookDb = postgres.AddDatabase("bookdb");
 var payDb = postgres.AddDatabase("paydb");
+var chatDb = postgres.AddDatabase("chatdb");
 
 var kafka = builder.AddKafka("kafka")
     .WithDataVolume("airbnb_kafka_data")
@@ -34,6 +35,9 @@ var rabbit = builder.AddRabbitMQ("rabbitmq")
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
     .WithDataVolume("airbnb_es_data")
     .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
+
+var redis = builder.AddRedis("redis")
+    .WithDataVolume("airbnb_redis_data");
 
 // 2. Debezium (CDC)
 var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
@@ -71,13 +75,19 @@ var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice
     .WithReference(elasticsearch)
     .WithReference(kafka);
 
+var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
+    .WithReference(chatDb)
+    .WithReference(rabbit)
+    .WithReference(redis);
+
 // 5. API Gateway (YARP)
 var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
     .WithReference(userSvc)
     .WithReference(propSvc)
     .WithReference(bookSvc)
     .WithReference(paySvc)
-    .WithReference(searchSvc);
+    .WithReference(searchSvc)
+    .WithReference(chatSvc);
 
 // 6. Frontend (React Vite)
 builder.AddViteApp("frontend", "../airbnb-web")

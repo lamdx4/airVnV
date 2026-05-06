@@ -21,7 +21,7 @@ public class PropertyImage
 
         return new PropertyImage
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             PropertyId = propertyId,
             UploadedBy = uploadedBy,
             Url = url,

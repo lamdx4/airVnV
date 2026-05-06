@@ -7,6 +7,7 @@ import Profile from './pages/Profile';
 import HostDashboard from './pages/HostDashboard';
 import EditProperty from './pages/EditProperty';
 import { AirbnbLogin } from './features/auth/components/AirbnbLogin';
+import Messages from './pages/Messages';
 
 export default function App() {
   return (
@@ -22,6 +23,8 @@ export default function App() {
             <Route path="/login" element={<AirbnbLogin view="login" />} />
             <Route path="/register" element={<AirbnbLogin view="register" />} />
             <Route path="/forgot-password" element={<AirbnbLogin view="forgot-password" />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:conversationId" element={<Messages />} />
           </Routes>
         </Layout>
       </BrowserRouter>

@@ -14,6 +14,7 @@
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.2.4" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.2.4" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.2.4" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.NodeJS.Extensions" Version="9.9.0" />
   </ItemGroup>
 
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\src\Airbnb.PaymentService\Airbnb.PaymentService.csproj" />
     <ProjectReference Include="..\src\Airbnb.SearchService\Airbnb.SearchService.csproj" />
     <ProjectReference Include="..\src\Airbnb.Gateway\Airbnb.Gateway.csproj" />
+    <ProjectReference Include="..\src\Airbnb.ChatService\Airbnb.ChatService.csproj" />
   </ItemGroup>
 
 </Project>

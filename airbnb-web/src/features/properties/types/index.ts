@@ -51,6 +51,7 @@ export interface Property {
   longitude: number;
   displayAddress: string;
   countryCode: string;
+  subDivisions?: Record<string, string>;
   
   // Details
   basePrice: number;

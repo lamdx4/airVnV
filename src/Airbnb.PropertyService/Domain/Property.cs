@@ -72,7 +72,7 @@ public class Property : AggregateRoot
         
         return new Property
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             HostId = hostId,
             Title = title,
             Description = description,

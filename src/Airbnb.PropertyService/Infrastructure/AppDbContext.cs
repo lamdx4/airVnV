@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PropertyService.Domain;
 using Airbnb.PropertyService.Domain.Entities;
@@ -21,5 +22,11 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAvailabilityConfiguration());
+
+        // MassTransit Inbox/Outbox configuration
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
+

@@ -20,7 +20,7 @@ public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiRespo
         var userId = User.FindFirstValue("UserId");
         
         // Tạo PublicId duy nhất gắn với UserId để quản lý Ownership
-        var publicId = $"{req.Folder}/{userId}_{Guid.NewGuid():N}";
+        var publicId = $"{req.Folder}/{userId}_{Guid.CreateVersion7():N}";
 
         var signature = mediaProvider.GenerateUploadSignature(req.Folder, publicId);
 

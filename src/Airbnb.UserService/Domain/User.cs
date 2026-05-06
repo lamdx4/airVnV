@@ -1,5 +1,8 @@
 using System.Text.Json.Serialization;
 
+using Airbnb.SharedKernel.Domain;
+using Airbnb.UserService.Domain.Events;
+
 namespace Airbnb.UserService.Domain;
 
 [JsonConverter(typeof(JsonStringEnumConverter<UserRole>))]
@@ -17,7 +20,7 @@ public enum AuthProvider
     Facebook
 }
 
-public class User
+public class User : AggregateRoot
 {
     public Guid Id { get; private set; }
     public string Email { get; private set; } = default!;
@@ -38,7 +41,7 @@ public class User
         if (string.IsNullOrWhiteSpace(hashedPassword))
             throw new ArgumentException("Mật khẩu là bắt buộc đối với tài khoản cục bộ.");
 
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         Email = email;
         HashedPassword = hashedPassword;
         Role = role;
@@ -52,7 +55,7 @@ public class User
         if (string.IsNullOrWhiteSpace(providerKey))
             throw new ArgumentException("Thông tin Provider Key là bắt buộc.");
 
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         Email = email;
         HashedPassword = null;
         Role = role;
@@ -69,6 +72,12 @@ public class User
     public void AddRefreshToken(string token, DateTime expiresAt)
     {
         RefreshTokens.Add(new UserRefreshToken(Id, token, expiresAt));
+    }
+
+    public void UpdateProfile(string fullName, string? avatarUrl, string? phoneNumber, string? bio)
+    {
+        Profile.UpdateInfo(fullName, avatarUrl, phoneNumber, bio);
+        Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl));
     }
 }
 
@@ -109,7 +118,7 @@ public class UserLogin
 
     public UserLogin(Guid userId, AuthProvider provider, string providerKey)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         UserId = userId;
         Provider = provider;
         ProviderKey = providerKey;
@@ -134,7 +143,7 @@ public class UserRefreshToken
 
     public UserRefreshToken(Guid userId, string token, DateTime expiresAt)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         UserId = userId;
         Token = token;
         ExpiresAt = expiresAt;

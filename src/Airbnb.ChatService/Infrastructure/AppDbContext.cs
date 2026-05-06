@@ -1,0 +1,73 @@
+using Airbnb.ChatService.Domain;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+
+namespace Airbnb.ChatService.Infrastructure;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+    public DbSet<Message> Messages => Set<Message>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Cấu hình bảng Outbox/Inbox cho MassTransit
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        // ------------------ Conversations ------------------
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Partial Unique Indexes chống duplicate
+            // Khi không có reservation
+            entity.HasIndex(e => e.PropertyId)
+                  .IsUnique()
+                  .HasFilter("reservation_id IS NULL")
+                  .HasDatabaseName("uq_conversation_property_no_res");
+                  
+            // Khi có reservation
+            entity.HasIndex(e => new { e.PropertyId, e.ReservationId })
+                  .IsUnique()
+                  .HasFilter("reservation_id IS NOT NULL")
+                  .HasDatabaseName("uq_conversation_property_res");
+        });
+
+        // ------------------ ConversationParticipants ------------------
+        modelBuilder.Entity<ConversationParticipant>(entity =>
+        {
+            // Composite Primary Key
+            entity.HasKey(e => new { e.ConversationId, e.UserId });
+            
+            // Index cho việc load Inbox nhanh
+            // Entity Framework Core hiện tại không hỗ trợ trực tiếp INCLUDE qua Fluent API một cách phổ biến
+            // Nên ta có thể tạo index bình thường, hoặc tạo Include qua migration raw sql.
+            entity.HasIndex(e => e.UserId)
+                  .HasDatabaseName("idx_participants_user_id");
+
+            entity.Property(e => e.Role).HasConversion<string>();
+        });
+
+        // ------------------ Messages ------------------
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Index để phân trang
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt })
+                  .IsDescending(false, true) // Mặc định là ASC, ta cấu hình DESC cho CreatedAt khi query
+                  .HasDatabaseName("idx_messages_conversation_created");
+                  
+            entity.Property(e => e.MessageType).HasConversion<string>();
+        });
+    }
+}

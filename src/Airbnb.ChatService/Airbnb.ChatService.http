@@ -1,0 +1,6 @@
+@Airbnb.ChatService_HostAddress = http://localhost:5079
+
+GET {{Airbnb.ChatService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

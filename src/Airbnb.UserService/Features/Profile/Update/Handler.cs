@@ -17,7 +17,7 @@ public class Handler(UserDbContext _db) : ICommandHandler<Request, ApiResponse<R
 
         if (user == null) throw new InvalidOperationException("User not found");
 
-        user.Profile.UpdateInfo(cmd.FullName, cmd.AvatarUrl, cmd.PhoneNumber, cmd.Bio);
+        user.UpdateProfile(cmd.FullName, cmd.AvatarUrl, cmd.PhoneNumber, cmd.Bio);
         
         await _db.SaveChangesAsync(ct);
 
