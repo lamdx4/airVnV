@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Airbnb.PaymentService.Features.ProcessPayment;
+using Airbnb.PaymentService.Features.InitiatePayment;
 
 namespace Airbnb.PaymentService.Infrastructure;
 

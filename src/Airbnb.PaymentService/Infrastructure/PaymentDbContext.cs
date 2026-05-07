@@ -6,15 +6,23 @@ namespace Airbnb.PaymentService.Infrastructure;
 public class PaymentDbContext(DbContextOptions<PaymentDbContext> options) : DbContext(options)
 {
     public DbSet<Payment> Payments => Set<Payment>();
-    public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Payment>().ToTable("Payments").HasKey(x => x.Id);
-        modelBuilder.Entity<Payment>().Property(p => p.Status).HasConversion<string>();
-        modelBuilder.Entity<Payment>().Property(p => p.Amount).HasColumnType("decimal(18,2)");
-        modelBuilder.Entity<Payment>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+        var payment = modelBuilder.Entity<Payment>();
+        payment.ToTable("Payments").HasKey(x => x.Id);
+        payment.Property(p => p.Status).HasConversion<string>();
+        payment.Property(p => p.Amount).HasColumnType("decimal(18,2)");
+        payment.Property(p => p.Currency).HasMaxLength(3).IsRequired();
+        payment.Property(p => p.TransactionId).HasMaxLength(255);
+        payment.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+        payment.Property(p => p.ExpiresAt).HasColumnType("timestamp with time zone");
+        payment.Property(p => p.PaymentUrl).HasMaxLength(2048);
 
-        modelBuilder.Entity<OutboxEvent>().ToTable("OutboxEvents").HasKey(x => x.Id);
+        // Filtered Unique Index to prevent multiple Pending payments for the same booking
+        payment.HasIndex(p => p.BookingId)
+               .IsUnique()
+               .HasFilter("\"Status\" = 'Pending'")
+               .HasDatabaseName("ix_payments_booking_pending");
     }
 }

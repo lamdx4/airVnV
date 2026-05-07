@@ -1,41 +1,48 @@
 using System.ComponentModel.DataAnnotations;
+using Airbnb.SharedKernel;
 
 namespace Airbnb.PaymentService.Domain;
 
-// ============================================================
-// Enums
-// ============================================================
-
-public enum PaymentStatus { Pending, Success, Failed }
-
-// ============================================================
-// Aggregate Root
-// ============================================================
+public enum PaymentStatus { Pending, Success, Failed, Expired }
 
 public class Payment : AggregateRoot
 {
     public Guid Id { get; private set; }
     public Guid BookingId { get; private set; }
     public decimal Amount { get; private set; }
+    public string Currency { get; private set; } = default!;
     public PaymentStatus Status { get; private set; }
-    public string? TransactionId { get; private set; }
+    public string? TransactionId { get; private set; } // External ID from Provider
+    public string? PaymentUrl { get; private set; }
+    public DateTimeOffset? ExpiresAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
     private Payment() { } // EF Core
 
-    public static Payment Create(Guid bookingId, decimal amount)
+    public static Payment Create(Guid bookingId, decimal amount, string currency)
     {
         if (bookingId == Guid.Empty) throw new ArgumentException("BookingId cannot be empty.");
         if (amount <= 0) throw new ArgumentException("Amount must be greater than 0.");
+        if (string.IsNullOrWhiteSpace(currency)) throw new ArgumentException("Currency is required.");
 
         return new Payment
         {
             Id = Guid.CreateVersion7(),
             BookingId = bookingId,
             Amount = amount,
+            Currency = currency.ToUpperInvariant(),
             Status = PaymentStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
         };
+    }
+
+    public void Initiate(string paymentUrl, DateTimeOffset expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(paymentUrl)) throw new ArgumentException("PaymentUrl is required.");
+        if (expiresAt <= DateTimeOffset.UtcNow) throw new ArgumentException("ExpiresAt must be in the future.");
+
+        PaymentUrl = paymentUrl;
+        ExpiresAt = expiresAt;
     }
 
     public void MarkAsSuccess(string transactionId)
@@ -44,9 +51,9 @@ public class Payment : AggregateRoot
             throw new ArgumentException("TransactionId is required.");
         if (Status != PaymentStatus.Pending)
             throw new InvalidOperationException("Only Pending payments can be marked as success.");
+        
         Status = PaymentStatus.Success;
         TransactionId = transactionId;
-        // TODO: Raise(new PaymentSucceededEvent(Id, BookingId, Amount));
     }
 
     public void MarkAsFailed()
@@ -54,21 +61,15 @@ public class Payment : AggregateRoot
         if (Status != PaymentStatus.Pending)
             throw new InvalidOperationException("Only Pending payments can be marked as failed.");
         Status = PaymentStatus.Failed;
-        // TODO: Raise(new PaymentFailedEvent(Id, BookingId));
     }
-}
 
-// ============================================================
-// Outbox Entity (CAP-style – giữ nếu dùng Debezium CDC)
-// ============================================================
+    public void MarkAsExpired()
+    {
+        if (Status != PaymentStatus.Pending)
+            throw new InvalidOperationException("Only Pending payments can be marked as expired.");
+        Status = PaymentStatus.Expired;
+    }
 
-public class OutboxEvent
-{
-    [Key]
-    public Guid Id { get; set; } = Guid.CreateVersion7();
-    public string EventType { get; set; } = default!;
-    public string Payload { get; set; } = default!;
-    public string? TraceId { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public bool Processed { get; set; } = false;
+    public bool IsStillValid() 
+        => Status == PaymentStatus.Pending && ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2);
 }

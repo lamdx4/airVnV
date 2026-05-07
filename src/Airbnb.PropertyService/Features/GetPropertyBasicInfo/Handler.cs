@@ -3,6 +3,8 @@ using Airbnb.ServiceDefaults.Infrastructure;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
+using Airbnb.PropertyService.Domain.ValueObjects;
+
 namespace Airbnb.PropertyService.Features.GetPropertyBasicInfo;
 
 public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
@@ -12,7 +14,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
         var property = await db.Properties
             .AsNoTracking()
             .Where(p => p.Id == req.PropertyId)
-            .Select(p => new Response(p.Id, p.Title, p.HostId))
+            .Select(p => new Response(p.Id, p.Title, p.HostId, p.Pricing, p.CountryCode))
             .FirstOrDefaultAsync(ct);
 
         if (property == null)

@@ -56,6 +56,9 @@ export interface Property {
   // Details
   basePrice: number;
   cleaningFee: number;
+  serviceFee: number;
+  weekendPremiumPercent: number;
+  currencyCode: string;
   
   // Rules
   allowPets: boolean;

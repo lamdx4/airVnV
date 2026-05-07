@@ -231,6 +231,60 @@ namespace Airbnb.PropertyService.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Country", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<bool>("IsSupported")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NativeCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("Countries", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.PaymentGateway", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.PrimitiveCollection<string[]>("SupportedCurrencies")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryCode");
+
+                    b.ToTable("PaymentGateways", (string)null);
+                });
+
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.PropertyAmenity", b =>
                 {
                     b.Property<Guid>("PropertyId")
@@ -311,6 +365,35 @@ namespace Airbnb.PropertyService.Migrations
                     b.HasIndex("PropertyId", "Type");
 
                     b.ToTable("property_images", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Tax", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(5,4)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryCode");
+
+                    b.ToTable("Taxes", (string)null);
                 });
 
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Property", b =>
@@ -559,6 +642,15 @@ namespace Airbnb.PropertyService.Migrations
                         .HasForeignKey("ParentCode");
                 });
 
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.PaymentGateway", b =>
+                {
+                    b.HasOne("Airbnb.PropertyService.Domain.Entities.Country", null)
+                        .WithMany("PaymentGateways")
+                        .HasForeignKey("CountryCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.PropertyAmenity", b =>
                 {
                     b.HasOne("Airbnb.PropertyService.Domain.Property", null)
@@ -582,6 +674,15 @@ namespace Airbnb.PropertyService.Migrations
                     b.HasOne("Airbnb.PropertyService.Domain.Property", null)
                         .WithMany("Images")
                         .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Tax", b =>
+                {
+                    b.HasOne("Airbnb.PropertyService.Domain.Entities.Country", null)
+                        .WithMany("Taxes")
+                        .HasForeignKey("CountryCode")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -736,6 +837,13 @@ namespace Airbnb.PropertyService.Migrations
                         .WithMany()
                         .HasForeignKey("InboxMessageId", "InboxConsumerId")
                         .HasPrincipalKey("MessageId", "ConsumerId");
+                });
+
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Country", b =>
+                {
+                    b.Navigation("PaymentGateways");
+
+                    b.Navigation("Taxes");
                 });
 
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Property", b =>

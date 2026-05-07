@@ -8,6 +8,9 @@ import HostDashboard from './pages/HostDashboard';
 import EditProperty from './pages/EditProperty';
 import { AirbnbLogin } from './features/auth/components/AirbnbLogin';
 import Messages from './pages/Messages';
+import Trips from './pages/Trips';
+import Reservations from './pages/Reservations';
+import PropertyDetail from './pages/PropertyDetail';
 
 export default function App() {
   return (
@@ -20,11 +23,14 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/host/homes" element={<HostDashboard />} />
             <Route path="/host/homes/:id/edit" element={<EditProperty />} />
+            <Route path="/properties/:id" element={<PropertyDetail />} />
             <Route path="/login" element={<AirbnbLogin view="login" />} />
             <Route path="/register" element={<AirbnbLogin view="register" />} />
             <Route path="/forgot-password" element={<AirbnbLogin view="forgot-password" />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:conversationId" element={<Messages />} />
+            <Route path="/trips" element={<Trips />} />
+            <Route path="/host/reservations" element={<Reservations />} />
           </Routes>
         </Layout>
       </BrowserRouter>

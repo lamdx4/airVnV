@@ -13,6 +13,9 @@ public class AppDbContext : DbContext
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<AdminDivision> AdminDivisions => Set<AdminDivision>();
     public DbSet<Amenity> Amenities => Set<Amenity>();
+    public DbSet<Country> Countries => Set<Country>();
+    public DbSet<Tax> Taxes => Set<Tax>();
+    public DbSet<PaymentGateway> PaymentGateways => Set<PaymentGateway>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,6 +25,9 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAvailabilityConfiguration());
+        modelBuilder.ApplyConfiguration(new CountryConfiguration());
+        modelBuilder.ApplyConfiguration(new TaxConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentGatewayConfiguration());
 
         // MassTransit Inbox/Outbox configuration
         modelBuilder.AddInboxStateEntity();
