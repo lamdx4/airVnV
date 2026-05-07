@@ -1,9 +1,11 @@
+using Airbnb.SharedKernel.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.BookingService.Domain;
 
-namespace Airbnb.BookingService.Infrastructure;
-
-public class BookingDbContext(DbContextOptions<BookingDbContext> options) : DbContext(options)
+public class BookingDbContext(
+    DbContextOptions<BookingDbContext> options,
+    IIntegrationEventBridge bridge,
+    IDomainEventPolicyExecutor policyExecutor) : AppDbContextBase(options, bridge, policyExecutor)
 {
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();

@@ -102,7 +102,8 @@ public class Property : AggregateRoot
             
         Status = PropertyStatus.PendingReview;
         UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PropertySubmittedEvent(Id, HostId));
+        Version++;
+        Raise(new PropertySubmittedEvent(Id, HostId, Version));
     }
 
     public void Approve()
@@ -110,7 +111,8 @@ public class Property : AggregateRoot
         if (Status != PropertyStatus.PendingReview)
             throw new BusinessException("Only properties pending review can be approved.", "PROPERTY_NOT_IN_REVIEW");
             
-        Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude));
+        Version++;
+        Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude, Version));
     }
 
     public void Publish()
@@ -136,7 +138,8 @@ public class Property : AggregateRoot
 
         Status = PropertyStatus.Published;
         UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude));
+        Version++;
+        Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude, Version));
     }
 
     public void Suspend(string reason)
@@ -150,7 +153,8 @@ public class Property : AggregateRoot
         Status = PropertyStatus.Suspended;
         SuspensionReason = reason;
         UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PropertySuspendedEvent(Id, reason));
+        Version++;
+        Raise(new PropertySuspendedEvent(Id, reason, Version));
     }
 
     public void Reinstate()
@@ -161,7 +165,8 @@ public class Property : AggregateRoot
         Status = PropertyStatus.Published;
         SuspensionReason = null;
         UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PropertyReinstatedEvent(Id, HostId));
+        Version++;
+        Raise(new PropertyReinstatedEvent(Id, HostId, Version));
     }
 
     public void Archive()
@@ -171,7 +176,8 @@ public class Property : AggregateRoot
             
         Status = PropertyStatus.Archived;
         UpdatedAt = DateTimeOffset.UtcNow;
-        Raise(new PropertyArchivedEvent(Id));
+        Version++;
+        Raise(new PropertyArchivedEvent(Id, Version));
     }
 
     public void UpdateStatus(PropertyStatus status)

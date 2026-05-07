@@ -1,9 +1,11 @@
+using Airbnb.SharedKernel.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PaymentService.Domain;
 
-namespace Airbnb.PaymentService.Infrastructure;
-
-public class PaymentDbContext(DbContextOptions<PaymentDbContext> options) : DbContext(options)
+public class PaymentDbContext(
+    DbContextOptions<PaymentDbContext> options,
+    IIntegrationEventBridge bridge,
+    IDomainEventPolicyExecutor policyExecutor) : AppDbContextBase(options, bridge, policyExecutor)
 {
     public DbSet<Payment> Payments => Set<Payment>();
 

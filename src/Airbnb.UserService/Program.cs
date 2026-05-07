@@ -4,6 +4,8 @@ using FastEndpoints.Swagger;
 using Airbnb.UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
+using Airbnb.SharedKernel.Infrastructure;
+using Airbnb.UserService.Infrastructure.Messaging;
 
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -36,6 +38,11 @@ builder.Services.AddMemoryCache();
 
 // Thêm Mediator
 builder.Services.AddMediator();
+
+// Event Architecture
+builder.Services.AddScoped<IIntegrationEventMapper, UserIntegrationEventMapper>();
+builder.Services.AddScoped<IIntegrationEventBridge, UserIntegrationEventBridge>();
+builder.Services.AddScoped<IDomainEventPolicyExecutor, UserDomainEventPolicyExecutor>();
 
 // Thêm MassTransit + RabbitMQ + EF Core Outbox
 builder.Services.AddMassTransit(x =>

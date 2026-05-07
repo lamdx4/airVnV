@@ -77,7 +77,8 @@ public class User : AggregateRoot
     public void UpdateProfile(string fullName, string? avatarUrl, string? phoneNumber, string? bio)
     {
         Profile.UpdateInfo(fullName, avatarUrl, phoneNumber, bio);
-        Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl));
+        Version++;
+        Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl, Version));
     }
 }
 

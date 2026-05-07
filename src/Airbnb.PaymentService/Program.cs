@@ -4,6 +4,8 @@ using MassTransit;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Airbnb.PaymentService.Infrastructure;
+using Airbnb.SharedKernel.Infrastructure;
+using Airbnb.PaymentService.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +32,21 @@ builder.Services.AddMediator(options =>
     options.ServiceLifetime = ServiceLifetime.Scoped;
 });
 
+// Event Architecture
+builder.Services.AddScoped<IIntegrationEventMapper, PaymentIntegrationEventMapper>();
+builder.Services.AddScoped<IIntegrationEventBridge, PaymentIntegrationEventBridge>();
+builder.Services.AddScoped<IDomainEventPolicyExecutor, PaymentDomainEventPolicyExecutor>();
+
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<Airbnb.PaymentService.Infrastructure.Messaging.InitiatePaymentCommandConsumer>();
+
+    x.AddEntityFrameworkOutbox<PaymentDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
     x.UsingRabbitMq((context, cfg) =>
     {
         var connectionString = builder.Configuration.GetConnectionString("rabbitmq");

@@ -50,7 +50,7 @@ public class Booking : AggregateRoot
 
         var nightCount = checkOut.DayNumber - checkIn.DayNumber;
 
-        return new Booking
+        var booking = new Booking
         {
             Id = Guid.CreateVersion7(),
             PropertyId = propertyId,
@@ -70,6 +70,13 @@ public class Booking : AggregateRoot
             Status = BookingStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
         };
+
+        booking.Raise(new BookingCreatedDomainEvent(
+            booking.Id, booking.PropertyId, booking.GuestId, 
+            booking.TotalPrice, booking.CurrencyCode, booking.CountryCode,
+            booking.Version));
+
+        return booking;
     }
 
     public void Approve(Guid currentHostId)
@@ -85,6 +92,8 @@ public class Booking : AggregateRoot
             throw new InvalidOperationException("Only Pending bookings can be confirmed.");
             
         Status = BookingStatus.Confirmed;
+        Version++;
+        Raise(new BookingConfirmedDomainEvent(Id, Version));
     }
 
     public void Reject(Guid currentHostId)
@@ -96,6 +105,8 @@ public class Booking : AggregateRoot
             
         Status = BookingStatus.Cancelled;
         CancelledBy = currentHostId;
+        Version++;
+        Raise(new BookingCancelledDomainEvent(Id, Version));
     }
 
     public void Cancel(Guid cancelledBy)

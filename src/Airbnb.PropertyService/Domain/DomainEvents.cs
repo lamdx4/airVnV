@@ -17,11 +17,12 @@ public record PropertyPublishedEvent(
     string? Admin1Code,
     string? Admin2Code,
     double Latitude,
-    double Longitude) : IDomainEvent
+    double Longitude,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }
 
 /// <summary>
@@ -29,11 +30,12 @@ public record PropertyPublishedEvent(
 /// </summary>
 public record PropertySuspendedEvent(
     Guid PropertyId,
-    string Reason) : IDomainEvent
+    string Reason,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }
 
 /// <summary>
@@ -41,22 +43,24 @@ public record PropertySuspendedEvent(
 /// </summary>
 public record PropertyReinstatedEvent(
     Guid PropertyId,
-    Guid HostId) : IDomainEvent
+    Guid HostId,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }
 
 /// <summary>
 /// Khi bị archive – BookingService cancel pending bookings, SearchService remove.
 /// </summary>
 public record PropertyArchivedEvent(
-    Guid PropertyId) : IDomainEvent
+    Guid PropertyId,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }
 
 /// <summary>
@@ -64,11 +68,12 @@ public record PropertyArchivedEvent(
 /// </summary>
 public record PropertySubmittedEvent(
     Guid PropertyId,
-    Guid HostId) : IDomainEvent
+    Guid HostId,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }
 
 /// <summary>
@@ -77,9 +82,10 @@ public record PropertySubmittedEvent(
 public record PricingUpdatedEvent(
     Guid PropertyId,
     decimal NewBasePrice,
-    string CurrencyCode) : IDomainEvent
+    string CurrencyCode,
+    long AggregateVersion) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
-    public Guid AggregateId => PropertyId;
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
 }

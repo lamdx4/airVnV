@@ -8,6 +8,7 @@ namespace Airbnb.SharedKernel.Domain;
 public interface IDomainEvent
 {
     Guid EventId { get; }
-    Guid AggregateId { get; }   // Dùng làm CorrelationId khi dispatch
+    Guid AggregateId { get; }       // Hạ tầng cần cái này để partition/audit/replay
+    long AggregateVersion { get; } // Logical clock để giữ thứ tự
     DateTimeOffset OccurredAt { get; }
 }

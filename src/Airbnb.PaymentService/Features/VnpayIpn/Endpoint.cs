@@ -50,6 +50,9 @@ public class Endpoint(
         }
         else
         {
+            // Publish failure event for Saga via Mediator Command
+            await mediator.Send(new FailPayment.Command(result.PaymentId, result.ResponseCode, result.Message), ct);
+            
             // Even on failure (logic wise), we must return the RspCode VNPay expects
             var rspCode = result.ResponseCode ?? "99";
             await SendAsync(new { RspCode = rspCode, Message = result.Message }, cancellation: ct);

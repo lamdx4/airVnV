@@ -10,6 +10,6 @@ public class PaymentDbContextFactory : IDesignTimeDbContextFactory<PaymentDbCont
         var optionsBuilder = new DbContextOptionsBuilder<PaymentDbContext>();
         optionsBuilder.UseNpgsql("Host=localhost;Database=paydb;Username=postgres;Password=postgres");
 
-        return new PaymentDbContext(optionsBuilder.Options);
+        return new PaymentDbContext(optionsBuilder.Options, null!, null!);
     }
 }

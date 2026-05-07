@@ -8,13 +8,10 @@ namespace Airbnb.SharedKernel.Domain;
 public abstract class AggregateRoot
 {
     private readonly List<IDomainEvent> _domainEvents = new();
-
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public long Version { get; protected set; } = 1;
 
     protected void Raise(IDomainEvent @event) => _domainEvents.Add(@event);
 
-    /// <summary>
-    /// Gọi sau khi publish events sang Outbox để tránh re-dispatch.
-    /// </summary>
     public void ClearDomainEvents() => _domainEvents.Clear();
 }

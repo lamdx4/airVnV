@@ -5,7 +5,7 @@ using MassTransit;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
-namespace Airbnb.PaymentService.Features.ConfirmPayment;
+namespace Airbnb.PaymentService.Features.FailPayment;
 
 public sealed class Handler(
     PaymentDbContext db,
@@ -18,20 +18,20 @@ public sealed class Handler(
 
         if (payment == null)
         {
-            logger.LogWarning("Payment {PaymentId} not found during confirmation", req.PaymentId);
+            logger.LogWarning("Payment {PaymentId} not found during failure processing", req.PaymentId);
             return false;
         }
 
         if (payment.Status != PaymentStatus.Pending)
         {
-            logger.LogInformation("Payment {PaymentId} already in status {Status}, skipping", payment.Id, payment.Status);
+            logger.LogInformation("Payment {PaymentId} already in status {Status}, skipping failure update", payment.Id, payment.Status);
             return true;
         }
 
-        payment.MarkAsSuccess(req.TransactionId);
+        payment.MarkAsFailed(); 
         await db.SaveChangesAsync(ct);
 
-        logger.LogInformation("Payment {PaymentId} confirmed and success event staged for Booking {BookingId}", payment.Id, payment.BookingId);
+        logger.LogInformation("Payment {PaymentId} marked as Failed and event staged for Booking {BookingId}", payment.Id, payment.BookingId);
         return true;
     }
 }

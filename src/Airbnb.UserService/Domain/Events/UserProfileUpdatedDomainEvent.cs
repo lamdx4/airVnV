@@ -1,10 +1,15 @@
 using Airbnb.SharedKernel.Domain;
-using Mediator;
 
 namespace Airbnb.UserService.Domain.Events;
 
-public record UserProfileUpdatedDomainEvent(Guid AggregateId, string FullName, string? AvatarUrl) : IDomainEvent, INotification
+public record UserProfileUpdatedDomainEvent(
+    Guid UserId, 
+    string FullName, 
+    string? AvatarUrl, 
+    long AggregateVersion
+) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => UserId;
 }

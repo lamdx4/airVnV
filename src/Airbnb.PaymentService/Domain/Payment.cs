@@ -25,7 +25,7 @@ public class Payment : AggregateRoot
         if (amount <= 0) throw new ArgumentException("Amount must be greater than 0.");
         if (string.IsNullOrWhiteSpace(currency)) throw new ArgumentException("Currency is required.");
 
-        return new Payment
+        var payment = new Payment
         {
             Id = Guid.CreateVersion7(),
             BookingId = bookingId,
@@ -34,6 +34,11 @@ public class Payment : AggregateRoot
             Status = PaymentStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
         };
+
+        payment.Raise(new PaymentInitiatedDomainEvent(
+            payment.Id, payment.BookingId, payment.Amount, payment.Currency, payment.Version));
+
+        return payment;
     }
 
     public void Initiate(string paymentUrl, DateTimeOffset expiresAt)
@@ -54,6 +59,8 @@ public class Payment : AggregateRoot
         
         Status = PaymentStatus.Success;
         TransactionId = transactionId;
+        Version++;
+        Raise(new PaymentSucceededDomainEvent(Id, BookingId, Amount, Currency, TransactionId, Version));
     }
 
     public void MarkAsFailed()
@@ -61,6 +68,8 @@ public class Payment : AggregateRoot
         if (Status != PaymentStatus.Pending)
             throw new InvalidOperationException("Only Pending payments can be marked as failed.");
         Status = PaymentStatus.Failed;
+        Version++;
+        Raise(new PaymentFailedDomainEvent(Id, BookingId, "PAYMENT_FAILED", Version));
     }
 
     public void MarkAsExpired()

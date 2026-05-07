@@ -4,23 +4,50 @@ using Airbnb.BookingService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
 using MassTransit;
+using Quartz;
+using Airbnb.SharedKernel.Infrastructure;
+using Airbnb.BookingService.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<BookingDbContext>("bookdb");
+builder.AddNpgsqlDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>("bookdb");
+
 
 builder.AddKafkaConsumer<string, string>("kafka", options =>
 {
     options.Config.GroupId = "booking-service-group";
 });
 
-builder.Services.AddHostedService<Airbnb.BookingService.Infrastructure.Workers.BookingTimeoutWorker>();
+// Removed old polling-based timeout worker in favor of Saga timeouts
+// builder.Services.AddHostedService<Airbnb.BookingService.Infrastructure.Workers.BookingTimeoutWorker>();
 
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
-    x.AddConsumer<Airbnb.BookingService.Features.Payments.PaymentSucceededConsumer>();
+    
+    // Saga Configuration
+    x.AddSagaStateMachine<Airbnb.BookingService.Infrastructure.Saga.BookingStateMachine, Airbnb.BookingService.Infrastructure.Saga.BookingState>()
+        .EntityFrameworkRepository(r =>
+        {
+            r.ExistingDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>();
+            r.UsePostgres();
+        });
+
+    x.AddEntityFrameworkOutbox<BookingDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    x.AddEntityFrameworkOutbox<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    x.AddQuartz();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -36,6 +63,7 @@ builder.Services.AddMassTransit(x =>
                 h.Password("guest");
             });
         }
+        cfg.UsePublishMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
 });
@@ -46,6 +74,11 @@ builder.Services.AddHttpClient<Airbnb.BookingService.Infrastructure.HttpClients.
 {
     client.BaseAddress = new Uri("http://propertyservice");
 });
+
+// Event Architecture
+builder.Services.AddScoped<IIntegrationEventMapper, BookingIntegrationEventMapper>();
+builder.Services.AddScoped<IIntegrationEventBridge, BookingIntegrationEventBridge>();
+builder.Services.AddScoped<IDomainEventPolicyExecutor, BookingDomainEventPolicyExecutor>();
 
 builder.Services.AddMediator(options =>
 {
