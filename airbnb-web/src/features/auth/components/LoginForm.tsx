@@ -100,7 +100,6 @@ export function LoginForm() {
           onError={() => {
             toast.error('Đăng nhập bằng Google thất bại!');
           }}
-          useOneTap
         />
       </div>
 

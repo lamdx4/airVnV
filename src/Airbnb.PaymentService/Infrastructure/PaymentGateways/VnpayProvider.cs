@@ -9,6 +9,7 @@ public class VnpayProvider(IConfiguration config, ILogger<VnpayProvider> logger)
 
     public Task<PaymentUrlResult> GeneratePaymentUrlAsync(Payment payment, string ipAddress, CancellationToken ct)
     {
+        logger.LogInformation("Generating VNPay payment URL for booking {BookingId}", payment.BookingId);
         var vnpay = new VnpayLibrary();
         var vnp_TmnCode = config["Vnpay:TmnCode"];
         var vnp_HashSecret = config["Vnpay:HashSecret"];

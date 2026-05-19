@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace Airbnb.PropertyService.Infrastructure;
 
@@ -11,14 +10,18 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
-        var builder = new DbContextOptionsBuilder<AppDbContext>();
-        var connectionString = configuration.GetConnectionString("propdb");
+        var connectionString = 
+            configuration.GetConnectionString("propdb")
+            ?? "Host=localhost;Port=5433;Database=propdb;Username=postgres;Password=postgres";
 
-        builder.UseNpgsql(connectionString);
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        optionsBuilder.UseNpgsql(connectionString);
 
-        return new AppDbContext(builder.Options);
+        return new AppDbContext(optionsBuilder.Options);
     }
 }

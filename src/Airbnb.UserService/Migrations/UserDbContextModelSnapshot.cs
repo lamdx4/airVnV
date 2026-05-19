@@ -43,6 +43,9 @@ namespace Airbnb.UserService.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -114,6 +117,9 @@ namespace Airbnb.UserService.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("LoginAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -122,6 +128,9 @@ namespace Airbnb.UserService.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserAgent")
                         .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
@@ -175,6 +184,8 @@ namespace Airbnb.UserService.Migrations
                         .HasColumnType("bytea");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("MessageId", "ConsumerId");
 
                     b.HasIndex("Delivered");
 
@@ -278,10 +289,6 @@ namespace Airbnb.UserService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BusName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -302,8 +309,6 @@ namespace Airbnb.UserService.Migrations
                     b.HasKey("OutboxId");
 
                     b.HasIndex("Created");
-
-                    b.HasIndex("BusName", "Created");
 
                     b.ToTable("OutboxState");
                 });
@@ -337,18 +342,6 @@ namespace Airbnb.UserService.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
-                {
-                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.OutboxState", null)
-                        .WithMany()
-                        .HasForeignKey("OutboxId");
-
-                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.InboxState", null)
-                        .WithMany()
-                        .HasForeignKey("InboxMessageId", "InboxConsumerId")
-                        .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
             modelBuilder.Entity("Airbnb.UserService.Domain.User", b =>

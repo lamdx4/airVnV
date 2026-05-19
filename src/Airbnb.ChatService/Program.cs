@@ -11,12 +11,29 @@ using System.Text.Json.Serialization.Metadata;
 [assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.SetIsOriginAllowed(_ => true)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 // 1. Aspire Service Defaults (OTEL, HealthChecks, Resilience)
 builder.AddServiceDefaults();
 
 // 2. Database - Npgsql
-builder.AddNpgsqlDbContext<AppDbContext>("chatdb");
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("chatdb"));
+    
+    // Bỏ qua lỗi check model changes để có thể chạy MigrateAsync ngay cả khi code lệch một chút với Migration
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+builder.EnrichNpgsqlDbContext<AppDbContext>();
 
 // 2.1 Http Clients
 builder.Services.AddHttpClient<PropertyServiceClient>(client =>
@@ -50,16 +67,24 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<Airbnb.ChatService.Features.Consumers.BookingConfirmedEventConsumer>();
     x.AddConsumer<Airbnb.ChatService.Features.Consumers.UserProfileUpdatedEventConsumer>();
 
-    x.UsingRabbitMq((ctx, cfg) =>
-    {
-        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+        x.UsingRabbitMq((ctx, cfg) =>
         {
-            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
-            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
-        });
+            var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbit");
+            if (!string.IsNullOrEmpty(rabbitConnectionString))
+            {
+                cfg.Host(rabbitConnectionString);
+            }
+            else
+            {
+                cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+                {
+                    h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+                    h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+                });
+            }
 
-        cfg.ConfigureEndpoints(ctx);
-    });
+            cfg.ConfigureEndpoints(ctx);
+        });
 });
 
 // 5. Mediator (source-generated CQRS dispatch – zero reflection)
@@ -77,13 +102,7 @@ builder.Services.SwaggerDocument(o =>
 });
 
 var app = builder.Build();
-
-// Run EF Migrations on startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
+app.UseCors("AllowAll");
 
 // 7. Middleware pipeline
 app.UseFastEndpoints(c =>

@@ -53,20 +53,30 @@ export interface Property {
   countryCode: string;
   subDivisions?: Record<string, string>;
   
-  // Details
-  basePrice: number;
-  cleaningFee: number;
-  serviceFee: number;
-  weekendPremiumPercent: number;
-  currencyCode: string;
+  // Nested Objects matching Backend DTOs
+  pricing: {
+    basePrice: number;
+    cleaningFee: number;
+    serviceFee: number;
+    weekendPremiumPercent: number;
+    currencyCode: string;
+  };
   
-  // Rules
-  allowPets: boolean;
-  allowSmoking: boolean;
-  allowEvents: boolean;
-  checkInTime: string;
-  checkOutTime: string;
-  flexibleCheckOut: boolean;
+  capacity: {
+    guestCount: number;
+    bedroomCount: number;
+    bedCount: number;
+    bathroomCount: number;
+  };
+  
+  houseRules: {
+    allowPets: boolean;
+    allowSmoking: boolean;
+    allowEvents: boolean;
+    checkInTime: string;
+    checkOutTime: string;
+    flexibleCheckOut: boolean;
+  };
   
   images: PropertyImage[];
   propertyAmenities: PropertyAmenity[];
@@ -104,44 +114,70 @@ export interface EditPropertyInput {
 export interface CreatePropertyFormData {
   title: string;
   description: string;
+  
+  // Pricing
   basePrice: number;
+  cleaningFee: number;
+  serviceFee: number;
+  weekendPremiumPercent: number;
+  currencyCode: string;
+  
+  // Location
   latitude: number;
   longitude: number;
   displayAddress: string;
+  streetAddress: string;
+  countryCode: string;
+  admin1Code?: string;
+  admin2Code?: string;
+
+  // Capacity
+  guestCount: number;
+  bedroomCount: number;
+  bedCount: number;
+  bathroomCount: number;
+  
+  // House Rules
+  allowPets: boolean;
+  allowSmoking: boolean;
+  allowEvents: boolean;
+  checkInTime: string;
+  checkOutTime: string;
+  flexibleCheckOut: boolean;
 }
 
 export interface CreatePropertyRequest {
   title: string;
   description: string;
   slug: string;
+  
+  // Pricing (Flattened)
+  basePrice: number;
+  currencyCode: string;
+  cleaningFee: number;
+  serviceFee: number;
+  weekendPremiumPercent: number;
+
+  // Capacity (Flattened)
+  guestCount: number;
+  bedroomCount: number;
+  bedCount: number;
+  bathroomCount: number;
+
+  // HouseRules (Flattened)
+  allowPets: boolean;
+  allowSmoking: boolean;
+  allowEvents: boolean;
+  checkInTime: string;
+  checkOutTime: string;
+  flexibleCheckOut: boolean;
+
+  // Location
   latitude: number;
   longitude: number;
-  countryCode: string;
   displayAddress: string;
+  countryCode: string;
   streetAddress: string;
-  unit?: string;
-  postalCode?: string;
   admin1Code?: string;
   admin2Code?: string;
-  pricing: {
-    basePrice: number;
-    currencyCode: string;
-    cleaningFee: number;
-    serviceFee: number;
-    weekendPremiumPercent: number;
-  };
-  capacity: {
-    guestCount: number;
-    bedroomCount: number;
-    bedCount: number;
-    bathroomCount: number;
-  };
-  houseRules: {
-    allowPets: boolean;
-    allowSmoking: boolean;
-    allowEvents: boolean;
-    checkInTime: string;
-    checkOutTime: string;
-    flexibleCheckOut: boolean;
-  };
 }

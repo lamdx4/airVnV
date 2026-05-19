@@ -6,11 +6,20 @@ using FastEndpoints.Swagger;
 using Airbnb.PaymentService.Infrastructure;
 using Airbnb.SharedKernel.Infrastructure;
 using Airbnb.PaymentService.Infrastructure.Messaging;
+using Mediator;
+
+[assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<PaymentDbContext>("paydb");
+// Database registration
+builder.Services.AddDbContext<PaymentDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("paydb"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+builder.EnrichNpgsqlDbContext<PaymentDbContext>();
 
 builder.Services.AddMemoryCache();
 
@@ -27,10 +36,7 @@ builder.Services.AddHttpClient<Airbnb.PaymentService.Infrastructure.HttpClients.
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.IPaymentProvider, Airbnb.PaymentService.Infrastructure.PaymentGateways.VnpayProvider>();
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.PaymentProviderResolver>();
 
-builder.Services.AddMediator(options =>
-{
-    options.ServiceLifetime = ServiceLifetime.Scoped;
-});
+builder.Services.AddMediator();
 
 // Event Architecture
 builder.Services.AddScoped<IIntegrationEventMapper, PaymentIntegrationEventMapper>();
@@ -49,7 +55,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("rabbitmq");
+        var connectionString = builder.Configuration.GetConnectionString("rabbit");
         if (!string.IsNullOrEmpty(connectionString))
         {
             cfg.Host(connectionString);

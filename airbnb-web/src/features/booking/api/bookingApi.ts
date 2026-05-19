@@ -1,47 +1,28 @@
-import { apiClient } from '@/utils/apiClient';
-import { BookingDto, CreateBookingRequest, CreateBookingResponse } from '../types';
-
-interface ApiResponse<T> {
-  data: T;
-  message: string | null;
-  success: boolean;
-  errorCode: string | null;
-}
+import { api } from '@/lib/api';
+import type { BookingDto, CreateBookingRequest, CreateBookingResponse } from '../types';
 
 export const bookingApi = {
   // Guest calls this to create a booking
-  createBooking: async (req: CreateBookingRequest): Promise<CreateBookingResponse> => {
-    const response = await apiClient.post<ApiResponse<CreateBookingResponse>>('/bookingservice/api/bookings', req);
-    return response.data.data;
-  },
+  createBooking: (req: CreateBookingRequest): Promise<CreateBookingResponse> => 
+    api.post('/bookingservice/api/bookings', req) as any,
 
   // Guest fetches their own bookings
-  getGuestBookings: async (): Promise<BookingDto[]> => {
-    const response = await apiClient.get<ApiResponse<BookingDto[]>>('/bookingservice/api/bookings/guest');
-    return response.data.data || [];
-  },
+  getGuestBookings: (): Promise<BookingDto[]> => 
+    api.get('/bookingservice/api/bookings/guest') as any,
 
   // Host fetches bookings for all their properties
-  getHostBookings: async (): Promise<BookingDto[]> => {
-    const response = await apiClient.get<ApiResponse<BookingDto[]>>('/bookingservice/api/bookings/host');
-    return response.data.data || [];
-  },
+  getHostBookings: (): Promise<BookingDto[]> => 
+    api.get('/bookingservice/api/bookings/host') as any,
 
   // Host approves a pending booking
-  approveBooking: async (bookingId: string): Promise<boolean> => {
-    const response = await apiClient.post<ApiResponse<boolean>>(`/bookingservice/api/bookings/${bookingId}/approve`);
-    return response.data.data;
-  },
+  approveBooking: (bookingId: string): Promise<boolean> => 
+    api.post(`/bookingservice/api/bookings/${bookingId}/approve`) as any,
 
   // Host rejects a pending booking
-  rejectBooking: async (bookingId: string): Promise<boolean> => {
-    const response = await apiClient.post<ApiResponse<boolean>>(`/bookingservice/api/bookings/${bookingId}/reject`);
-    return response.data.data;
-  },
+  rejectBooking: (bookingId: string): Promise<boolean> => 
+    api.post(`/bookingservice/api/bookings/${bookingId}/reject`) as any,
 
   // Host or Guest cancels a booking
-  cancelBooking: async (bookingId: string): Promise<boolean> => {
-    const response = await apiClient.post<ApiResponse<boolean>>(`/bookingservice/api/bookings/${bookingId}/cancel`);
-    return response.data.data;
-  }
+  cancelBooking: (bookingId: string): Promise<boolean> => 
+    api.post(`/bookingservice/api/bookings/${bookingId}/cancel`) as any
 };

@@ -27,9 +27,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -63,6 +64,14 @@ builder.Services.AddOutputCache(options => { /* ... */ });
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+app.UseWebSockets();
+
+// Hỗ trợ Google Auth Popups và FedCM
+app.Use((context, next) =>
+{
+    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    return next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

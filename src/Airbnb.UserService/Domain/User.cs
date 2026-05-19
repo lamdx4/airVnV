@@ -33,6 +33,11 @@ public class User : AggregateRoot
     public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
     public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
+    public void SetPassword(string hashedPassword)
+    {
+        HashedPassword = hashedPassword;
+    }
+
     private User() { }
 
     // 1. Khởi tạo cho Local User
@@ -69,16 +74,15 @@ public class User : AggregateRoot
         Logins.Add(new UserLogin(Id, provider, providerKey));
     }
 
-    public void AddRefreshToken(string token, DateTime expiresAt)
+    public void AddRefreshToken(string token, DateTime expiresAt, string? userAgent = null, string? ipAddress = null)
     {
-        RefreshTokens.Add(new UserRefreshToken(Id, token, expiresAt));
+        RefreshTokens.Add(new UserRefreshToken(Id, token, expiresAt, userAgent, ipAddress));
     }
 
     public void UpdateProfile(string fullName, string? avatarUrl, string? phoneNumber, string? bio)
     {
         Profile.UpdateInfo(fullName, avatarUrl, phoneNumber, bio);
-        Version++;
-        Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl, Version));
+        Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl));
     }
 }
 
@@ -132,6 +136,8 @@ public class UserRefreshToken
     public Guid UserId { get; private set; }
     public User User { get; private set; } = default!;
     public string Token { get; private set; } = default!;
+    public string? UserAgent { get; private set; }
+    public string? IpAddress { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime LoginAt { get; private set; }
@@ -142,11 +148,13 @@ public class UserRefreshToken
 
     private UserRefreshToken() { }
 
-    public UserRefreshToken(Guid userId, string token, DateTime expiresAt)
+    public UserRefreshToken(Guid userId, string token, DateTime expiresAt, string? userAgent = null, string? ipAddress = null)
     {
         Id = Guid.CreateVersion7();
         UserId = userId;
         Token = token;
+        UserAgent = userAgent;
+        IpAddress = ipAddress;
         ExpiresAt = expiresAt;
         CreatedAt = DateTime.UtcNow;
         LoginAt = DateTime.UtcNow;

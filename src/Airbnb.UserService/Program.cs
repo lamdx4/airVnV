@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
 using Airbnb.SharedKernel.Infrastructure;
 using Airbnb.UserService.Infrastructure.Messaging;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -28,7 +29,15 @@ if (File.Exists("firebase-service-account.json"))
 }
 
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<UserDbContext>("userdb");
+
+// Database registration
+builder.Services.AddDbContext<UserDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("userdb"));
+});
+// builder.EnrichNpgsqlDbContext<UserDbContext>();
+// NOTE: Bị comment vì NpgsqlHealthCheck hang khi DCP proxy (port 5433)
+// không forward PostgreSQL protocol → health check timeout → TaskCanceledException
 
 builder.Services.AddMediaServices(builder.Configuration);
 
@@ -51,20 +60,38 @@ builder.Services.AddMassTransit(x =>
 
     x.AddEntityFrameworkOutbox<UserDbContext>(o =>
     {
-        o.QueryDelay = TimeSpan.FromSeconds(1);
+        o.QueryDelay = TimeSpan.FromSeconds(5);
         o.UsePostgres();
-        o.UseBusOutbox(); 
+        o.UseBusOutbox();
+        // Không block startup nếu bus chưa sẵn sàng
+        o.DisableInboxCleanupService();
     });
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
-        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+        var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbit");
+        if (!string.IsNullOrEmpty(rabbitConnectionString))
         {
-            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
-            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
-        });
-        cfg.ConfigureEndpoints(ctx);
+            cfg.Host(rabbitConnectionString);
+        }
+        else
+        {
+            cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+            {
+                h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+                h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+            });
+        }
+        // UserService không có Consumer → không cần declare queues
+        // cfg.ConfigureEndpoints(ctx); ← đây là nguyên nhân gây deadlock
     });
+});
+
+// Không đợi MassTransit bus hoàn toàn start mới accept HTTP request
+builder.Services.Configure<HostOptions>(opts =>
+{
+    opts.ServicesStartConcurrently = true;
+    opts.StartupTimeout = TimeSpan.FromSeconds(30);
 });
 
 builder.Services.AddCors(options =>
@@ -91,15 +118,13 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
+// ExceptionHandlingMiddleware phải là FIRST – wrap toàn bộ pipeline
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseCors("AllowAll");
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-    db.Database.Migrate();
-}
-
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.UseFastEndpoints(c =>

@@ -1,10 +1,11 @@
 using FastEndpoints;
-
+using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
+using Airbnb.UserService.Infrastructure;
 
 namespace Airbnb.UserService.Features.GoogleAuth.Execute;
 
-public class Endpoint : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -14,13 +15,12 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        try
-        {
-            Response = await req.ExecuteAsync(ct);
-        }
-        catch (Exception)
-        {
-            await SendAsync(ApiResponse<Response>.FailureResult("AUTH_GOOGLE_FAILED", "Xác thực Google thất bại"), 401, ct);
-        }
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        var mediatorReq = req with { UserAgent = userAgent, IpAddress = ipAddress };
+        
+        var result = await mediator.Send(mediatorReq, ct);
+        await Send.ResponseAsync(result, cancellation: ct);
     }
 }

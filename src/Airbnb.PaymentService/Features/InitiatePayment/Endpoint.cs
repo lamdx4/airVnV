@@ -38,6 +38,6 @@ public class Endpoint(IMediator mediator)
             IpAddress = ipAddress 
         }, ct);
 
-        await SendAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

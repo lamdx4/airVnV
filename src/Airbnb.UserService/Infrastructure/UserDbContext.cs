@@ -6,19 +6,35 @@ using MassTransit;
 
 namespace Airbnb.UserService.Infrastructure;
 
-public class UserDbContext(
-    DbContextOptions<UserDbContext> options, 
-    IIntegrationEventBridge bridge,
-    IDomainEventPolicyExecutor policyExecutor) : AppDbContextBase(options, bridge, policyExecutor)
+public class UserDbContext : AppDbContextBase
 {
+    public UserDbContext(
+        DbContextOptions<UserDbContext> options, 
+        IIntegrationEventBridge bridge,
+        IDomainEventPolicyExecutor policyExecutor) : base(options, bridge, policyExecutor)
+    {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.EnableSensitiveDataLogging().LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
+    }
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 
+    // MassTransit Outbox Entities
+    public DbSet<MassTransit.EntityFrameworkCoreIntegration.InboxState> InboxState => Set<MassTransit.EntityFrameworkCoreIntegration.InboxState>();
+    public DbSet<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage> OutboxMessage => Set<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage>();
+    public DbSet<MassTransit.EntityFrameworkCoreIntegration.OutboxState> OutboxState => Set<MassTransit.EntityFrameworkCoreIntegration.OutboxState>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>().ToTable("Users").HasKey(x => x.Id);
+        modelBuilder.Entity<User>().Property(x => x.Id).ValueGeneratedNever();
         modelBuilder.Entity<User>().Property(x => x.Email).IsRequired().HasMaxLength(255);
         modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
         modelBuilder.Entity<User>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
@@ -27,6 +43,7 @@ public class UserDbContext(
         modelBuilder.Entity<User>().Property(x => x.Role).HasConversion<string>();
 
         modelBuilder.Entity<UserProfile>().ToTable("UserProfiles").HasKey(x => x.UserId);
+        modelBuilder.Entity<UserProfile>().Property(x => x.UserId).ValueGeneratedNever();
         modelBuilder.Entity<UserProfile>().Property(x => x.FullName).IsRequired().HasMaxLength(255);
 
         modelBuilder.Entity<UserProfile>()
@@ -36,6 +53,7 @@ public class UserDbContext(
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserLogin>().ToTable("UserLogins").HasKey(x => x.Id);
+        modelBuilder.Entity<UserLogin>().Property(x => x.Id).ValueGeneratedNever();
         modelBuilder.Entity<UserLogin>().HasIndex(x => new { x.Provider, x.ProviderKey }).IsUnique();
         
         // Enum to String
@@ -48,6 +66,7 @@ public class UserDbContext(
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserRefreshToken>().ToTable("UserRefreshTokens").HasKey(x => x.Id);
+        modelBuilder.Entity<UserRefreshToken>().Property(x => x.Id).ValueGeneratedNever();
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.ExpiresAt).HasColumnType("timestamp with time zone");
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
         modelBuilder.Entity<UserRefreshToken>().Property(p => p.LoginAt).HasColumnType("timestamp with time zone");

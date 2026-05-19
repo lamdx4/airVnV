@@ -120,7 +120,7 @@ export function ProfileForm() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-500">ID Người dùng</span>
-                <span className="text-slate-900 font-mono text-[10px]">{profile?.id.substring(0, 8)}...</span>
+                <span className="text-slate-900 font-mono text-[10px]">{profile?.id?.substring(0, 8) ?? ''}...</span>
               </div>
             </div>
           </div>

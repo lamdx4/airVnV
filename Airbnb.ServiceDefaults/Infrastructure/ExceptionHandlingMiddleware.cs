@@ -2,10 +2,14 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 
 namespace Airbnb.ServiceDefaults.Infrastructure;
 
-public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+public class ExceptionHandlingMiddleware(
+    RequestDelegate next, 
+    ILogger<ExceptionHandlingMiddleware> logger,
+    IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -20,7 +24,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
 
@@ -31,7 +35,8 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             InvalidOperationException ex => (HttpStatusCode.BadRequest, "INVALID_OPERATION", ex.Message),
             ArgumentException ex => (HttpStatusCode.BadRequest, "BAD_REQUEST", ex.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Access denied."),
-            _ => (HttpStatusCode.InternalServerError, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.")
+            _ => (HttpStatusCode.InternalServerError, "INTERNAL_SERVER_ERROR", 
+                  env.IsDevelopment() ? $"Internal Error: {exception.Message} | Stack: {exception.StackTrace}" : "An unexpected error occurred.")
         };
 
         context.Response.StatusCode = (int)statusCode;

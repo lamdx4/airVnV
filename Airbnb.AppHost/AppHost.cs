@@ -28,7 +28,7 @@ var kafka = builder.AddKafka("kafka")
     .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
 
 // RabbitMQ – Domain Events + MassTransit Saga (PropertyService, BookingService, v.v.)
-var rabbit = builder.AddRabbitMQ("rabbitmq")
+var rabbit = builder.AddRabbitMQ("rabbit")
     .WithDataVolume("airbnb_rabbit_data")
     .WithManagementPlugin(); // UI: http://localhost:15672
 
@@ -41,47 +41,74 @@ var redis = builder.AddRedis("redis")
 
 // 2. Debezium (CDC)
 var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
-    .WithEnvironment("BOOTSTRAP_SERVERS", "kafka:9092")
+    .WithHttpEndpoint(8083, 8083, "http")
+    .WithEnvironment("BOOTSTRAP_SERVERS", kafka.GetEndpoint("tcp"))
     .WithEnvironment("GROUP_ID", "1")
     .WithEnvironment("CONFIG_STORAGE_TOPIC", "my_connect_configs")
     .WithEnvironment("OFFSET_STORAGE_TOPIC", "my_connect_offsets")
     .WithEnvironment("STATUS_STORAGE_TOPIC", "my_connect_statuses")
     .WithEnvironment("KEY_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
     .WithEnvironment("VALUE_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
+    .WithEnvironment("JAVA_OPTS", "-Xms256m -Xmx256m") // Giới hạn RAM cho Debezium JVM
     .WithReference(postgres)
     .WithReference(kafka)
     .WaitFor(kafka);
 
 // 3. Worker Configurator
-builder.AddProject<Projects.Airbnb_Infrastructure_Configurator>("debezium-configurator");
+builder.AddProject<Projects.Airbnb_Infrastructure_Configurator>("debezium-configurator")
+    .WithReference(debezium.GetEndpoint("http"))
+    .WaitFor(debezium);
 
 // 4. Microservices (VSA Architecture)
 var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
-    .WithReference(userDb);
+    .WithEnvironment("DOTNET_gcServer", "0") // Workstation GC giúp tiết kiệm RAM tối đa cho local
+    .WithReference(userDb)
+    .WithReference(rabbit)
+    .WaitFor(userDb)
+    .WaitFor(rabbit);
 
 var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(propDb)
-    .WithReference(rabbit);
+    .WithReference(rabbit)
+    .WaitFor(propDb)
+    .WaitFor(rabbit);
 
 var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(bookDb)
-    .WithReference(rabbit);
+    .WithReference(rabbit)
+    .WithReference(kafka)
+    .WaitFor(bookDb)
+    .WaitFor(rabbit)
+    .WaitFor(kafka);
 
 var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(payDb)
-    .WithReference(kafka);
+    .WithReference(rabbit)
+    .WaitFor(payDb)
+    .WaitFor(rabbit);
 
 var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(elasticsearch)
-    .WithReference(kafka);
+    .WithReference(kafka)
+    .WaitFor(elasticsearch)
+    .WaitFor(kafka);
 
 var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(chatDb)
     .WithReference(rabbit)
-    .WithReference(redis);
+    .WithReference(redis)
+    .WaitFor(chatDb)
+    .WaitFor(rabbit)
+    .WaitFor(redis);
 
 // 5. API Gateway (YARP)
 var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
+    .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(userSvc)
     .WithReference(propSvc)
     .WithReference(bookSvc)
@@ -97,7 +124,8 @@ builder.AddViteApp("frontend", "../airbnb-web")
         e.IsProxied = false;
     })
     .WithReference(gateway)
-    .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"));
+    .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"))
+    .WithEnvironment("VITE_CHAT_HUB_URL", $"{gateway.GetEndpoint("http")}/hubs/chat");
 
 
 builder.Build().Run();

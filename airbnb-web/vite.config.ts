@@ -22,5 +22,8 @@ export default defineConfig({
     hmr: {
       clientPort: 5173,
     },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
   }
 })

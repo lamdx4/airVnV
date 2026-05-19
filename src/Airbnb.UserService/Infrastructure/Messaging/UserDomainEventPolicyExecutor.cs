@@ -12,13 +12,14 @@ public class UserDomainEventPolicyExecutor(IMediator mediator) : IDomainEventPol
         foreach (var @event in events)
         {
             var notification = MapToNotification(@event);
-            await mediator.Publish(notification, ct);
+            if (notification is not null)
+                await mediator.Publish(notification, ct);
         }
     }
 
     private INotification MapToNotification(IDomainEvent @event) => @event switch
     {
         UserProfileUpdatedDomainEvent e => new UserProfileUpdatedNotification(e),
-        _ => throw new ArgumentException($"Unhandled domain event type: {@event.GetType().Name}")
+        _ => null
     };
 }

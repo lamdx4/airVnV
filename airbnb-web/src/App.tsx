@@ -11,14 +11,18 @@ import Messages from './pages/Messages';
 import Trips from './pages/Trips';
 import Reservations from './pages/Reservations';
 import PropertyDetail from './pages/PropertyDetail';
+import NewProperty from './pages/NewProperty';
 
 export default function App() {
   return (
     <ErrorBoundary>
       <Toaster position="top-right" richColors />
       <BrowserRouter>
-        <Layout>
-          <Routes>
+        <Routes>
+          <Route path="/host/homes/new" element={<NewProperty />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages/:conversationId" element={<Messages />} />
+          <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/host/homes" element={<HostDashboard />} />
@@ -27,12 +31,10 @@ export default function App() {
             <Route path="/login" element={<AirbnbLogin view="login" />} />
             <Route path="/register" element={<AirbnbLogin view="register" />} />
             <Route path="/forgot-password" element={<AirbnbLogin view="forgot-password" />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/messages/:conversationId" element={<Messages />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/host/reservations" element={<Reservations />} />
-          </Routes>
-        </Layout>
+          </Route>
+        </Routes>
       </BrowserRouter>
     </ErrorBoundary>
   );

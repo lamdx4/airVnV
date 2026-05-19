@@ -1,15 +1,49 @@
+import { useState } from 'react';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
+import { SecuritySettings } from '@/features/account/components/SecuritySettings';
+import { User, ShieldCheck } from 'lucide-react';
 
 export default function Profile() {
+  const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+
   return (
-    <div className="min-h-screen bg-slate-50/50 py-12">
-      <div className="container mx-auto px-4">
-        <div className="mb-10 text-center md:text-left">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Hồ sơ cá nhân</h1>
-          <p className="text-slate-500 mt-2">Quản lý thông tin và các thiết lập bảo mật của bạn</p>
+    <div className="min-h-screen bg-slate-50/30 py-12">
+      <div className="container mx-auto px-4 max-w-5xl">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Cài đặt tài khoản</h1>
+            <p className="text-slate-500 mt-2 font-medium">Quản lý thông tin cá nhân và các thiết lập bảo mật</p>
+          </div>
+
+          <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === 'profile' 
+                ? 'bg-rausch text-white shadow-md shadow-rausch/20' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <User size={18} />
+              Hồ sơ
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === 'security' 
+                ? 'bg-rausch text-white shadow-md shadow-rausch/20' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <ShieldCheck size={18} />
+              Bảo mật
+            </button>
+          </div>
         </div>
         
-        <ProfileForm />
+        <div className="mt-4">
+          {activeTab === 'profile' ? <ProfileForm /> : <SecuritySettings />}
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import { Toaster, toast } from 'sonner'
 import './index.css'
+// @ts-ignore
+import '@fontsource-variable/outfit';
+// @ts-ignore
+import '@fontsource-variable/inter';
+// @ts-ignore
+import '@fontsource-variable/geist';
 import App from './App.tsx'
 
 import { GoogleOAuthProvider } from '@react-oauth/google'

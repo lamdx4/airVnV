@@ -1,10 +1,10 @@
 using FastEndpoints;
-
+using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.RefreshToken.Execute;
 
-public class Endpoint : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -14,13 +14,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        try
-        {
-            Response = await req.ExecuteAsync(ct);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await SendAsync(ApiResponse<Response>.FailureResult("AUTH_TOKEN_INVALID", "Refresh token không hợp lệ hoặc đã hết hạn"), 401, ct);
-        }
+        var result = await mediator.Send(req, ct);
+        await Send.ResponseAsync(result, cancellation: ct);
     }
 }

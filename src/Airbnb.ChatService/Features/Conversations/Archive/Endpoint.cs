@@ -10,16 +10,21 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     public override void Configure()
     {
         Patch("/api/conversations/{ConversationId}/archive");
+        AllowAnonymous(); 
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userId = string.IsNullOrEmpty(userIdClaim) ? req.UserId : Guid.Parse(userIdClaim);
+        var userIdStr = HttpContext.Request.Headers["X-User-Id"].ToString();
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            await Send.ResponseAsync(ApiResponse<Response>.FailureResult("UNAUTHORIZED", "User identification missing."), 401, ct);
+            return;
+        }
         
         var requestWithUser = req with { UserId = userId };
 
         var result = await mediator.Send(requestWithUser, ct);
-        await SendAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

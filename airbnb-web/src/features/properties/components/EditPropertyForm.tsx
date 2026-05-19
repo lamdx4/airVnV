@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,7 +43,14 @@ type EditPropertyInput = z.infer<typeof schema>;
 type TabType = 'general' | 'photos' | 'amenities' | 'location' | 'calendar';
 
 export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') as TabType;
+  
+  const [activeTab, setActiveTab] = useState<TabType>(
+    ['general', 'photos', 'amenities', 'location', 'calendar'].includes(initialTab) 
+        ? initialTab 
+        : 'general'
+  );
   const { data: property, isLoading } = useProperty(propertyId);
   const updateMutation = useUpdateProperty();
   const updateStatusMutation = useUpdateStatus();
@@ -73,14 +81,14 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
       reset({
         title: property.title,
         description: property.description,
-        basePrice: property.basePrice,
-        cleaningFee: property.cleaningFee,
-        allowPets: property.allowPets,
-        allowSmoking: property.allowSmoking,
-        allowEvents: property.allowEvents,
-        checkInTime: property.checkInTime,
-        checkOutTime: property.checkOutTime,
-        flexibleCheckOut: property.flexibleCheckOut
+        basePrice: property.pricing.basePrice,
+        cleaningFee: property.pricing.cleaningFee,
+        allowPets: property.houseRules.allowPets,
+        allowSmoking: property.houseRules.allowSmoking,
+        allowEvents: property.houseRules.allowEvents,
+        checkInTime: property.houseRules.checkInTime,
+        checkOutTime: property.houseRules.checkOutTime,
+        flexibleCheckOut: property.houseRules.flexibleCheckOut
       });
     }
   }, [property, reset]);

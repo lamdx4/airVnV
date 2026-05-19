@@ -7,12 +7,28 @@ using MassTransit;
 using Quartz;
 using Airbnb.SharedKernel.Infrastructure;
 using Airbnb.BookingService.Infrastructure.Messaging;
+using Mediator;
+
+[assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<BookingDbContext>("bookdb");
-builder.AddNpgsqlDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>("bookdb");
+// Business DbContext
+builder.Services.AddDbContext<BookingDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("bookdb"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+builder.EnrichNpgsqlDbContext<BookingDbContext>();
+
+// Saga DbContext
+builder.Services.AddDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("bookdb"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+builder.EnrichNpgsqlDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>();
 
 
 builder.AddKafkaConsumer<string, string>("kafka", options =>
@@ -51,7 +67,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("rabbitmq");
+        var connectionString = builder.Configuration.GetConnectionString("rabbit");
         if (!string.IsNullOrEmpty(connectionString))
         {
             cfg.Host(connectionString);
@@ -80,10 +96,7 @@ builder.Services.AddScoped<IIntegrationEventMapper, BookingIntegrationEventMappe
 builder.Services.AddScoped<IIntegrationEventBridge, BookingIntegrationEventBridge>();
 builder.Services.AddScoped<IDomainEventPolicyExecutor, BookingDomainEventPolicyExecutor>();
 
-builder.Services.AddMediator(options =>
-{
-    options.ServiceLifetime = ServiceLifetime.Scoped;
-});
+builder.Services.AddMediator();
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();

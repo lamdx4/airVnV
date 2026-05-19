@@ -1,14 +1,15 @@
+using FastEndpoints;
 using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Features.GetMyProperties;
 
 public record Request(
-    int PageNumber = 1, 
-    int PageSize = 10,
+    [property: BindFrom("page")] int PageNumber = 1, 
+    [property: BindFrom("pageSize")] int PageSize = 10,
     string? SearchTerm = null,
     int? Status = null
-) : Mediator.IQuery<PagedResponse<PropertyResponse>>;
+);
 
 public record PropertyResponse(
     Guid Id,

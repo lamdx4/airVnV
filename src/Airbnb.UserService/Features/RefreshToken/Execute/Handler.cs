@@ -1,16 +1,15 @@
-using FastEndpoints;
+using Mediator;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Airbnb.UserService.Infrastructure;
-
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.RefreshToken.Execute;
 
-public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
+public sealed class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
+    public async ValueTask<ApiResponse<Response>> Handle(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.RefreshTokens)
@@ -19,7 +18,7 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Invalid refresh token.");
+            return ApiResponse<Response>.FailureResult("INVALID_REFRESH_TOKEN", "Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
         var oldToken = user.RefreshTokens.First(t => t.Token == req.RefreshToken);
@@ -39,6 +38,6 @@ public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandle
 
         await _db.SaveChangesAsync(ct);
 
-        return ApiResponse<Response>.SuccessResult(new Response(accessToken, newRefreshToken), "Token refreshed successfully");
+        return ApiResponse<Response>.SuccessResult(new Response(accessToken, newRefreshToken), "Làm mới token thành công");
     }
 }

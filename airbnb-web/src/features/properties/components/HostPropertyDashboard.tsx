@@ -47,7 +47,7 @@ export const HostPropertyDashboard: React.FC = () => {
         </div>
         <Button 
           onClick={() => navigate('/host/homes/new')}
-          className="bg-rausch hover:bg-rausch-dark text-white rounded-2xl h-12 px-6 gap-2 font-bold shadow-lg shadow-rausch/20"
+          className="bg-black hover:bg-black/80 text-white rounded-2xl h-12 px-6 gap-2 font-bold shadow-lg shadow-rausch/20"
         >
           <PlusSignIcon className="h-5 w-5" />
           Create New Listing
@@ -113,7 +113,7 @@ export const HostPropertyDashboard: React.FC = () => {
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-hof">${property.basePrice}</span>
+                    <span className="font-bold text-hof">${property.pricing.basePrice}</span>
                     <span className="text-xs text-slate-400"> / night</span>
                   </td>
                   <td className="px-6 py-4">
@@ -159,7 +159,7 @@ export const HostPropertyDashboard: React.FC = () => {
             </div>
             <Button 
                 onClick={() => navigate('/host/homes/new')}
-                className="bg-hof text-white rounded-xl px-8 mt-2"
+                className="bg-slate-900 text-white rounded-xl px-8 mt-2"
             >
                 Create Listing
             </Button>

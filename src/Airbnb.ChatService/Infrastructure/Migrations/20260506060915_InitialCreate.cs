@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -164,14 +164,14 @@ namespace Airbnb.ChatService.Infrastructure.Migrations
                 table: "Conversations",
                 column: "PropertyId",
                 unique: true,
-                filter: "reservation_id IS NULL");
+                filter: "\"ReservationId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "uq_conversation_property_res",
                 table: "Conversations",
                 columns: new[] { "PropertyId", "ReservationId" },
                 unique: true,
-                filter: "reservation_id IS NOT NULL");
+                filter: "\"ReservationId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",

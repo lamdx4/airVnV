@@ -32,13 +32,13 @@ public class AppDbContext : DbContext
             // Khi không có reservation
             entity.HasIndex(e => e.PropertyId)
                   .IsUnique()
-                  .HasFilter("reservation_id IS NULL")
+                  .HasFilter("\"ReservationId\" IS NULL")
                   .HasDatabaseName("uq_conversation_property_no_res");
                   
             // Khi có reservation
             entity.HasIndex(e => new { e.PropertyId, e.ReservationId })
                   .IsUnique()
-                  .HasFilter("reservation_id IS NOT NULL")
+                  .HasFilter("\"ReservationId\" IS NOT NULL")
                   .HasDatabaseName("uq_conversation_property_res");
         });
 

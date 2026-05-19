@@ -17,7 +17,7 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         var userIdClaim = User.FindFirstValue("UserId");
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            await SendAsync(null!, 401, ct);
+            await Send.ResponseAsync(null!, 401, ct);
             return;
         }
 

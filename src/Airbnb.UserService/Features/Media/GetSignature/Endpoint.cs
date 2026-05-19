@@ -24,6 +24,6 @@ public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiRespo
 
         var signature = mediaProvider.GenerateUploadSignature(req.Folder, publicId);
 
-        await SendAsync(ApiResponse<Response>.SuccessResult(new Response(signature)), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(new Response(signature)), cancellation: ct);
     }
 }

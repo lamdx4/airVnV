@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/api/properties/my");
+        AllowAnonymous(); 
         Summary(s => {
             s.Summary = "Get all properties of the current host with pagination";
             s.Description = "Returns a paged list of properties owned by the authenticated host.";
@@ -23,12 +24,13 @@ public class Endpoint(IMediator mediator)
         var userIdStr = HttpContext.Request.Headers["X-User-Id"].ToString();
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
-            throw new UnauthorizedAccessException("User identification missing.");
+            await Send.ResponseAsync(ApiResponse<PagedResponse<PropertyResponse>>.FailureResult("UNAUTHORIZED", "User identification missing."), 401, ct);
+            return;
         }
 
         var internalReq = new InternalRequest(userId, req.PageNumber, req.PageSize, req.SearchTerm, req.Status);
         
         var result = await mediator.Send(internalReq, ct);
-        await SendAsync(ApiResponse<PagedResponse<PropertyResponse>>.SuccessResult(result), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<PagedResponse<PropertyResponse>>.SuccessResult(result), cancellation: ct);
     }
 }

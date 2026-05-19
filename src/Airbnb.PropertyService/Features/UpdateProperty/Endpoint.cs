@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/api/properties/{PropertyId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Update property information (Host only, partial update)";
             s.Description = "Possible Error Codes: \n" +
@@ -23,6 +24,6 @@ public class Endpoint(IMediator mediator)
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var result = await mediator.Send(req, ct);
-        await SendAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

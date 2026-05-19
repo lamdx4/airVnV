@@ -15,6 +15,6 @@ public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Countr
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var result = await mediator.Send(req, ct);
-        await SendAsync(ApiResponse<CountryMasterDataDto>.SuccessResult(result), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<CountryMasterDataDto>.SuccessResult(result), cancellation: ct);
     }
 }

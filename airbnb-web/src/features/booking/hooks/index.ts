@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
-import { BookingDto, CreateBookingRequest } from '../types';
+import type { CreateBookingRequest } from '../types/index';
 
 const QUERY_KEYS = {
   GUEST_BOOKINGS: ['guest_bookings'],
@@ -38,7 +38,7 @@ export const useApproveBooking = () => {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingApi.approveBooking(bookingId),
-    onSuccess: (_, bookingId) => {
+    onSuccess: () => {
       // Optimistic or simple invalidation. Here we invalidate host bookings.
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.HOST_BOOKINGS });
     }
@@ -50,7 +50,7 @@ export const useRejectBooking = () => {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingApi.rejectBooking(bookingId),
-    onSuccess: (_, bookingId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.HOST_BOOKINGS });
     }
   });

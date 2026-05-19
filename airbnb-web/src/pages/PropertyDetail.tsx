@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperty } from '@/features/properties/hooks/useProperties';
 import { BookingWidget } from '@/features/booking';
@@ -114,11 +113,11 @@ export default function PropertyDetail() {
         <div className="w-full lg:w-[380px] shrink-0">
           <BookingWidget
             propertyId={property.id}
-            basePrice={property.basePrice}
-            cleaningFee={property.cleaningFee}
-            serviceFee={property.serviceFee}
-            weekendPremiumPercent={property.weekendPremiumPercent}
-            currencyCode={property.currencyCode}
+            basePrice={property.pricing.basePrice}
+            cleaningFee={property.pricing.cleaningFee}
+            serviceFee={property.pricing.serviceFee}
+            weekendPremiumPercent={property.pricing.weekendPremiumPercent}
+            currencyCode={property.pricing.currencyCode}
           />
         </div>
       </div>

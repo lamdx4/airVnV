@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { addDays, differenceInDays, format, isBefore, startOfDay, isFriday, isSaturday } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';

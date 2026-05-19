@@ -1,99 +1,168 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search01Icon, Globe02Icon, Menu01Icon, UserIcon } from 'hugeicons-react';
 import { useAuthStore } from '@/store/authStore';
+import { Icon } from '@iconify/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, logout } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isHome = location.pathname === '/';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white px-6 md:px-12 py-4 flex items-center justify-between">
-      {/* Logo */}
-      <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-        <svg
-          className="h-8 w-8 text-rausch"
-          viewBox="0 0 32 32"
-          fill="currentColor"
-        >
-          <path d="M16 1.8C10.2 1.8 5.5 6.5 5.5 12.3c0 7.5 7.8 15.5 10.5 17.9.2.2.5.2.7 0 2.7-2.4 10.5-10.4 10.5-17.9 0-5.8-4.7-10.5-10.5-10.5zm0 26c-2.4-2.2-9.1-9.2-9.1-13.7 0-4.9 4.1-9 9.1-9s9.1 4.1 9.1 9c0 4.5-6.7 11.5-9.1 13.7zm0-18.7c-2.6 0-4.7 2.1-4.7 4.7S13.4 18.5 16 18.5s4.7-2.1 4.7-4.7S18.6 9.1 16 9.1z" />
-        </svg>
-        <span className="text-rausch font-bold text-xl hidden md:block tracking-tight">
-          airbnb
-        </span>
-      </div>
-
-      {/* Search Bar */}
-      <div className="flex items-center border border-gray-200 rounded-full shadow-sm hover:shadow-md transition duration-200 px-4 py-2 gap-4 cursor-pointer text-sm">
-        <span className="font-medium text-hof px-2 border-r border-gray-200">Địa điểm bất kỳ</span>
-        <span className="font-medium text-hof px-2 border-r border-gray-200">Tuần bất kỳ</span>
-        <span className="text-foggy px-2">Thêm khách</span>
-        <div className="bg-rausch text-white p-2 rounded-full">
-          <Search01Icon className="h-4 w-4" />
-        </div>
-      </div>
-
-      {/* User Menu */}
-      <div className="flex items-center gap-4 text-sm text-hof font-medium">
-        <span 
-          onClick={() => navigate('/host/homes')}
-          className="hover:bg-gray-100 px-4 py-2 rounded-full cursor-pointer hidden md:block"
-        >
-          Cho thuê chỗ ở qua Airbnb
-        </span>
-        <Globe02Icon className="h-5 w-5 text-foggy hover:bg-gray-100 rounded-full p-1 box-content cursor-pointer" />
-
+    <header 
+      className={`sticky top-0 z-50 w-full transition-all duration-200 border-b ${
+        isScrolled || !isHome 
+          ? 'bg-white shadow-sm border-slate-200' 
+          : 'bg-white border-transparent'
+      }`}
+    >
+      <div className="max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 flex items-center justify-between py-6">
+        {/* Brand Identity */}
         <div 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-2 hover:shadow-md transition cursor-pointer relative"
+          className="flex items-center gap-1.5 cursor-pointer text-[#FF5A5F] shrink-0 active:scale-95 transition-transform" 
+          onClick={() => navigate('/')}
         >
-          <Menu01Icon className="h-4 w-4 text-foggy" />
-          <div className="bg-gray-500 text-white rounded-full p-1">
-            <UserIcon className="h-4 w-4" />
+          <Icon icon="logos:airbnb-icon" className="text-[32px]" />
+          <span className="font-semibold text-[22px] hidden lg:block tracking-tighter -mt-0.5">
+            airbnb
+          </span>
+        </div>
+
+        {/* Standard Search Console */}
+        <div className="hidden md:flex items-center border border-slate-200 rounded-full shadow-sm hover:shadow-md transition-all duration-200 pl-6 pr-2 py-2 gap-0 cursor-pointer min-w-[320px] bg-white group">
+          <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors rounded-l-full">
+            Anywhere
+          </button>
+          <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors">
+            Any week
+          </button>
+          <button className="text-[14px] font-medium text-slate-500 px-4 hover:bg-slate-50 h-full transition-colors rounded-r-full flex-grow text-left">
+            Add guests
+          </button>
+          <div className="bg-[#FF5A5F] text-white p-2 rounded-full ml-auto group-hover:scale-105 transition-transform">
+            <Search01Icon className="h-4 w-4 stroke-[3]" />
+          </div>
+        </div>
+
+        {/* Control Center */}
+        <div className="flex items-center gap-1 text-sm text-slate-900 font-semibold shrink-0">
+          <div 
+            onClick={() => navigate('/host/homes')}
+            className="hover:bg-slate-50 px-4 py-3 rounded-full cursor-pointer hidden md:block transition-all"
+          >
+            Airbnb your home
+          </div>
+          
+          <div className="p-3 hover:bg-slate-50 rounded-full cursor-pointer transition-all">
+            <Globe02Icon className="h-4.5 w-4.5 text-slate-700" />
           </div>
 
-          {isMenuOpen && (
-            <div className="absolute top-12 right-0 bg-white shadow-lg rounded-xl py-2 border border-gray-200/80 w-52 flex flex-col z-50">
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate('/profile'); setIsMenuOpen(false); }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
-                  >
-                    Hồ sơ cá nhân
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
-                  >
-                    Quản lý chỗ ở
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-normal text-red-500 transition"
-                  >
-                    Đăng xuất
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate('/login'); setIsMenuOpen(false); }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-slate-800 transition border-b border-gray-100"
-                  >
-                    Đăng nhập
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate('/register'); setIsMenuOpen(false); }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 text-sm font-normal text-slate-600 transition"
-                  >
-                    Đăng ký
-                  </button>
-                </>
-              )}
+          <div className="relative">
+            <div 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center gap-3 border border-slate-200 rounded-full pl-3 pr-1.5 py-1.5 hover:shadow-md transition-all cursor-pointer bg-white active:scale-95"
+            >
+                <Menu01Icon className="h-4 w-4 text-slate-600" />
+                <div className="bg-slate-500 text-white rounded-full w-8 h-8 flex items-center justify-center overflow-hidden border border-slate-200">
+                   {isAuthenticated ? (
+                       <Icon icon="hugeicons:user-check-01" className="text-lg" />
+                   ) : (
+                       <UserIcon className="h-5 w-5 fill-current" />
+                   )}
+                </div>
             </div>
-          )}
+
+            <AnimatePresence>
+                {isMenuOpen && (
+                <>
+                    <div className="fixed inset-0 z-[-1]" onClick={() => setIsMenuOpen(false)} />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="absolute top-[64px] right-0 bg-white shadow-[0_0_36px_rgba(0,0,0,0.12)] rounded-xl py-2 border border-slate-100 w-64 flex flex-col z-[100] overflow-hidden"
+                    >
+                        {isAuthenticated ? (
+                        <>
+                            <div className="flex flex-col border-b border-slate-100 pb-2">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/messages'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
+                                >
+                                    Messages
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/trips'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
+                                >
+                                    Trips
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/profile'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
+                                >
+                                    Profile
+                                </button>
+                            </div>
+                            <div className="flex flex-col py-2">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
+                                >
+                                    Manage listings
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
+                                >
+                                    Log out
+                                </button>
+                            </div>
+                        </>
+                        ) : (
+                        <>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); navigate('/login'); setIsMenuOpen(false); }}
+                                className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
+                            >
+                                Log in
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); navigate('/register'); setIsMenuOpen(false); }}
+                                className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
+                            >
+                                Sign up
+                            </button>
+                            <div className="border-t border-slate-100 mt-2 pt-2">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
+                                >
+                                    Airbnb your home
+                                </button>
+                            </div>
+                        </>
+                        )}
+                    </motion.div>
+                </>
+                )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </header>

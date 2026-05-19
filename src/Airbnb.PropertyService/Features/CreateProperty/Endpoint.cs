@@ -14,6 +14,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties");
+        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Create a new property listing (Draft)";
@@ -28,7 +29,15 @@ public class Endpoint(IMediator mediator)
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
-        await SendAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
+        var userIdStr = HttpContext.Request.Headers["X-User-Id"].ToString();
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            await Send.ResponseAsync(ApiResponse<Response>.FailureResult("UNAUTHORIZED", "User identification missing."), 401, ct);
+            return;
+        }
+
+        var requestWithUser = req with { HostId = userId };
+        var result = await mediator.Send(requestWithUser, ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

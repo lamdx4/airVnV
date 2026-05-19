@@ -27,7 +27,7 @@ public class Endpoint(
         if (provider == null)
         {
             logger.LogCritical("VnpayProvider not found for IPN processing");
-            await SendErrorsAsync(500, ct);
+            await Send.ErrorsAsync(500, ct);
             return;
         }
 
@@ -46,7 +46,7 @@ public class Endpoint(
         if (result.IsSuccess)
         {
             await mediator.Send(new ConfirmPayment.Command(result.PaymentId, result.TransactionNo!), ct);
-            await SendAsync(new { RspCode = "00", Message = result.Message }, cancellation: ct);
+            await Send.ResponseAsync(new { RspCode = "00", Message = result.Message }, cancellation: ct);
         }
         else
         {
@@ -55,7 +55,7 @@ public class Endpoint(
             
             // Even on failure (logic wise), we must return the RspCode VNPay expects
             var rspCode = result.ResponseCode ?? "99";
-            await SendAsync(new { RspCode = rspCode, Message = result.Message }, cancellation: ct);
+            await Send.ResponseAsync(new { RspCode = rspCode, Message = result.Message }, cancellation: ct);
         }
     }
 }

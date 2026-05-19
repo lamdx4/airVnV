@@ -17,8 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Aspire Service Defaults (OTEL, HealthChecks, Resilience)
 builder.AddServiceDefaults();
 
-// 2. Database - Npgsql (Tự động lấy connection string "propdb" từ Aspire)
-builder.AddNpgsqlDbContext<AppDbContext>("propdb");
+// 2. Database - Npgsql
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("propdb"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+builder.EnrichNpgsqlDbContext<AppDbContext>();
 
 // 2.1 Media Services (Cloudinary)
 builder.Services.AddMediaServices(builder.Configuration);
@@ -35,11 +40,19 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
-        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+        var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbit");
+        if (!string.IsNullOrEmpty(rabbitConnectionString))
         {
-            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
-            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
-        });
+            cfg.Host(rabbitConnectionString);
+        }
+        else
+        {
+            cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", h =>
+            {
+                h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+                h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+            });
+        }
 
         cfg.ConfigureEndpoints(ctx);
     });
@@ -71,12 +84,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 // 5. Middleware pipeline
 app.UseFastEndpoints(c =>

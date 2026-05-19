@@ -28,6 +28,6 @@ public class Endpoint(IMediator mediator)
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var result = await mediator.Send(req, ct);
-        await SendAsync(result, cancellation: ct);
+        await Send.ResponseAsync(result, cancellation: ct);
     }
 }
