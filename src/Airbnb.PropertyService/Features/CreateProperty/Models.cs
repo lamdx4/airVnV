@@ -80,5 +80,8 @@ public class Validator : FastEndpoints.Validator<Request>
         RuleFor(x => x.StreetAddress).NotEmpty().MaximumLength(255);
         RuleFor(x => x.GuestCount).GreaterThan(0);
         RuleFor(x => x.WeekendPremiumPercent).GreaterThanOrEqualTo(0);
+        
+        RuleFor(x => x.Admin1Code).MaximumLength(10).WithMessage("Admin1Code must not exceed 10 characters.");
+        RuleFor(x => x.Admin2Code).MaximumLength(10).WithMessage("Admin2Code must not exceed 10 characters.");
     }
 }

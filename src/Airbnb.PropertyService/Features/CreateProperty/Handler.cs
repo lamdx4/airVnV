@@ -16,8 +16,8 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher)
 {
     public async ValueTask<Response> Handle(Request req, CancellationToken ct)
     {
-        string? admin1Code = req.Admin1Code;
-        string? admin2Code = req.Admin2Code;
+        string? admin1Code = req.Admin1Code?.Length > 10 ? null : req.Admin1Code;
+        string? admin2Code = req.Admin2Code?.Length > 10 ? null : req.Admin2Code;
 
         // Sync-Matching ngầm với bảng admin_divisions nếu Frontend không gửi mã cứng lên
         if (req.SubDivisions != null)
