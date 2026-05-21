@@ -76,6 +76,7 @@ export interface Property {
     checkInTime: string;
     checkOutTime: string;
     flexibleCheckOut: boolean;
+    customRules?: string[];
   };
   
   images: PropertyImage[];
@@ -108,6 +109,7 @@ export interface EditPropertyInput {
     checkInTime: string;
     checkOutTime: string;
     flexibleCheckOut: boolean;
+    customRules?: string[];
   };
 }
 
@@ -144,6 +146,7 @@ export interface CreatePropertyFormData {
   checkInTime: string;
   checkOutTime: string;
   flexibleCheckOut: boolean;
+  customRules?: string[];
 }
 
 export interface CreatePropertyRequest {
@@ -171,6 +174,7 @@ export interface CreatePropertyRequest {
   checkInTime: string;
   checkOutTime: string;
   flexibleCheckOut: boolean;
+  customRules?: string[];
 
   // Location
   latitude: number;

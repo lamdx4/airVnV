@@ -66,6 +66,7 @@ const formSchema = z.object({
   checkInTime: z.string().min(4),
   checkOutTime: z.string().min(4),
   flexibleCheckOut: z.boolean().default(false),
+  customRules: z.array(z.string()).default([]),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -98,6 +99,7 @@ export default function NewProperty() {
       allowEvents: false,
       flexibleCheckOut: false,
       streetAddress: '',
+      customRules: [],
     }
   });
 

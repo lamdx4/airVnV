@@ -48,6 +48,7 @@ export function toCreatePropertyRequest(
     checkInTime: formData.checkInTime || '14:00',
     checkOutTime: formData.checkOutTime || '12:00',
     flexibleCheckOut: Boolean(formData.flexibleCheckOut || false),
+    customRules: formData.customRules || [],
 
     // Location
     latitude: Number(formData.latitude || 0),

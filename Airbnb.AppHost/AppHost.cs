@@ -1,25 +1,3 @@
-using System.Linq;
-
-// Đảm bảo node/npm của NVM được nạp vào PATH để Aspire Distributed Application (DCP) chạy được frontend NodeApp
-var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
-var homePath = Environment.GetEnvironmentVariable("HOME") ?? "/home/lamdx4";
-var nodeVersionsDir = System.IO.Path.Combine(homePath, ".nvm", "versions", "node");
-if (System.IO.Directory.Exists(nodeVersionsDir))
-{
-    var latestNodeDir = System.IO.Directory.GetDirectories(nodeVersionsDir)
-        .OrderByDescending(d => d)
-        .FirstOrDefault();
-        
-    if (latestNodeDir != null)
-    {
-        var nodeBinPath = System.IO.Path.Combine(latestNodeDir, "bin");
-        if (System.IO.Directory.Exists(nodeBinPath) && !currentPath.Contains(nodeBinPath))
-        {
-            Environment.SetEnvironmentVariable("PATH", $"{nodeBinPath}:{currentPath}");
-        }
-    }
-}
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Đọc config môi trường
