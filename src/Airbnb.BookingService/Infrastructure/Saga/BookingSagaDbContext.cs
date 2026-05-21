@@ -15,6 +15,15 @@ public class BookingSagaDbContext : SagaDbContext
     {
         get { yield return new BookingStateMap(); }
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+    }
 }
 
 public class BookingStateMap : SagaClassMap<BookingState>
