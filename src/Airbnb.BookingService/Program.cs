@@ -57,12 +57,6 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
-    x.AddEntityFrameworkOutbox<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>(o =>
-    {
-        o.UsePostgres();
-        o.UseBusOutbox();
-    });
-
     x.AddQuartz();
 
     x.UsingRabbitMq((context, cfg) =>
