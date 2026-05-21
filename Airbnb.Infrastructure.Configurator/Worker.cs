@@ -2,38 +2,52 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Http;
-using Polly;
-using Polly.Registry;
+using System.Net.Http;
 
 namespace Airbnb.Infrastructure.Configurator;
 
 public class Worker(
     ILogger<Worker> logger, 
-    IHttpClientFactory httpClientFactory,
-    ResiliencePipelineProvider<string> pipelineProvider) : BackgroundService
+    IHttpClientFactory httpClientFactory) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Configurator Worker starting...");
-        var pipeline = pipelineProvider.GetPipeline("idempotent-pipeline");
+        logger.LogInformation("Debezium Configurator Worker starting...");
         
-        try 
+        while (!stoppingToken.IsCancellationRequested)
         {
-            await pipeline.ExecuteAsync(async ct => {
+            try 
+            {
                 var client = httpClientFactory.CreateClient("DebeziumClient");
-                var response = await client.GetAsync("/", ct);
-                if (!response.IsSuccessStatusCode) throw new Exception("Debezium not ready.");
+                logger.LogInformation("Checking Debezium Connect readiness at {Url}...", client.BaseAddress);
+                
+                var response = await client.GetAsync("/", stoppingToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Debezium returned status code: {response.StatusCode}");
+                }
+
+                logger.LogInformation("Debezium Connect is active! Configuring connectors...");
 
                 // Cấu hình danh sách Connector cho từng Database
-                await ConfigureConnector(client, "property-connector", "propertydb", "public.Properties", ct);
-                await ConfigureConnector(client, "payment-outbox-connector", "paydb", "public.OutboxEvents", ct);
+                await ConfigureConnector(client, "property-connector", "propertydb", "public.Properties", stoppingToken);
+                await ConfigureConnector(client, "payment-outbox-connector", "paydb", "public.OutboxEvents", stoppingToken);
                 
-            }, stoppingToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogCritical(ex, "Configurator Worker failed.");
+                logger.LogInformation("Debezium Configurator completed successfully.");
+                break; // Exit loop on success
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Debezium Connect is not ready yet: {Message}. Retrying in 5 seconds...", ex.Message);
+                try
+                {
+                    await Task.Delay(5000, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+            }
         }
     }
 
@@ -58,7 +72,6 @@ public class Worker(
                 table_include_list = tableList,
                 key_converter = "org.apache.kafka.connect.json.JsonConverter",
                 value_converter = "org.apache.kafka.connect.json.JsonConverter",
-                // Staff-level: Kích hoạt SMT để xử lý CDC tốt hơn nếu cần
             }
         };
 

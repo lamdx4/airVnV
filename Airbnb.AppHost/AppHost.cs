@@ -49,7 +49,7 @@ var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5"
     .WithEnvironment("STATUS_STORAGE_TOPIC", "my_connect_statuses")
     .WithEnvironment("KEY_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
     .WithEnvironment("VALUE_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
-    .WithEnvironment("JAVA_OPTS", "-Xms128m -Xmx128m") // Giới hạn RAM cho Debezium JVM
+    .WithEnvironment("JAVA_OPTS", "-Xms256m -Xmx512m") // Giới hạn RAM cho Debezium JVM
     .WithReference(postgres)
     .WithReference(kafka)
     .WaitFor(kafka);
