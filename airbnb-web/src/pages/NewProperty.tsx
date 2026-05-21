@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { propertiesApi } from '@/features/properties/api/properties';
+import { masterDataApi } from '@/lib/master-data-api';
 import { toCreatePropertyRequest } from '@/features/properties/utils/mappers';
 import { toast } from 'sonner';
 import { 
@@ -19,50 +21,28 @@ import {
   AlertCircle,
   Zap,
   Award,
-  Info,
-  ChevronRight,
-  LocateFixed,
-  MapPinned
+  Lock
 } from 'lucide-react';
-import { Icon } from '@iconify/react';
-import type { Amenity } from '@/features/properties/types';
 
 // shadcn/ui components
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Card, 
-  CardContent, 
-  CardFooter, 
-  CardHeader
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 
-// Leaflet
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+// Section components
+import { BasicInfoSection } from '@/features/properties/components/new-property/BasicInfoSection';
+import { PricingSection } from '@/features/properties/components/new-property/PricingSection';
+import { LocationSection } from '@/features/properties/components/new-property/LocationSection';
+import { AmenitiesSection } from '@/features/properties/components/new-property/AmenitiesSection';
+import { HouseRulesSection } from '@/features/properties/components/new-property/HouseRulesSection';
 
-// Fix Leaflet icon issue
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
+
+const DEFAULT_FALLBACK_CONFIG = [
+  { id: 'street', label: 'Street Address', photonKeys: ['street', 'name'], isRequired: true },
+  { id: 'admin2', label: 'City', photonKeys: ['city', 'town', 'county'], isRequired: true },
+  { id: 'admin1', label: 'State / Province', photonKeys: ['state'], isRequired: true },
+  { id: 'zipcode', label: 'Zip / Postal Code', photonKeys: ['postcode'], isRequired: false }
+];
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters'),
@@ -74,14 +54,12 @@ const formSchema = z.object({
   currencyCode: z.string().default('USD'),
   latitude: z.number(),
   longitude: z.number(),
-  streetAddress: z.string().min(5, 'Street address is required'),
-  countryCode: z.string().default('VN'),
+  streetAddress: z.string().min(3, 'Street address is required'),
+  countryCode: z.string().min(2),
   guestCount: z.number().min(1),
   bedroomCount: z.number().min(0),
   bedCount: z.number().min(0),
   bathroomCount: z.number().min(0),
-  admin1Code: z.string().optional(), // Province
-  admin2Code: z.string().optional(), // Ward
   allowPets: z.boolean().default(false),
   allowSmoking: z.boolean().default(false),
   allowEvents: z.boolean().default(false),
@@ -95,12 +73,12 @@ type FormData = z.infer<typeof formSchema>;
 export default function NewProperty() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t, i18n } = useTranslation();
+  
+  // Dynamic Form Config States & Dynamic amenities
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
-  
-  // Location Data States
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [wards, setWards] = useState<any[]>([]);
+  const [dynamicAddressValues, setDynamicAddressValues] = useState<Record<string, string>>({});
 
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema) as any,
@@ -108,7 +86,7 @@ export default function NewProperty() {
       latitude: 21.0285,
       longitude: 105.8542,
       countryCode: 'VN',
-      currencyCode: 'USD',
+      currencyCode: 'VND',
       guestCount: 2,
       bedroomCount: 1,
       bedCount: 1,
@@ -119,96 +97,81 @@ export default function NewProperty() {
       allowSmoking: false,
       allowEvents: false,
       flexibleCheckOut: false,
-      basePrice: 50,
-      cleaningFee: 0,
-      serviceFee: 0,
-      weekendPremiumPercent: 0,
+      streetAddress: '',
     }
   });
 
-  const lat = watch('latitude');
-  const lng = watch('longitude');
-  const selectedProvinceCode = watch('admin1Code');
+  const selectedCountryCode = watch('countryCode');
 
-  const onSubmit = (data: FormData) => {
-    createMutation.mutate(data);
-  };
+  // Load list of supported countries from API Master Data
+  const { data: supportedCountries = [], isLoading: isLoadingCountries, isError: isCountriesError } = useQuery({
+    queryKey: ['supportedCountries'],
+    queryFn: () => masterDataApi.getSupportedCountries(),
+    staleTime: 10 * 60 * 1000,
+  });
 
-  const markSectionComplete = (section: string) => {
-    setCompletedSections(prev => new Set(prev).add(section));
-  };
+  // Load Country Configuration purely via TanStack Query (Metadata-driven address form)
+  const { data: countryMasterDataResponse, isLoading: isLoadingConfig, isError: isConfigError } = useQuery({
+    queryKey: ['countryMasterData', selectedCountryCode],
+    queryFn: () => propertiesApi.getCountryMasterData(selectedCountryCode),
+    enabled: !!selectedCountryCode,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // Load Provinces (v2)
+  // Derived address configuration from query server state
+  const addressFormConfig = countryMasterDataResponse?.addressFormConfig && countryMasterDataResponse.addressFormConfig.length > 0
+    ? countryMasterDataResponse.addressFormConfig
+    : DEFAULT_FALLBACK_CONFIG;
+
+  // Sync form defaults when TanStack Query returns fresh country master data
   useEffect(() => {
-    fetch('https://provinces.open-api.vn/api/v2/p/')
-      .then(res => res.json())
-      .then(data => setProvinces(data))
-      .catch(err => console.error('Error loading provinces:', err));
-  }, []);
+    if (countryMasterDataResponse) {
+      const data = countryMasterDataResponse;
+      setValue('currencyCode', data.nativeCurrency || 'USD');
+      setValue('basePrice', data.nativeCurrency === 'USD' ? 100 : 1000000);
 
-  // Load Wards based on Province (v2 - CORRECT ENDPOINT)
-  useEffect(() => {
-    if (selectedProvinceCode) {
-      fetch(`https://provinces.open-api.vn/api/v2/w/?province=${selectedProvinceCode}`)
-        .then(res => res.json())
-        .then(data => setWards(data || []))
-        .catch(err => console.error('Error loading wards:', err));
+      if (data.defaultLatitude && data.defaultLongitude) {
+        setValue('latitude', data.defaultLatitude);
+        setValue('longitude', data.defaultLongitude);
+      }
     }
-  }, [selectedProvinceCode]);
+  }, [countryMasterDataResponse, setValue]);
 
-  // Automatically center map when address/ward changes (v2)
-  const selectedWardCode = watch('admin2Code');
-  const streetAddress = watch('streetAddress');
-
+  // Reset dynamic address values when country changes to prevent data leak
   useEffect(() => {
-    // Only search if we have at least province and some street info or ward
-    if (selectedProvinceCode && (selectedWardCode || streetAddress?.length > 5)) {
-      const timer = setTimeout(() => {
-        const ward = wards.find(w => w.code.toString() === selectedWardCode);
-        const province = provinces.find(p => p.code.toString() === selectedProvinceCode);
-        
-        const queryParts = [];
-        if (streetAddress) queryParts.push(streetAddress);
-        if (ward) queryParts.push(ward.name);
-        if (province) queryParts.push(province.name);
-        queryParts.push('Vietnam');
+    setDynamicAddressValues({});
+  }, [selectedCountryCode]);
 
-        const query = queryParts.join(', ');
-        
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
-          .then(res => res.json())
-          .then(results => {
-            if (results && results.length > 0) {
-              const { lat, lon } = results[0];
-              setValue('latitude', parseFloat(lat));
-              setValue('longitude', parseFloat(lon));
-            }
-          })
-          .catch(err => console.error('Auto-center geocoding error:', err));
-      }, 1500); // Debounce 1.5s
-
-      return () => clearTimeout(timer);
-    }
-  }, [selectedWardCode, selectedProvinceCode, streetAddress, provinces, wards]);
-
-  const { data: availableAmenities, isLoading: isLoadingAmenities } = useQuery({
+  // Fetch available amenities dynamic lists
+  const { data: availableAmenities, isLoading: isLoadingAmenities, isError: isAmenitiesError } = useQuery({
     queryKey: ['amenities'],
     queryFn: () => propertiesApi.getAvailableAmenities()
   });
 
+  const isSystemBlocked = isAmenitiesError || isConfigError || isCountriesError || !addressFormConfig || addressFormConfig.length === 0;
+
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const province = provinces.find(p => p.code.toString() === data.admin1Code)?.name;
-      const ward = wards.find(w => w.code.toString() === data.admin2Code)?.name;
+      // Build display address dynamically based on config fields order
+      const orderedParts: string[] = [];
+      addressFormConfig.forEach((field: any) => {
+        const val = dynamicAddressValues[field.id];
+        if (val) {
+          orderedParts.push(val);
+        }
+      });
       
-      const parts = [data.streetAddress];
-      if (ward) parts.push(ward);
-      if (province) parts.push(province);
-      const finalDisplayAddress = parts.filter(Boolean).join(', ');
+      const countryName = supportedCountries.find(c => c.code === selectedCountryCode)?.name || '';
+      orderedParts.push(countryName);
+
+      const finalDisplayAddress = orderedParts.filter(Boolean).join(', ');
 
       const payload = toCreatePropertyRequest({
          ...data,
-         displayAddress: finalDisplayAddress
+         displayAddress: finalDisplayAddress,
+         admin1Code: dynamicAddressValues['admin1'] || dynamicAddressValues['admin1Code'],
+         admin2Code: dynamicAddressValues['admin2'] || dynamicAddressValues['admin2Code'],
+         subDivisions: dynamicAddressValues
       });
 
       const propertyResponse = await propertiesApi.createProperty(payload);
@@ -227,91 +190,23 @@ export default function NewProperty() {
       toast.success('Listing published successfully!');
       queryClient.invalidateQueries({ queryKey: ['host-properties'] });
       navigate(`/host/homes/${data.id}/edit?tab=photos`);
+    },
+    onError: (err: any) => {
+      const errMsg = err?.response?.data?.Message || 'Failed to create listing. Please try again.';
+      toast.error(errMsg);
     }
   });
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      return;
-    }
-
-    const toastId = toast.loading('Detecting your location...');
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setValue('latitude', latitude, { shouldValidate: true });
-        setValue('longitude', longitude, { shouldValidate: true });
-        toast.dismiss(toastId);
-        toast.success('Location detected!');
-      },
-      (error) => {
-        toast.dismiss(toastId);
-        toast.error('Unable to retrieve your location. Please check your browser permissions.');
-        console.error('Geolocation error:', error);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
+  const onSubmit = (data: FormData) => {
+    createMutation.mutate(data);
   };
 
-  const handleSearchAddress = async () => {
-    const province = provinces.find(p => p.code.toString() === watch('admin1Code'))?.name;
-    const ward = wards.find(w => w.code.toString() === watch('admin2Code'))?.name;
-    const street = watch('streetAddress');
-
-    if (!street || !province) {
-      toast.error('Please enter at least Street Address and Province');
-      return;
-    }
-
-    const query = [street, ward, province, 'Vietnam'].filter(Boolean).join(', ');
-    const toastId = toast.loading('Searching for address on map...');
-
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        setValue('latitude', parseFloat(lat), { shouldValidate: true });
-        setValue('longitude', parseFloat(lon), { shouldValidate: true });
-        toast.dismiss(toastId);
-        toast.success('Address found and pinned!');
-      } else {
-        toast.dismiss(toastId);
-        toast.error('Could not find this address on the map. Please pin it manually.');
-      }
-    } catch (error) {
-      toast.dismiss(toastId);
-      toast.error('Search failed. Please try again or pin manually.');
-      console.error('Geocoding error:', error);
-    }
+  const markSectionComplete = (section: string) => {
+    setCompletedSections(prev => new Set(prev).add(section));
   };
-
-  // Map Components
-  function LocationMarker() {
-    useMapEvents({
-      click(e) {
-        setValue('latitude', e.latlng.lat);
-        setValue('longitude', e.latlng.lng);
-      },
-    });
-
-    return <Marker position={[lat, lng]} />;
-  }
-
-  function MapPluginControls() {
-    const map = useMap();
-    useEffect(() => {
-      map.setView([lat, lng]);
-    }, [lat, lng, map]);
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-secondary to-background">
-      {/* Standard Airbnb Header */}
       <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -323,16 +218,42 @@ export default function NewProperty() {
             >
                <ArrowLeft02Icon className="h-5 w-5 text-slate-700" />
             </Button>
-            <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">List Your Property</h1>
+            <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">{t('app.title')}</h1>
           </div>
           <div className="flex items-center gap-4">
-             <span className="text-sm font-semibold text-slate-500">Step {completedSections.size + 1} of 5</span>
+             {/* Language Selector */}
+             <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-1 bg-white shadow-xs">
+                <Button 
+                  type="button"
+                  variant={i18n.language.startsWith('en') ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className={`h-8 rounded-md text-xs font-semibold px-3 ${i18n.language.startsWith('en') ? 'bg-[#FF5A5F] hover:bg-[#E04447]' : 'hover:bg-slate-50'}`}
+                  onClick={() => {
+                    i18n.changeLanguage('en');
+                    queryClient.invalidateQueries();
+                  }}
+                >
+                  EN
+                </Button>
+                <Button 
+                  type="button"
+                  variant={i18n.language.startsWith('vi') ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className={`h-8 rounded-md text-xs font-semibold px-3 ${i18n.language.startsWith('vi') ? 'bg-[#FF5A5F] hover:bg-[#E04447]' : 'hover:bg-slate-50'}`}
+                  onClick={() => {
+                    i18n.changeLanguage('vi');
+                    queryClient.invalidateQueries();
+                  }}
+                >
+                  VI
+                </Button>
+             </div>
+             <span className="text-sm font-semibold text-slate-500">{t('app.step', { step: completedSections.size + 1 })}</span>
              <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold border-slate-300 hover:bg-slate-50 px-5">
-                Save & Exit
+                {t('app.saveExit')}
              </Button>
           </div>
         </div>
-        {/* Simple Progress Bar */}
         <div className="h-[2px] bg-slate-100 w-full overflow-hidden">
             <motion.div 
                 className="h-full bg-[#FF5A5F]"
@@ -343,357 +264,125 @@ export default function NewProperty() {
         </div>
       </header>
 
-      {/* Main Layout Template */}
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Form Area (2/3) */}
           <div className="lg:col-span-2 space-y-8">
             <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8">
               
               <AnimatePresence mode="wait">
-                {/* Section 1: The Basics */}
-                <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
-                  <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">The Basics</h2>
-                    <p className="text-base font-normal text-slate-600 leading-relaxed">Tell us where your place is and what it's like.</p>
-                  </CardHeader>
-                  <CardContent className="px-6 py-6 space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="title" className="text-sm font-semibold text-slate-900">Property Title</Label>
-                      <p className="text-xs text-slate-500">Short titles work best. You can always change it later.</p>
-                      <Input
-                        id="title"
-                        {...register('title')}
-                        placeholder="e.g. Modern Apartment in Downtown"
-                        className="h-12 px-4 py-3 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100 transition-all placeholder-slate-400"
-                      />
-                      {errors.title && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 mt-1">
-                          <AlertCircle className="h-4 w-4" /> {errors.title.message}
-                        </div>
-                      )}
-                    </div>
+                {/* Section 1: The Basics (Title, Description, capacity) */}
+                <BasicInfoSection 
+                  register={register} 
+                  watch={watch} 
+                  setValue={setValue} 
+                  errors={errors} 
+                  onContinue={() => markSectionComplete('basic')} 
+                />
 
-                    <div className="space-y-2">
-                      <Label htmlFor="description" className="text-sm font-semibold text-slate-900">Description</Label>
-                      <p className="text-xs text-slate-500">Share what makes your place special.</p>
-                      <Textarea
-                        id="description"
-                        {...register('description')}
-                        placeholder="Describe your property, amenities, and neighborhood..."
-                        rows={5}
-                        className="rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100 p-4 transition-all placeholder-slate-400"
-                      />
-                      {errors.description && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 mt-1">
-                          <AlertCircle className="h-4 w-4" /> {errors.description.message}
-                        </div>
-                      )}
-                    </div>
+                {/* Section 2: Pricing */}
+                <PricingSection 
+                  register={register} 
+                  watch={watch} 
+                  errors={errors} 
+                  onContinue={() => markSectionComplete('capacity')} 
+                />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-slate-900">Price per night</Label>
-                        <div className="relative group">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
-                          <Input 
-                            type="number"
-                            {...register('basePrice', { valueAsNumber: true })}
-                            className="h-12 pl-8 pr-4 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-slate-900">Cleaning fee</Label>
-                        <div className="relative group">
-                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
-                           <Input 
-                              type="number"
-                              {...register('cleaningFee', { valueAsNumber: true })}
-                              className="h-12 pl-8 pr-4 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100"
-                           />
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={() => markSectionComplete('basic')}
-                      className="w-full h-12 rounded-lg bg-[#FF5A5F] text-white font-semibold hover:bg-[#E04447] active:scale-95 transition-all shadow-sm"
-                    >
-                      Continue <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Section 2: Capacity */}
-                <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
-                  <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Capacity</h2>
-                    <p className="text-base font-normal text-slate-600 leading-relaxed">Who can stay at your place?</p>
-                  </CardHeader>
-                  <CardContent className="px-6 py-6 space-y-8">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {[
-                        { label: 'Guests', field: 'guestCount' as const },
-                        { label: 'Bedrooms', field: 'bedroomCount' as const },
-                        { label: 'Beds', field: 'bedCount' as const },
-                        { label: 'Bathrooms', field: 'bathroomCount' as const },
-                      ].map(({ label, field }) => (
-                        <div key={field} className="flex items-center justify-between py-1 px-1 border-b border-slate-50 last:border-0">
-                          <Label className="text-base font-semibold text-slate-900">{label}</Label>
-                          <div className="flex items-center gap-4">
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="icon"
-                              className="h-9 w-9 rounded-full border-slate-300 hover:border-slate-900 transition-colors"
-                              onClick={() => setValue(field, Math.max(0, (watch(field) || 0) - 1))}
-                            >
-                              -
-                            </Button>
-                            <span className="w-4 text-center font-semibold text-slate-900">{watch(field) || 0}</span>
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="icon"
-                              className="h-9 w-9 rounded-full border-slate-300 hover:border-slate-900 transition-colors"
-                              onClick={() => setValue(field, (watch(field) || 0) + 1)}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => markSectionComplete('capacity')}
-                      className="w-full h-12 rounded-lg bg-[#FF5A5F] text-white font-semibold hover:bg-[#E04447] active:scale-95 transition-all shadow-sm"
-                    >
-                      Next: Location
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Section 3: Location */}
-                <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
-                  <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Location</h2>
-                    <p className="text-base font-normal text-slate-600 leading-relaxed">Where is your place located?</p>
-                  </CardHeader>
-                  <CardContent className="px-6 py-6 space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-slate-900">Province / City</Label>
-                        <Controller
-                          name="admin1Code"
-                          control={control}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <SelectTrigger className="h-12 rounded-lg border-slate-300 focus:ring-3 focus:ring-pink-100">
-                                <SelectValue placeholder="Select province" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {provinces.map(p => (
-                                  <SelectItem key={p.code} value={p.code.toString()}>{p.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-slate-900">Ward / Phường / Xã</Label>
-                        <Controller
-                          name="admin2Code"
-                          control={control}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProvinceCode}>
-                              <SelectTrigger className="h-12 rounded-lg border-slate-300 focus:ring-3 focus:ring-pink-100">
-                                <SelectValue placeholder="Select ward" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {wards.map(w => (
-                                  <SelectItem key={w.code} value={w.code.toString()}>{w.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="text-sm font-semibold text-slate-900">Street Address</Label>
-                      <Input
-                        id="address"
-                        {...register('streetAddress')}
-                        placeholder="e.g. 123 Nguyen Hue Street"
-                        className="h-12 rounded-lg border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100"
-                      />
-                    </div>
-                    <div className="h-[350px] rounded-lg overflow-hidden border border-slate-200 relative z-0">
-                      <MapContainer center={[lat, lng]} zoom={13} className="h-full w-full" scrollWheelZoom={false}>
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        <LocationMarker />
-                        <MapPluginControls />
-                      </MapContainer>
-                      {/* Location Controls Container */}
-                      <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
-                        {/* Search from Address Button */}
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleSearchAddress}
-                          className="bg-white hover:bg-slate-50 text-slate-900 shadow-md border border-slate-200 gap-2 h-10 px-4 rounded-lg font-semibold active:scale-95 transition-all whitespace-nowrap"
-                        >
-                          <MapPinned className="h-4 w-4 text-blue-500" />
-                          Lấy từ địa chỉ đã nhập
-                        </Button>
-
-                        {/* Get Current Location Button */}
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleGetLocation}
-                          className="bg-white hover:bg-slate-50 text-slate-900 shadow-md border border-slate-200 gap-2 h-10 px-4 rounded-lg font-semibold active:scale-95 transition-all whitespace-nowrap"
-                        >
-                          <LocateFixed className="h-4 w-4 text-[#FF5A5F]" />
-                          Lấy vị trí hiện tại
-                        </Button>
-                      </div>
-
-                      {/* Subdued map overlay */}
-                      <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 px-3 py-1.5 rounded-md text-[10px] font-bold text-slate-500 shadow-sm border border-slate-200">
-                          {lat.toFixed(4)}, {lng.toFixed(4)}
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => markSectionComplete('location')}
-                      className="w-full h-12 rounded-lg bg-[#FF5A5F] text-white font-semibold hover:bg-[#E04447] active:scale-95 transition-all shadow-sm"
-                    >
-                      Confirm Location
-                    </Button>
-                  </CardContent>
-                </Card>
+                {/* Section 3: Location (Metadata-driven Address Form) */}
+                <LocationSection 
+                  setValue={setValue} 
+                  watch={watch} 
+                  errors={errors} 
+                  control={control} 
+                  addressFormConfig={addressFormConfig} 
+                  isLoadingConfig={isLoadingConfig} 
+                  isConfigError={isConfigError} 
+                  dynamicAddressValues={dynamicAddressValues} 
+                  setDynamicAddressValues={setDynamicAddressValues} 
+                  onContinue={() => markSectionComplete('location')} 
+                  supportedCountries={supportedCountries}
+                  isLoadingCountries={isLoadingCountries}
+                  isCountriesError={isCountriesError}
+                />
 
                 {/* Section 4: Amenities */}
-                <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
-                  <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Amenities</h2>
-                    <p className="text-base font-normal text-slate-600 leading-relaxed">What does your place offer?</p>
-                  </CardHeader>
-                  <CardContent className="px-6 py-6 space-y-6">
-                    {isLoadingAmenities ? (
-                      <div className="flex flex-col items-center justify-center py-12 gap-3">
-                        <Loading03Icon className="h-8 w-8 animate-spin text-pink-500" />
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Finding Amenities...</span>
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                        {availableAmenities?.map((amenity: Amenity) => {
-                          const isSelected = selectedAmenities.includes(amenity.id);
-                          return (
-                            <label key={amenity.id} className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer ${
-                              isSelected ? 'border-pink-500 bg-pink-50 ring-1 ring-pink-100' : 'border-slate-200 hover:bg-slate-50'
-                            }`}>
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={() => {
-                                  setSelectedAmenities(prev => 
-                                    isSelected ? prev.filter(id => id !== amenity.id) : [...prev, amenity.id]
-                                  );
-                                }}
-                                className="h-5 w-5 rounded-md border-slate-300 data-[state=checked]:bg-[#FF5A5F] data-[state=checked]:border-[#FF5A5F] transition-colors"
-                              />
-                              <div className="flex items-center gap-3">
-                                  <Icon icon={amenity.iconCode || 'hugeicons:tick-02'} className={`text-xl ${isSelected ? 'text-pink-600' : 'text-slate-400'}`} />
-                                  <span className="text-sm font-semibold text-slate-900">{amenity.name}</span>
-                              </div>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    )}
-                    <Button
-                      type="button"
-                      onClick={() => markSectionComplete('amenities')}
-                      className="w-full h-12 rounded-lg bg-[#FF5A5F] text-white font-semibold hover:bg-[#E04447] active:scale-95 transition-all shadow-sm"
-                    >
-                      Continue <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
+                <AmenitiesSection 
+                  isLoadingAmenities={isLoadingAmenities} 
+                  isAmenitiesError={isAmenitiesError} 
+                  availableAmenities={availableAmenities} 
+                  selectedAmenities={selectedAmenities} 
+                  setSelectedAmenities={setSelectedAmenities} 
+                  onContinue={() => markSectionComplete('amenities')} 
+                />
 
                 {/* Section 5: House Rules */}
-                <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
-                  <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">House Rules</h2>
-                    <p className="text-base font-normal text-slate-600 leading-relaxed">Clear rules help ensure a smooth stay.</p>
-                  </CardHeader>
-                  <CardContent className="px-6 py-6 space-y-8">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {[
-                        { id: 'allowPets', label: 'Allow Pets' },
-                        { id: 'allowSmoking', label: 'Allow Smoking' },
-                        { id: 'allowEvents', label: 'Allow Events' },
-                        { id: 'flexibleCheckOut', label: 'Flexible Check-out' },
-                      ].map((rule) => {
-                        const isChecked = watch(rule.id as any);
-                        return (
-                          <label key={rule.id} className={`flex items-center justify-between p-4 rounded-lg border transition-all cursor-pointer ${
-                            isChecked ? 'border-pink-500 bg-pink-50' : 'border-slate-200 hover:bg-slate-50'
-                          }`}>
-                            <span className="text-sm font-semibold text-slate-900">{rule.label}</span>
-                            <Checkbox
-                              checked={isChecked}
-                              onCheckedChange={(checked) => setValue(rule.id as any, checked === true)}
-                              className="h-5 w-5 rounded-md border-slate-300 data-[state=checked]:bg-[#FF5A5F] data-[state=checked]:border-[#FF5A5F]"
-                            />
-                          </label>
-                        )
-                      })}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-8 pt-6 border-t border-slate-100">
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Check-in After</Label>
-                            <Input type="time" {...register('checkInTime')} className="h-11 rounded-lg border-slate-300 focus:ring-3 focus:ring-pink-100" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Check-out Before</Label>
-                            <Input type="time" {...register('checkOutTime')} className="h-11 rounded-lg border-slate-300 focus:ring-3 focus:ring-pink-100" />
-                        </div>
-                    </div>
-
-                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex gap-3">
-                        <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                        <p className="text-xs font-medium text-blue-700 leading-relaxed">
-                            By publishing, you agree to comply with Airbnb's community standards and local hosting laws.
-                        </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <HouseRulesSection 
+                  register={register} 
+                  setValue={setValue} 
+                  watch={watch} 
+                />
               </AnimatePresence>
 
               {/* Submit Action */}
               <div className="pt-6">
+                {isSystemBlocked && (
+                  <div className="p-4 rounded-xl border border-red-200 bg-red-50/70 text-red-800 flex items-start gap-3 mb-4 animate-shake shadow-sm">
+                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                    <div className="space-y-1 text-sm">
+                      <h4 className="font-bold text-red-955">{t('rules.lockTitle')}</h4>
+                      <p className="text-xs text-red-800 leading-relaxed">
+                        {t('rules.lockSub')}
+                      </p>
+                      <ul className="list-disc list-inside text-xs text-red-800 pl-1 space-y-1">
+                        {isCountriesError && (
+                          <li>
+                            <strong>Supported Countries Catalog:</strong> {t('rules.lockCountries')}
+                          </li>
+                        )}
+                        {isAmenitiesError && (
+                          <li>
+                            <strong>Amenities Catalog:</strong> {t('rules.lockAmenities')}
+                          </li>
+                        )}
+                        {isConfigError && (
+                          <li>
+                            <strong>Address Dynamic Config ({selectedCountryCode}):</strong> {t('rules.lockConfig', { countryCode: selectedCountryCode })}
+                          </li>
+                        )}
+                        {(!addressFormConfig || addressFormConfig.length === 0) && (
+                          <li>
+                            <strong>Layout Integrity:</strong> {t('rules.lockIntegrity')}
+                          </li>
+                        )}
+                      </ul>
+                      <p className="text-[11px] text-red-600 mt-1 italic font-semibold">
+                        {t('rules.lockFooter')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={createMutation.isPending}
-                  className="w-full h-14 rounded-xl bg-[#FF5A5F] text-white font-bold text-lg hover:bg-[#E04447] active:scale-95 shadow-md transition-all flex items-center justify-center gap-3"
+                  disabled={isSystemBlocked || createMutation.isPending}
+                  className={`w-full h-14 rounded-xl font-bold text-lg shadow-md transition-all flex items-center justify-center gap-3 ${
+                    isSystemBlocked 
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed hover:bg-slate-200 active:scale-100' 
+                      : 'bg-[#FF5A5F] text-white hover:bg-[#E04447] active:scale-95'
+                  }`}
                 >
                   {createMutation.isPending ? (
                     <Loading03Icon className="h-6 w-6 animate-spin" />
+                  ) : isSystemBlocked ? (
+                    <>
+                      <Lock className="h-5 w-5 text-slate-400" />
+                      <span>{t('rules.publish')} (Locked)</span>
+                    </>
                   ) : (
                     <>
                       <Zap className="h-5 w-5 fill-white/20" />
-                      <span>Publish Listing</span>
+                      <span>{t('rules.publish')}</span>
                     </>
                   )}
                 </Button>
@@ -784,7 +473,7 @@ export default function NewProperty() {
                                     {item.label}
                                 </span>
                              </div>
-                         ))}
+                          ))}
                     </CardContent>
                 </Card>
             </div>

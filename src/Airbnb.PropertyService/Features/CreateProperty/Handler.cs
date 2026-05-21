@@ -16,6 +16,51 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher)
 {
     public async ValueTask<Response> Handle(Request req, CancellationToken ct)
     {
+        string? admin1Code = req.Admin1Code;
+        string? admin2Code = req.Admin2Code;
+
+        // Sync-Matching ngầm với bảng admin_divisions nếu Frontend không gửi mã cứng lên
+        if (req.SubDivisions != null)
+        {
+            var countryCode = req.CountryCode.ToUpperInvariant();
+
+            // 1. Tìm kiếm Admin1 (Tỉnh/Bang)
+            if (string.IsNullOrEmpty(admin1Code) &&
+                (req.SubDivisions.TryGetValue("province", out var provinceName) || 
+                 req.SubDivisions.TryGetValue("state", out provinceName) || 
+                 req.SubDivisions.TryGetValue("admin1", out provinceName)))
+            {
+                var admin1 = await db.AdminDivisions
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.CountryCode == countryCode && 
+                                              x.Level == 1 && 
+                                              (x.NameLocal == provinceName || 
+                                               x.NameEn == provinceName || 
+                                               x.Aliases.Contains(provinceName)), ct);
+                
+                admin1Code = admin1?.Code;
+            }
+
+            // 2. Tìm kiếm Admin2 (Quận/Huyện/Phường/Thành phố con)
+            if (string.IsNullOrEmpty(admin2Code) && !string.IsNullOrEmpty(admin1Code) &&
+                (req.SubDivisions.TryGetValue("ward", out var wardName) || 
+                 req.SubDivisions.TryGetValue("city", out wardName) || 
+                 req.SubDivisions.TryGetValue("district", out wardName) || 
+                 req.SubDivisions.TryGetValue("admin2", out wardName)))
+            {
+                var admin2 = await db.AdminDivisions
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.CountryCode == countryCode && 
+                                              x.Level == 2 && 
+                                              x.ParentCode == admin1Code && 
+                                              (x.NameLocal == wardName || 
+                                               x.NameEn == wardName || 
+                                               x.Aliases.Contains(wardName)), ct);
+                
+                admin2Code = admin2?.Code;
+            }
+        }
+
         var pricing = new Pricing(
             req.BasePrice,
             req.CurrencyCode,
@@ -27,8 +72,8 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher)
             req.StreetAddress,
             req.Unit,
             req.PostalCode,
-            SubDivisions: null,
-            Notes: null);
+            SubDivisions: req.SubDivisions,
+            Notes: new AddressNotes());
 
         var capacity = new PropertyCapacity(
             req.GuestCount,
@@ -37,12 +82,14 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher)
             req.BathroomCount);
 
         var houseRules = new HouseRules(
-            req.AllowPets,
-            req.AllowSmoking,
-            req.AllowEvents,
-            req.CheckInTime,
-            req.CheckOutTime,
-            req.FlexibleCheckOut);
+            AllowPets: req.AllowPets,
+            AllowSmoking: req.AllowSmoking,
+            AllowEvents: req.AllowEvents,
+            CheckInTime: req.CheckInTime,
+            CheckOutTime: req.CheckOutTime,
+            FlexibleCheckIn: false,
+            FlexibleCheckOut: req.FlexibleCheckOut,
+            CustomRules: req.CustomRules);
 
         var property = Property.Create(
             hostId: req.HostId,
@@ -57,8 +104,8 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher)
             pricing: pricing,
             capacity: capacity,
             houseRules: houseRules,
-            admin1Code: req.Admin1Code,
-            admin2Code: req.Admin2Code);
+            admin1Code: admin1Code,
+            admin2Code: admin2Code);
 
         db.Properties.Add(property);
 

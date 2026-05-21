@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { Property, Amenity, EditPropertyInput } from '../types';
+import type { Property, Amenity, EditPropertyInput, CreatePropertyRequest, CountryMasterData } from '../types';
 
 export const propertiesApi = {
   // Get all properties for current host
@@ -7,7 +7,7 @@ export const propertiesApi = {
     api.get('/api/properties/my', { params: { page, pageSize } }) as any,
 
   // Create property
-  createProperty: (data: any): Promise<{ id: string, slug: string }> =>
+  createProperty: (data: CreatePropertyRequest): Promise<{ id: string, slug: string }> =>
     api.post('/api/properties', data) as any,
 
   // Get single property details
@@ -61,4 +61,8 @@ export const propertiesApi = {
 
   removeAvailability: (propertyId: string, availabilityId: string): Promise<void> =>
     api.delete(`/api/properties/${propertyId}/availability/${availabilityId}`) as any,
+
+  // Get country master data (AddressFormConfig + currency)
+  getCountryMasterData: (countryCode: string): Promise<CountryMasterData> =>
+    api.get(`/api/internal/master-data/countries/${countryCode}`) as any,
 };

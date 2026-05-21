@@ -25,8 +25,11 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, CountryMas
             country.Name,
             country.NativeCurrency,
             country.IsSupported,
+            country.DefaultLatitude,
+            country.DefaultLongitude,
             country.Taxes.Where(t => t.IsActive).Select(t => new TaxDto(t.Type, t.Rate)).ToList(),
-            country.PaymentGateways.Where(g => g.IsActive).Select(g => new PaymentGatewayDto(g.Provider, g.SupportedCurrencies)).ToList()
+            country.PaymentGateways.Where(g => g.IsActive).Select(g => new PaymentGatewayDto(g.Provider, g.SupportedCurrencies)).ToList(),
+            country.AddressFormConfig
         );
     }
 }

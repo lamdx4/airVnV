@@ -33,6 +33,7 @@ public record Request(
     string StreetAddress,
     string? Unit,
     string? PostalCode,
+    Dictionary<string, string>? SubDivisions,
     // Capacity
     int GuestCount,
     int BedroomCount,
@@ -44,7 +45,8 @@ public record Request(
     bool AllowEvents,
     TimeOnly CheckInTime,
     TimeOnly CheckOutTime,
-    bool FlexibleCheckOut = false) : Mediator.ICommand<Response>
+    bool FlexibleCheckOut = false,
+    System.Collections.Generic.List<string>? CustomRules = null) : Mediator.ICommand<Response>
 {
     [FromHeader("X-User-Id")]
     public Guid HostId { get; init; }

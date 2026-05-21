@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Yarp.ReverseProxy.Transforms;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,17 +43,46 @@ builder.Services.AddReverseProxy()
     {
         transformBuilder.AddRequestTransform(transformContext =>
         {
-            var user = transformContext.HttpContext.User;
+            var httpContext = transformContext.HttpContext;
+            string? userId = null;
+
+            // 1. Lấy từ HttpContext.User (nếu Route có Policy)
+            var user = httpContext.User;
             if (user.Identity?.IsAuthenticated == true)
             {
-                var userId = user.FindFirst("UserId")?.Value;
-                if (userId != null)
+                userId = user.FindFirst("UserId")?.Value;
+            }
+
+            // 2. Giải mã thủ công để hỗ trợ các Anonymous Routes có gửi kèm token
+            if (string.IsNullOrEmpty(userId) && httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                var authStr = authHeader.ToString();
+                if (authStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Chuyển UserId vào Header để các Microservice phía dưới sử dụng
-                    transformContext.ProxyRequest.Headers.Remove("X-User-Id");
-                    transformContext.ProxyRequest.Headers.Add("X-User-Id", userId);
+                    var token = authStr.Substring("Bearer ".Length).Trim();
+                    try
+                    {
+                        var handler = new JwtSecurityTokenHandler();
+                        if (handler.CanReadToken(token))
+                        {
+                            var jwtToken = handler.ReadJwtToken(token);
+                            userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "UserId" || c.Type == "sub")?.Value;
+                        }
+                    }
+                    catch
+                    {
+                        // Bỏ qua lỗi giải mã token
+                    }
                 }
             }
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                // Chuyển UserId vào Header để các Microservice phía dưới sử dụng
+                transformContext.ProxyRequest.Headers.Remove("X-User-Id");
+                transformContext.ProxyRequest.Headers.Add("X-User-Id", userId);
+            }
+
             return ValueTask.CompletedTask;
         });
     });

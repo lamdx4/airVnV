@@ -4,12 +4,17 @@ import { Search01Icon, Globe02Icon, Menu01Icon, UserIcon } from 'hugeicons-react
 import { useAuthStore } from '@/store/authStore';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
   const { isAuthenticated, logout } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -64,11 +69,67 @@ export default function Header() {
             onClick={() => navigate('/host/homes')}
             className="hover:bg-slate-50 px-4 py-3 rounded-full cursor-pointer hidden md:block transition-all"
           >
-            Airbnb your home
+            {t('header.yourHome')}
           </div>
           
-          <div className="p-3 hover:bg-slate-50 rounded-full cursor-pointer transition-all">
-            <Globe02Icon className="h-4.5 w-4.5 text-slate-700" />
+          <div className="relative">
+            <div 
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="p-3 hover:bg-slate-50 rounded-full cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            >
+              <Globe02Icon className="h-4.5 w-4.5 text-slate-700" />
+              <span className="text-xs font-bold text-slate-600 uppercase">
+                {i18n.language.startsWith('vi') ? 'VI' : 'EN'}
+              </span>
+            </div>
+
+            <AnimatePresence>
+              {isLangOpen && (
+                <>
+                  <div className="fixed inset-0 z-[-1]" onClick={() => setIsLangOpen(false)} />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="absolute top-[52px] right-0 bg-white shadow-[0_0_36px_rgba(0,0,0,0.12)] rounded-xl py-2 border border-slate-100 w-44 flex flex-col z-[100] overflow-hidden"
+                  >
+                    <button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        i18n.changeLanguage('en'); 
+                        queryClient.invalidateQueries();
+                        setIsLangOpen(false); 
+                      }}
+                      className={`text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold transition flex items-center justify-between ${
+                        i18n.language.startsWith('en') ? 'text-[#FF5A5F] bg-slate-50' : 'text-slate-800'
+                      }`}
+                    >
+                      <span>English (EN)</span>
+                      {i18n.language.startsWith('en') && (
+                        <Icon icon="lucide:check" className="text-lg text-[#FF5A5F]" />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        i18n.changeLanguage('vi'); 
+                        queryClient.invalidateQueries();
+                        setIsLangOpen(false); 
+                      }}
+                      className={`text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold transition flex items-center justify-between ${
+                        i18n.language.startsWith('vi') ? 'text-[#FF5A5F] bg-slate-50' : 'text-slate-800'
+                      }`}
+                    >
+                      <span>Tiếng Việt (VI)</span>
+                      {i18n.language.startsWith('vi') && (
+                        <Icon icon="lucide:check" className="text-lg text-[#FF5A5F]" />
+                      )}
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="relative">
@@ -104,19 +165,19 @@ export default function Header() {
                                     onClick={(e) => { e.stopPropagation(); navigate('/messages'); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
                                 >
-                                    Messages
+                                    {t('header.messages')}
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); navigate('/trips'); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
                                 >
-                                    Trips
+                                    {t('header.trips')}
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); navigate('/profile'); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
                                 >
-                                    Profile
+                                    {t('header.profile')}
                                 </button>
                             </div>
                             <div className="flex flex-col py-2">
@@ -124,13 +185,13 @@ export default function Header() {
                                     onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
                                 >
-                                    Manage listings
+                                    {t('header.manageListings')}
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
                                 >
-                                    Log out
+                                    {t('header.logout')}
                                 </button>
                             </div>
                         </>
@@ -140,20 +201,20 @@ export default function Header() {
                                 onClick={(e) => { e.stopPropagation(); navigate('/login'); setIsMenuOpen(false); }}
                                 className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition"
                             >
-                                Log in
+                                {t('header.login')}
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); navigate('/register'); setIsMenuOpen(false); }}
                                 className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
                             >
-                                Sign up
+                                {t('header.signup')}
                             </button>
                             <div className="border-t border-slate-100 mt-2 pt-2">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); navigate('/host/homes'); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
                                 >
-                                    Airbnb your home
+                                    {t('header.yourHome')}
                                 </button>
                             </div>
                         </>

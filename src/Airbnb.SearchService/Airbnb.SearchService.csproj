@@ -5,8 +5,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Confluent.Kafka" Version="13.2.4" />
-    <PackageReference Include="Aspire.Elastic.Clients.Elasticsearch" Version="13.2.0" />
+    <PackageReference Include="Aspire.Confluent.Kafka" Version="13.3.4" />
+    <PackageReference Include="Aspire.Elastic.Clients.Elasticsearch" Version="13.3.0" />
     <PackageReference Include="FastEndpoints" Version="8.1.0" />
     <PackageReference Include="FastEndpoints.Swagger" Version="8.1.0" />
   </ItemGroup>

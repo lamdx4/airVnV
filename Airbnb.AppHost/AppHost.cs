@@ -4,15 +4,15 @@ var builder = DistributedApplication.CreateBuilder(args);
 var containerRuntime = builder.Configuration["ContainerRuntime"] ?? "docker";
 Environment.SetEnvironmentVariable("DOTNET_ASPIRE_CONTAINER_RUNTIME", containerRuntime);
 
-var kafkaHeap = builder.Configuration["KafkaHeap"] ?? "-Xms512m -Xmx512m";
-var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms512m -Xmx512m";
+var kafkaHeap = builder.Configuration["KafkaHeap"] ?? "-Xms256m -Xmx256m";
+var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms256m -Xmx256m";
 
 // 1. Hạ tầng Dữ liệu (Infrastructure)
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume("airbnb_pg_data")
     .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical")
     .WithEndpoint("tcp", e => {
-        e.Port = 5433;
+        e.Port = 5435;
         e.TargetPort = 5432;
     });
 
@@ -49,7 +49,7 @@ var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5"
     .WithEnvironment("STATUS_STORAGE_TOPIC", "my_connect_statuses")
     .WithEnvironment("KEY_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
     .WithEnvironment("VALUE_CONVERTER", "org.apache.kafka.connect.json.JsonConverter")
-    .WithEnvironment("JAVA_OPTS", "-Xms256m -Xmx256m") // Giới hạn RAM cho Debezium JVM
+    .WithEnvironment("JAVA_OPTS", "-Xms128m -Xmx128m") // Giới hạn RAM cho Debezium JVM
     .WithReference(postgres)
     .WithReference(kafka)
     .WaitFor(kafka);

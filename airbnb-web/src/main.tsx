@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import { Toaster, toast } from 'sonner'
+import './lib/i18n'
 import './index.css'
 // @ts-ignore
 import '@fontsource-variable/outfit';

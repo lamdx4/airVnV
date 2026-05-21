@@ -18,13 +18,20 @@ export const api = axios.create({
   },
 });
 
-// Interceptor tự động đính kèm Token
+// Interceptor tự động đính kèm Token và Ngôn ngữ hiện tại
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('airbnb_access_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Tự động gán Accept-Language theo ngôn ngữ người dùng chọn (lưu ở i18nextLng hoặc default 'en')
+    const currentLang = localStorage.getItem('i18nextLng') || 'en';
+    if (config.headers) {
+      config.headers['Accept-Language'] = currentLang;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

@@ -180,4 +180,43 @@ export interface CreatePropertyRequest {
   streetAddress: string;
   admin1Code?: string;
   admin2Code?: string;
+  subDivisions?: Record<string, string>;
+}
+
+export interface AddressFieldConfig {
+  id: string;
+  label: string;
+  photonKeys: string[];
+  isRequired: boolean;
+  type?: string;
+}
+
+export interface TaxDto {
+  type: string;
+  rate: number;
+}
+
+export interface PaymentGatewayDto {
+  provider: string;
+  supportedCurrencies: string[];
+}
+
+export interface CountryMasterData {
+  countryCode: string;
+  name: string;
+  nativeCurrency: string;
+  isSupported: boolean;
+  defaultLatitude: number;
+  defaultLongitude: number;
+  taxes: TaxDto[];
+  paymentGateways: PaymentGatewayDto[];
+  addressFormConfig?: AddressFieldConfig[];
+}
+
+export interface SupportedCountry {
+  code: string;
+  name: string;
+  nativeCurrency: string;
+  defaultLatitude: number;
+  defaultLongitude: number;
 }

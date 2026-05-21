@@ -1,3 +1,4 @@
+using Airbnb.PropertyService.Domain.Entities;
 using Mediator;
 
 namespace Airbnb.PropertyService.Features.GetCountryMasterData;
@@ -10,8 +11,11 @@ public record CountryMasterDataDto(
     string Name,
     string NativeCurrency,
     bool IsSupported,
+    double DefaultLatitude,
+    double DefaultLongitude,
     List<TaxDto> Taxes,
-    List<PaymentGatewayDto> PaymentGateways
+    List<PaymentGatewayDto> PaymentGateways,
+    List<AddressFieldConfig>? AddressFormConfig
 );
 
 public record Request(string CountryCode) : IQuery<CountryMasterDataDto>;
