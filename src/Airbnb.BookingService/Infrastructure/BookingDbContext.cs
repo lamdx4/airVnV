@@ -1,6 +1,7 @@
 using Airbnb.SharedKernel.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.BookingService.Domain;
+using MassTransit;
 
 public class BookingDbContext(
     DbContextOptions<BookingDbContext> options,
@@ -28,5 +29,10 @@ public class BookingDbContext(
         booking.HasIndex(b => b.HostId).HasDatabaseName("idx_bookings_host_id");
         
         modelBuilder.Entity<ProcessedEvent>().ToTable("ProcessedEvents").HasKey(x => x.EventId);
+
+        // MassTransit Inbox/Outbox configuration
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

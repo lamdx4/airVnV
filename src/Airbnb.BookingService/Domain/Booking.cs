@@ -16,7 +16,7 @@ public class Booking : AggregateRoot
 {
     public Guid Id { get; private set; }
     public Guid PropertyId { get; private set; }
-    public Guid HostId { get; private set; }
+    public Guid HostId { get; private set; }    
     public Guid GuestId { get; private set; }
     public string CountryCode { get; private set; } = default!; // Added for payment routing
     public DateOnly CheckIn { get; private set; }
