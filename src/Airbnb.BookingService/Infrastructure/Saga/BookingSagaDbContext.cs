@@ -23,6 +23,11 @@ public class BookingSagaDbContext : SagaDbContext
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
+
+        // Exclude MassTransit shared outbox tables from migration in this Saga context
+        modelBuilder.Entity<InboxState>().ToTable("InboxState", t => t.ExcludeFromMigrations());
+        modelBuilder.Entity<OutboxMessage>().ToTable("OutboxMessage", t => t.ExcludeFromMigrations());
+        modelBuilder.Entity<OutboxState>().ToTable("OutboxState", t => t.ExcludeFromMigrations());
     }
 }
 
