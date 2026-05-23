@@ -13,12 +13,14 @@ interface HouseRulesSectionProps {
   register: UseFormRegister<any>;
   setValue: UseFormSetValue<any>;
   watch: UseFormWatch<any>;
+  onContinue: () => void;
 }
 
 export function HouseRulesSection({
   register,
   setValue,
   watch,
+  onContinue,
 }: HouseRulesSectionProps) {
   const { t } = useTranslation();
   const [newRule, setNewRule] = useState('');
@@ -181,6 +183,14 @@ export function HouseRulesSection({
             {t('rules.communityDisclaimer', "By publishing, you agree to comply with Airbnb's community standards and local hosting laws.")}
           </p>
         </div>
+
+        <Button
+          type="button"
+          onClick={onContinue}
+          className="w-full h-12 rounded-lg bg-[#FF5A5F] text-white font-semibold hover:bg-[#E04447] active:scale-95 transition-all shadow-sm mt-6"
+        >
+          {t('location.continue')}
+        </Button>
       </CardContent>
     </Card>
   );

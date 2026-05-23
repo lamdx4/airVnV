@@ -18,10 +18,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(p => p.Slug).IsRequired().HasMaxLength(300);
         builder.HasIndex(p => p.Slug).IsUnique();
 
-        // [2] Classification – FK -> admin_divisions
+        // [2] Classification – Vietnam only, raw strings
         builder.Property(p => p.CountryCode).IsRequired().HasMaxLength(2);
-        builder.Property(p => p.Admin1Code).HasMaxLength(10);
-        builder.Property(p => p.Admin2Code).HasMaxLength(10);
+        builder.Property(p => p.Admin1Code).HasMaxLength(100);
+        builder.Property(p => p.Admin2Code).HasMaxLength(100);
         builder.HasIndex(p => new { p.CountryCode, p.Admin1Code, p.Admin2Code });
 
         // [3] Display

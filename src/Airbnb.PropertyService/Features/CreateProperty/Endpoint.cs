@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
+using System.Text.Json;
 
 namespace Airbnb.PropertyService.Features.CreateProperty;
 
@@ -15,14 +16,15 @@ public class Endpoint(IMediator mediator)
     {
         Post("/api/properties");
         AllowAnonymous();
+        AllowFileUploads(); // Quan trọng: Cho phép nhận multipart/form-data
         Summary(s =>
         {
-            s.Summary = "Create a new property listing (Draft)";
+            s.Summary = "Create a new property listing with images (Atomic)";
             s.Description = "Possible Error Codes: \n" +
                             "- **PROPERTY_TITLE_REQUIRED**: Title is mandatory.\n" +
                             "- **PROPERTY_SLUG_REQUIRED**: Slug is mandatory.\n" +
                             "- **PROPERTY_HOST_REQUIRED**: Host identifier is missing.";
-            s.Responses[201] = "Property created successfully in Draft mode.";
+            s.Responses[201] = "Property created successfully with images.";
             s.Responses[400] = "Validation or business rule failure.";
         });
     }
@@ -36,8 +38,22 @@ public class Endpoint(IMediator mediator)
             return;
         }
 
-        var requestWithUser = req with { HostId = userId };
-        var result = await mediator.Send(requestWithUser, ct);
+        CreatePropertyDto? payloadDto;
+        try
+        {
+            // Deserialize using the Source Generator Context
+            payloadDto = JsonSerializer.Deserialize(req.Payload, Infrastructure.PropertyJsonContext.Default.CreatePropertyDto);
+            if (payloadDto == null) throw new Exception("Payload is null after deserialization");
+        }
+        catch (Exception ex)
+        {
+            await Send.ResponseAsync(ApiResponse<Response>.FailureResult("INVALID_PAYLOAD", "Cannot parse Payload JSON string: " + ex.Message), 400, ct);
+            return;
+        }
+
+        var command = new CreatePropertyCommand(payloadDto, req.Images, userId);
+        var result = await mediator.Send(command, ct);
+        
         await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(result), cancellation: ct);
     }
 }

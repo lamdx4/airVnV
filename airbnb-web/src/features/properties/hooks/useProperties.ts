@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertiesApi } from '../api/properties';
+import type { CreatePropertyRequest, EditPropertyInput, UpdateLocationRequest } from '../types';
 
 export const useMyProperties = (page = 1, pageSize = 10) => {
   return useQuery({
@@ -19,7 +20,8 @@ export const useProperty = (id: string) => {
 export const useCreateProperty = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => propertiesApi.createProperty(data),
+    mutationFn: ({ payload, files }: { payload: CreatePropertyRequest, files: File[] }) => 
+      propertiesApi.createProperty(payload, files),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties', 'my'] });
     }
@@ -29,7 +31,7 @@ export const useCreateProperty = () => {
 export const useUpdateProperty = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ propertyId, data }: { propertyId: string, data: any }) => 
+    mutationFn: ({ propertyId, data }: { propertyId: string, data: EditPropertyInput }) => 
       propertiesApi.updateProperty(propertyId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });
@@ -40,7 +42,7 @@ export const useUpdateProperty = () => {
 export const useUpdateLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ propertyId, data }: { propertyId: string, data: any }) => 
+    mutationFn: ({ propertyId, data }: { propertyId: string, data: UpdateLocationRequest }) => 
       propertiesApi.updateLocation(propertyId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['properties', variables.propertyId] });

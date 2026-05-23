@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +7,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { propertiesApi } from '@/features/properties/api/properties';
-import { masterDataApi } from '@/lib/master-data-api';
+
 import { toCreatePropertyRequest } from '@/features/properties/utils/mappers';
 import { toast } from 'sonner';
 import { 
@@ -34,15 +34,9 @@ import { PricingSection } from '@/features/properties/components/new-property/Pr
 import { LocationSection } from '@/features/properties/components/new-property/LocationSection';
 import { AmenitiesSection } from '@/features/properties/components/new-property/AmenitiesSection';
 import { HouseRulesSection } from '@/features/properties/components/new-property/HouseRulesSection';
+import { PhotosSection } from '@/features/properties/components/new-property/PhotosSection';
 
 
-
-const DEFAULT_FALLBACK_CONFIG = [
-  { id: 'street', label: 'Street Address', photonKeys: ['street', 'name'], isRequired: true },
-  { id: 'admin2', label: 'City', photonKeys: ['city', 'town', 'county'], isRequired: true },
-  { id: 'admin1', label: 'State / Province', photonKeys: ['state'], isRequired: true },
-  { id: 'zipcode', label: 'Zip / Postal Code', photonKeys: ['postcode'], isRequired: false }
-];
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters'),
@@ -80,6 +74,7 @@ export default function NewProperty() {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [dynamicAddressValues, setDynamicAddressValues] = useState<Record<string, string>>({});
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema) as any,
@@ -103,46 +98,7 @@ export default function NewProperty() {
     }
   });
 
-  const selectedCountryCode = watch('countryCode');
 
-  // Load list of supported countries from API Master Data
-  const { data: supportedCountries = [], isLoading: isLoadingCountries, isError: isCountriesError } = useQuery({
-    queryKey: ['supportedCountries'],
-    queryFn: () => masterDataApi.getSupportedCountries(),
-    staleTime: 10 * 60 * 1000,
-  });
-
-  // Load Country Configuration purely via TanStack Query (Metadata-driven address form)
-  const { data: countryMasterDataResponse, isLoading: isLoadingConfig, isError: isConfigError } = useQuery({
-    queryKey: ['countryMasterData', selectedCountryCode],
-    queryFn: () => propertiesApi.getCountryMasterData(selectedCountryCode),
-    enabled: !!selectedCountryCode,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Derived address configuration from query server state
-  const addressFormConfig = countryMasterDataResponse?.addressFormConfig && countryMasterDataResponse.addressFormConfig.length > 0
-    ? countryMasterDataResponse.addressFormConfig
-    : DEFAULT_FALLBACK_CONFIG;
-
-  // Sync form defaults when TanStack Query returns fresh country master data
-  useEffect(() => {
-    if (countryMasterDataResponse) {
-      const data = countryMasterDataResponse;
-      setValue('currencyCode', data.nativeCurrency || 'USD');
-      setValue('basePrice', data.nativeCurrency === 'USD' ? 100 : 1000000);
-
-      if (data.defaultLatitude && data.defaultLongitude) {
-        setValue('latitude', data.defaultLatitude);
-        setValue('longitude', data.defaultLongitude);
-      }
-    }
-  }, [countryMasterDataResponse, setValue]);
-
-  // Reset dynamic address values when country changes to prevent data leak
-  useEffect(() => {
-    setDynamicAddressValues({});
-  }, [selectedCountryCode]);
 
   // Fetch available amenities dynamic lists
   const { data: availableAmenities, isLoading: isLoadingAmenities, isError: isAmenitiesError } = useQuery({
@@ -150,48 +106,38 @@ export default function NewProperty() {
     queryFn: () => propertiesApi.getAvailableAmenities()
   });
 
-  const isSystemBlocked = isAmenitiesError || isConfigError || isCountriesError || !addressFormConfig || addressFormConfig.length === 0;
+  const isSystemBlocked = isAmenitiesError;
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      // Build display address dynamically based on config fields order
-      const orderedParts: string[] = [];
-      addressFormConfig.forEach((field: any) => {
-        const val = dynamicAddressValues[field.id];
-        if (val) {
-          orderedParts.push(val);
-        }
-      });
-      
-      const countryName = supportedCountries.find(c => c.code === selectedCountryCode)?.name || '';
-      orderedParts.push(countryName);
-
-      const finalDisplayAddress = orderedParts.filter(Boolean).join(', ');
+      const finalDisplayAddress = [
+        dynamicAddressValues['unit'],
+        data.streetAddress,
+        dynamicAddressValues['admin2Code'],
+        dynamicAddressValues['admin1Code'],
+        'Vietnam'
+      ].filter(Boolean).join(', ');
 
       const payload = toCreatePropertyRequest({
          ...data,
          displayAddress: finalDisplayAddress,
-         admin1Code: dynamicAddressValues['admin1'] || dynamicAddressValues['admin1Code'],
-         admin2Code: dynamicAddressValues['admin2'] || dynamicAddressValues['admin2Code'],
-         subDivisions: dynamicAddressValues
+         admin1Code: dynamicAddressValues['admin1Code'],
+         admin2Code: dynamicAddressValues['admin2Code'],
+         subDivisions: {
+            unit: dynamicAddressValues['unit'] || ''
+         },
+         amenityIds: selectedAmenities
       });
 
-      const propertyResponse = await propertiesApi.createProperty(payload);
-      
-      if (selectedAmenities.length > 0 && propertyResponse.id) {
-          await Promise.all(
-              selectedAmenities.map(amenityId => 
-                  propertiesApi.addAmenity(propertyResponse.id, amenityId)
-              )
-          );
-      }
+      // Step 1: Atomic creation of property + amenities + images
+      const propertyResponse = await propertiesApi.createProperty(payload, selectedFiles);
       
       return propertyResponse;
     },
-    onSuccess: (data) => {
-      toast.success('Listing published successfully!');
+    onSuccess: () => {
+      toast.success('Listing created successfully!');
       queryClient.invalidateQueries({ queryKey: ['host-properties'] });
-      navigate(`/host/homes/${data.id}/edit?tab=photos`);
+      navigate('/host/homes');
     },
     onError: (err: any) => {
       const errMsg = err?.response?.data?.Message || 'Failed to create listing. Please try again.';
@@ -260,7 +206,7 @@ export default function NewProperty() {
             <motion.div 
                 className="h-full bg-[#FF5A5F]"
                 initial={{ width: 0 }}
-                animate={{ width: `${(completedSections.size / 5) * 100}%` }}
+                animate={{ width: `${(completedSections.size / 6) * 100}%` }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
             />
         </div>
@@ -296,15 +242,9 @@ export default function NewProperty() {
                   watch={watch} 
                   errors={errors} 
                   control={control} 
-                  addressFormConfig={addressFormConfig} 
-                  isLoadingConfig={isLoadingConfig} 
-                  isConfigError={isConfigError} 
                   dynamicAddressValues={dynamicAddressValues} 
                   setDynamicAddressValues={setDynamicAddressValues} 
                   onContinue={() => markSectionComplete('location')} 
-                  supportedCountries={supportedCountries}
-                  isLoadingCountries={isLoadingCountries}
-                  isCountriesError={isCountriesError}
                 />
 
                 {/* Section 4: Amenities */}
@@ -322,6 +262,14 @@ export default function NewProperty() {
                   register={register} 
                   setValue={setValue} 
                   watch={watch} 
+                  onContinue={() => markSectionComplete('rules')}
+                />
+
+                {/* Section 6: Photos */}
+                <PhotosSection
+                  selectedFiles={selectedFiles}
+                  setSelectedFiles={setSelectedFiles}
+                  onContinue={() => markSectionComplete('photos')}
                 />
               </AnimatePresence>
 
@@ -336,24 +284,9 @@ export default function NewProperty() {
                         {t('rules.lockSub')}
                       </p>
                       <ul className="list-disc list-inside text-xs text-red-800 pl-1 space-y-1">
-                        {isCountriesError && (
-                          <li>
-                            <strong>Supported Countries Catalog:</strong> {t('rules.lockCountries')}
-                          </li>
-                        )}
                         {isAmenitiesError && (
                           <li>
                             <strong>Amenities Catalog:</strong> {t('rules.lockAmenities')}
-                          </li>
-                        )}
-                        {isConfigError && (
-                          <li>
-                            <strong>Address Dynamic Config ({selectedCountryCode}):</strong> {t('rules.lockConfig', { countryCode: selectedCountryCode })}
-                          </li>
-                        )}
-                        {(!addressFormConfig || addressFormConfig.length === 0) && (
-                          <li>
-                            <strong>Layout Integrity:</strong> {t('rules.lockIntegrity')}
                           </li>
                         )}
                       </ul>
@@ -367,9 +300,9 @@ export default function NewProperty() {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={isSystemBlocked || createMutation.isPending}
+                  disabled={isSystemBlocked || createMutation.isPending || selectedFiles.length < 5}
                   className={`w-full h-14 rounded-xl font-bold text-lg shadow-md transition-all flex items-center justify-center gap-3 ${
-                    isSystemBlocked 
+                    isSystemBlocked || selectedFiles.length < 5
                       ? 'bg-slate-200 text-slate-400 cursor-not-allowed hover:bg-slate-200 active:scale-100' 
                       : 'bg-[#FF5A5F] text-white hover:bg-[#E04447] active:scale-95'
                   }`}
@@ -449,10 +382,10 @@ export default function NewProperty() {
                                 <motion.div 
                                     className="h-full bg-[#FF5A5F]"
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${(completedSections.size / 5) * 100}%` }}
+                                    animate={{ width: `${(completedSections.size / 6) * 100}%` }}
                                 />
                             </div>
-                            <span className="text-xs font-bold text-[#FF5A5F]">{Math.round((completedSections.size / 5) * 100)}%</span>
+                            <span className="text-xs font-bold text-[#FF5A5F]">{Math.round((completedSections.size / 6) * 100)}%</span>
                         </div>
                     </CardHeader>
                     <CardContent className="px-6 py-6 space-y-4">
@@ -462,6 +395,7 @@ export default function NewProperty() {
                             { id: 'location', label: 'Location' },
                             { id: 'amenities', label: 'Amenities' },
                             { id: 'rules', label: 'House Rules' },
+                            { id: 'photos', label: 'Photos' },
                          ].map((item) => (
                              <div key={item.id} className="flex items-center gap-3">
                                 <div className={`h-5 w-5 rounded-md border flex items-center justify-center transition-all ${

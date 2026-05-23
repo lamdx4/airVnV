@@ -2,55 +2,68 @@ using FastEndpoints;
 using FluentValidation;
 using Mediator;
 using Microsoft.AspNetCore.Http;
-using Airbnb.PropertyService.Domain.ValueObjects;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Airbnb.PropertyService.Features.CreateProperty;
 
 // ============================================================
-// Request = Command (implements ICommand → Mediator dispatch)
+// DTO for JSON Deserialization from Payload
 // ============================================================
 
-public record Request(
+public record CreatePropertyDto(
     string Title,
     string Description,
     string Slug,
-    // Pricing
     decimal BasePrice,
     string CurrencyCode,
     decimal CleaningFee,
     decimal ServiceFee,
     decimal WeekendPremiumPercent,
-    // Location (geo)
     double Latitude,
     double Longitude,
-    // Classification
     string CountryCode,
     string? Admin1Code,
     string? Admin2Code,
-    // Display
     string DisplayAddress,
-    // AddressRaw
     string StreetAddress,
     string? Unit,
     string? PostalCode,
     Dictionary<string, string>? SubDivisions,
-    // Capacity
     int GuestCount,
     int BedroomCount,
     int BedCount,
     int BathroomCount,
-    // HouseRules
     bool AllowPets,
     bool AllowSmoking,
     bool AllowEvents,
     TimeOnly CheckInTime,
     TimeOnly CheckOutTime,
     bool FlexibleCheckOut = false,
-    System.Collections.Generic.List<string>? CustomRules = null) : Mediator.ICommand<Response>
+    List<string>? CustomRules = null,
+    List<Guid>? AmenityIds = null);
+
+// ============================================================
+// HTTP Request (Multipart/form-data)
+// ============================================================
+
+public class Request 
 {
-    [FromHeader("X-User-Id")]
-    public Guid HostId { get; init; }
+    [BindFrom("Payload")]
+    public string Payload { get; init; } = default!;
+
+    [BindFrom("Images")]
+    public List<IFormFile> Images { get; init; } = new();
 }
+
+// ============================================================
+// Command for Mediator
+// ============================================================
+
+public record CreatePropertyCommand(
+    CreatePropertyDto Data,
+    List<IFormFile> Images,
+    Guid HostId) : Mediator.ICommand<Response>;
 
 // ============================================================
 // Response
@@ -59,29 +72,23 @@ public record Request(
 public record Response(Guid Id, string Slug);
 
 // ============================================================
-// Validator (FastEndpoints auto-discovers)
+// Validator (Validates the HTTP Request directly before Handler)
 // ============================================================
 
 public class Validator : FastEndpoints.Validator<Request>
 {
     public Validator()
     {
-        RuleFor(x => x.Title).NotEmpty().MaximumLength(255);
-        RuleFor(x => x.Slug).NotEmpty().MaximumLength(300)
-            .Matches("^[a-z0-9-]+$").WithMessage("Slug can only contain lowercase letters, numbers, and hyphens.");
-        RuleFor(x => x.BasePrice).GreaterThan(0);
-        RuleFor(x => x.CurrencyCode).NotEmpty().Length(3)
-            .WithMessage("Currency must follow ISO 4217 standard (e.g., VND, USD).");
-        RuleFor(x => x.CountryCode).NotEmpty().Length(2)
-            .WithMessage("CountryCode must follow ISO 3166-1 alpha-2 standard.");
-        RuleFor(x => x.Latitude).InclusiveBetween(-90, 90);
-        RuleFor(x => x.Longitude).InclusiveBetween(-180, 180);
-        RuleFor(x => x.DisplayAddress).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.StreetAddress).NotEmpty().MaximumLength(255);
-        RuleFor(x => x.GuestCount).GreaterThan(0);
-        RuleFor(x => x.WeekendPremiumPercent).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Payload).NotEmpty().WithMessage("Payload string is required.");
         
-        RuleFor(x => x.Admin1Code).MaximumLength(10).WithMessage("Admin1Code must not exceed 10 characters.");
-        RuleFor(x => x.Admin2Code).MaximumLength(10).WithMessage("Admin2Code must not exceed 10 characters.");
+        RuleFor(x => x.Images).NotEmpty().WithMessage("At least 5 images are required to create a property.");
+        RuleFor(x => x.Images.Count).GreaterThanOrEqualTo(5).WithMessage("At least 5 images are required to create a property.");
+        
+        RuleForEach(x => x.Images).ChildRules(file => {
+            file.RuleFor(x => x.Length).LessThanOrEqualTo(5 * 1024 * 1024)
+                .WithMessage("Each file size must be less than 5MB.");
+            file.RuleFor(x => x.ContentType).Must(x => x is "image/jpeg" or "image/png" or "image/webp")
+                .WithMessage("Only JPEG, PNG and WebP images are allowed.");
+        });
     }
 }

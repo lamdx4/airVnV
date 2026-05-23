@@ -54,6 +54,10 @@ const resources = {
         "autoMapSuccess": "Address auto-mapped to fields below!",
         "errorFetchCountries": "Failed to load supported countries from server. Please try refreshing.",
         "errorFetchConfig": "Failed to load address field structures for {{countryCode}} from server.",
+        "province": "Province / City",
+        "selectProvince": "Select Province/City",
+        "ward": "Ward / Commune",
+        "selectWard": "Select Ward/Commune",
         "continue": "Continue"
       },
       "amenities": {
@@ -134,6 +138,10 @@ const resources = {
         "autoMapSuccess": "Đã tự động điền địa chỉ vào các trường bên dưới!",
         "errorFetchCountries": "Không thể tải danh sách quốc gia được hỗ trợ từ máy chủ. Vui lòng làm mới lại.",
         "errorFetchConfig": "Không thể tải cấu trúc biểu mẫu địa chỉ của {{countryCode}} từ máy chủ.",
+        "province": "Tỉnh / Thành phố",
+        "selectProvince": "Chọn Tỉnh/Thành phố",
+        "ward": "Phường / Xã",
+        "selectWard": "Chọn Phường/Xã",
         "continue": "Tiếp tục"
       },
       "amenities": {

@@ -84,7 +84,7 @@ export const CreatePropertyDialog: React.FC = () => {
   const onSubmit = async (data: FormData) => {
     try {
       const payload = toCreatePropertyRequest(data);
-      await createMutation.mutateAsync(payload);
+      await createMutation.mutateAsync({ payload, files: [] });
       toast.success('Property created successfully!');
       setOpen(false);
       reset();

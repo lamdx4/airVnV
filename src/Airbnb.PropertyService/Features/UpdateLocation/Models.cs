@@ -34,5 +34,7 @@ public class Validator : FastEndpoints.Validator<Request>
         RuleFor(x => x.CountryCode).NotEmpty().Length(2);
         RuleFor(x => x.DisplayAddress).NotEmpty().MaximumLength(500);
         RuleFor(x => x.StreetAddress).NotEmpty().MaximumLength(255);
+        RuleFor(x => x.Admin1Code).MaximumLength(100);
+        RuleFor(x => x.Admin2Code).MaximumLength(100);
     }
 }

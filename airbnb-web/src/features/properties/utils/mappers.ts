@@ -21,7 +21,7 @@ function slugify(text: string): string {
  * Ánh xạ dữ liệu Form của Frontend sang Command Request phẳng gửi lên Backend API.
  */
 export function toCreatePropertyRequest(
-  formData: Partial<CreatePropertyFormData> & { displayAddress: string; subDivisions?: Record<string, string> }
+  formData: Partial<CreatePropertyFormData> & { displayAddress: string; subDivisions?: Record<string, string>; amenityIds?: string[] }
 ): CreatePropertyRequest {
   return {
     title: formData.title || '',
@@ -58,6 +58,8 @@ export function toCreatePropertyRequest(
     streetAddress: formData.streetAddress || '',
     admin1Code: formData.admin1Code || undefined,
     admin2Code: formData.admin2Code || undefined,
-    subDivisions: formData.subDivisions || undefined
+    unit: formData.subDivisions?.unit || undefined,
+    subDivisions: formData.subDivisions || undefined,
+    amenityIds: formData.amenityIds || []
   };
 }

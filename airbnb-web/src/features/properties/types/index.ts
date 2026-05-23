@@ -87,6 +87,19 @@ export interface Property {
   updatedAt?: string;
 }
 
+export interface PropertySummary {
+  id: string;
+  title: string;
+  displayAddress: string;
+  status: PropertyStatus;
+  basePrice: number;
+  coverImageUrl?: string;
+  guestCount: number;
+  bedroomCount: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Amenity {
   id: string;
   name: string;
@@ -111,6 +124,19 @@ export interface EditPropertyInput {
     flexibleCheckOut: boolean;
     customRules?: string[];
   };
+}
+
+export interface UpdateLocationRequest {
+  latitude: number;
+  longitude: number;
+  countryCode: string;
+  displayAddress: string;
+  streetAddress: string;
+  unit?: string;
+  postalCode?: string;
+  subDivisions?: Record<string, string>;
+  admin1Code?: string;
+  admin2Code?: string;
 }
 
 export interface CreatePropertyFormData {
@@ -184,7 +210,9 @@ export interface CreatePropertyRequest {
   streetAddress: string;
   admin1Code?: string;
   admin2Code?: string;
+  unit?: string;
   subDivisions?: Record<string, string>;
+  amenityIds?: string[];
 }
 
 export interface AddressFieldConfig {

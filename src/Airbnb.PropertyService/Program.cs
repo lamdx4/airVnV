@@ -63,6 +63,7 @@ builder.Services.AddScoped<DomainEventPublisher>();
 
 // 4. Mediator (source-generated CQRS dispatch – zero reflection)
 builder.Services.AddMediator();
+builder.Services.AddAuthorization();
 
 // 3. FastEndpoints & Swagger
 builder.Services.AddFastEndpoints();
@@ -86,6 +87,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 var app = builder.Build();
 
 // 5. Middleware pipeline
+app.UseAuthorization();
 app.UseFastEndpoints(c =>
 {
     c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(
@@ -109,7 +111,6 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
         await context.Database.MigrateAsync();
-        await DbSeeder.SeedAddressConfigsAsync(context);
     }
     catch (Exception ex)
     {

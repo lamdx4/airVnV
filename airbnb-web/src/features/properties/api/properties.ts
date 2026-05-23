@@ -1,14 +1,21 @@
 import { api } from '@/lib/api';
-import type { Property, Amenity, EditPropertyInput, CreatePropertyRequest, CountryMasterData } from '../types';
+import type { Property, PropertySummary, Amenity, EditPropertyInput, CreatePropertyRequest, UpdateLocationRequest } from '../types';
 
 export const propertiesApi = {
   // Get all properties for current host
-  getMyProperties: (page = 1, pageSize = 10): Promise<{ data: Property[], totalCount: number }> => 
+  getMyProperties: (page = 1, pageSize = 10): Promise<{ items: PropertySummary[], totalCount: number }> => 
     api.get('/api/properties/my', { params: { page, pageSize } }) as any,
 
-  // Create property
-  createProperty: (data: CreatePropertyRequest): Promise<{ id: string, slug: string }> =>
-    api.post('/api/properties', data) as any,
+  // Create new property
+  createProperty: (payload: CreatePropertyRequest, files: File[]): Promise<{ id: string, slug: string }> => {
+    const formData = new FormData();
+    formData.append('Payload', JSON.stringify(payload));
+    files.forEach(file => formData.append('Images', file));
+    
+    return api.post('/api/properties', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }) as any;
+  },
 
   // Get single property details
   getProperty: (id: string): Promise<Property> => 
@@ -19,7 +26,7 @@ export const propertiesApi = {
     api.put(`/api/properties/${id}`, data) as any,
 
   // Update location
-  updateLocation: (id: string, data: any): Promise<void> =>
+  updateLocation: (id: string, data: UpdateLocationRequest): Promise<void> =>
     api.put(`/api/properties/${id}/location`, data) as any,
 
   // Update status (Publish/Archive)
@@ -31,7 +38,7 @@ export const propertiesApi = {
     const formData = new FormData();
     files.forEach(file => formData.append('Files', file));
     formData.append('Type', type.toString());
-    return api.post(`/api/properties/${propertyId}/images`, formData, {
+    return api.post(`/api/properties/${propertyId}/images/bulk`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }) as any;
   },
@@ -47,7 +54,7 @@ export const propertiesApi = {
     api.get('/api/amenities') as any,
 
   addAmenity: (propertyId: string, amenityId: string): Promise<void> =>
-    api.post(`/api/properties/${propertyId}/amenities`, { amenityId }) as any,
+    api.post(`/api/properties/${propertyId}/amenities/${amenityId}`, {}) as any,
 
   removeAmenity: (propertyId: string, amenityId: string): Promise<void> =>
     api.delete(`/api/properties/${propertyId}/amenities/${amenityId}`) as any,
@@ -62,7 +69,4 @@ export const propertiesApi = {
   removeAvailability: (propertyId: string, availabilityId: string): Promise<void> =>
     api.delete(`/api/properties/${propertyId}/availability/${availabilityId}`) as any,
 
-  // Get country master data (AddressFormConfig + currency)
-  getCountryMasterData: (countryCode: string): Promise<CountryMasterData> =>
-    api.get(`/api/internal/master-data/countries/${countryCode}`) as any,
 };

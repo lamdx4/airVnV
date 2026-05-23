@@ -20,6 +20,12 @@ public class CloudinaryMediaProvider : IMediaProvider
         );
 
         _cloudinary = new Cloudinary(account);
+
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        };
+        _cloudinary.Api.Client = new HttpClient(handler);
     }
 
     public SignatureResponse GenerateUploadSignature(string folder, string? publicId = null)
