@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirVnV Realtime Chat Test Tool</title>
+    <!-- Import thư viện SignalR từ CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f5f7fb; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: #ff385c; margin-top: 0; border-bottom: 2px solid #ff385c; padding-bottom: 10px; }
+        .row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+        .col { flex: 1; display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+        input:focus { border-color: #ff385c; outline: none; }
+        button { background-color: #ff385c; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #e01a47; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .btn-secondary { background-color: #007bff; }
+        .btn-secondary:hover { background-color: #0056b3; }
+        .console { background-color: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 8px; height: 350px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 15px; border: 3px solid #333; }
+        .log-time { color: #888; }
+        .log-success { color: #55ff55; }
+        .log-info { color: #55ffff; }
+        .log-error { color: #ff5555; }
+        .log-msg { color: #ffff55; font-weight: bold; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-left: 10px; }
+        .badge-connected { background-color: #d4edda; color: #155724; }
+        .badge-disconnected { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚡ AirVnV Realtime Chat Test Tool <span id="status-badge" class="badge badge-disconnected">Chưa kết nối</span></h2>
+    <p style="font-size: 13px; color: #666; margin-top: -5px;">Mở bảng điều khiển này để kết nối trực tiếp đến SignalR ChatHub của dự án.</p>
+
+    <!-- Kết nối Gateway/Hub -->
+    <div class="row">
+        <div class="col" style="flex: 2;">
+            <label for="hub-url">Địa chỉ ChatHub (Gateway/ChatService Port)</label>
+            <input type="text" id="hub-url" value="http://localhost:5079/hubs/chat" placeholder="Ví dụ: http://localhost:5079/hubs/chat">
+        </div>
+        <div class="col">
+            <label for="user-id">X-User-Id (UUID Người dùng)</label>
+            <input type="text" id="user-id" value="3fa85f64-5717-4562-b3fc-2c963f66afa6" placeholder="Guid của User">
+        </div>
+        <div class="col" style="justify-content: flex-end; max-width: 140px;">
+            <button id="btn-connect" onclick="connectSignalR()">Kết nối Hub</button>
+        </div>
+    </div>
+
+    <!-- Tham gia phòng chat cụ thể -->
+    <div class="row" style="background: #f0f3f8; padding: 15px; border-radius: 8px;">
+        <div class="col" style="flex: 2;">
+            <label for="conv-id">Conversation ID (Mã phòng chat)</label>
+            <input type="text" id="conv-id" placeholder="Copy ID phòng chat từ database hoặc API Create">
+        </div>
+        <div class="col" style="justify-content: flex-end; max-width: 180px;">
+            <button id="btn-join" class="btn-secondary" onclick="joinConversation()" disabled>Vào phòng chat</button>
+        </div>
+        <div class="col" style="justify-content: flex-end; max-width: 180px;">
+            <button id="btn-leave" style="background-color: #6c757d;" onclick="leaveConversation()" disabled>Rời phòng chat</button>
+        </div>
+    </div>
+
+    <!-- Gửi tin nhắn -->
+    <div class="row" style="background: #fff0f3; padding: 15px; border-radius: 8px; border: 1px dashed #ff385c;">
+        <div class="col" style="flex: 3;">
+            <label for="message-input">Nội dung tin nhắn</label>
+            <input type="text" id="message-input" placeholder="Nhập tin nhắn muốn gửi..." onkeypress="handleKeyPress(event)" disabled>
+        </div>
+        <div class="col" style="justify-content: flex-end; max-width: 140px;">
+            <button id="btn-send" onclick="sendMessage()" disabled>Gửi tin nhắn</button>
+        </div>
+    </div>
+
+    <!-- Console ghi nhận Logs -->
+    <div class="console" id="console-logs">
+        <span class="log-time">[Mẹo]:</span> <span class="log-info">Hãy nhập User ID của bạn và click "Kết nối Hub".</span><br>
+        <span class="log-time">[Mẹo]:</span> <span class="log-info">Sau khi kết nối thành công, nhập ID phòng chat và click "Vào phòng chat" để nhận tin nhắn real-time nhé!</span><br>
+    </div>
+</div>
+
+<script>
+    let connection = null;
+
+    function log(message, type = 'info') {
+        const consoleLogs = document.getElementById('console-logs');
+        const now = new Date().toLocaleTimeString();
+        let colorClass = 'log-info';
+        if (type === 'success') colorClass = 'log-success';
+        if (type === 'error') colorClass = 'log-error';
+        if (type === 'msg') colorClass = 'log-msg';
+
+        consoleLogs.innerHTML += `<span class="log-time">[${now}]</span> <span class="${colorClass}">${message}</span><br>`;
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+    }
+
+    async function connectSignalR() {
+        const hubUrl = document.getElementById('hub-url').value.trim();
+        const userId = document.getElementById('user-id').value.trim();
+
+        if (!userId) {
+            alert('Vui lòng nhập User ID trước!');
+            return;
+        }
+
+        // Tạo URL có chứa Query String để truyền UserId qua WebSocket của trình duyệt
+        const separator = hubUrl.includes('?') ? '&' : '?';
+        const urlWithQuery = `${hubUrl}${separator}userId=${userId}`;
+
+        log(`Đang cố gắng kết nối tới ${urlWithQuery}...`);
+
+        try {
+            // Cấu hình SignalR Connection
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(urlWithQuery, {
+                    // Tránh lỗi CORS và tương thích tốt
+                    skipNegotiation: false,
+                    transport: signalR.HttpTransportType.WebSockets
+                })
+                .withAutomaticReconnect()
+                .build();
+
+            // Đăng ký nhận sự kiện tin nhắn mới (ReceiveMessage)
+            connection.on("ReceiveMessage", (msg) => {
+                log(`⚡ TIN NHẮN MỚI TỚI!`, 'success');
+                log(`- ID tin nhắn: ${msg.id}`, 'info');
+                log(`- Người gửi: ${msg.senderId || 'HỆ THỐNG'}`, 'info');
+                log(`- Nội dung: "${msg.content}"`, 'msg');
+                log(`-----------------------------------------------`, 'info');
+            });
+
+            // Đăng ký nhận sự kiện đã xem tin nhắn (MessageRead)
+            connection.on("MessageRead", (data) => {
+                log(`👁️ ĐÃ XEM: User ${data.readerId} đã đọc tin nhắn trong Conversation ${data.conversationId} tới mốc: ${data.lastReadMessageId}`, 'success');
+            });
+
+            connection.onclose(() => {
+                updateUIState(false);
+                log('❌ Đã ngắt kết nối với ChatHub.', 'error');
+            });
+
+            await connection.start();
+            updateUIState(true);
+            log('🟢 Kết nối thành công đến ChatHub!', 'success');
+            log(`👉 Hệ thống đã tự động đưa bạn vào group: "user_${userId}" để hứng thông báo chung.`, 'success');
+
+        } catch (err) {
+            log(`🔴 Lỗi kết nối: ${err.message}`, 'error');
+            console.error(err);
+        }
+    }
+
+    function updateUIState(isConnected) {
+        const badge = document.getElementById('status-badge');
+        const btnConnect = document.getElementById('btn-connect');
+        const btnJoin = document.getElementById('btn-join');
+        const btnLeave = document.getElementById('btn-leave');
+
+        if (isConnected) {
+            badge.innerText = "Đã kết nối";
+            badge.className = "badge badge-connected";
+            btnConnect.disabled = true;
+            btnJoin.disabled = false;
+        } else {
+            badge.innerText = "Chưa kết nối";
+            badge.className = "badge badge-disconnected";
+            btnConnect.disabled = false;
+            btnJoin.disabled = true;
+            btnLeave.disabled = true;
+        }
+    }
+
+    async function joinConversation() {
+        const convId = document.getElementById('conv-id').value.trim();
+        if (!convId) {
+            alert('Vui lòng nhập ID cuộc trò chuyện!');
+            return;
+        }
+
+        log(`Đang yêu cầu tham gia vào phòng chat (Group): conv_${convId}...`);
+        try {
+            await connection.invoke("JoinConversation", convId);
+            log(`✅ Đã tham gia phòng chat "conv_${convId}" thành công! Bạn đã ở trong phòng họp ảo.`, 'success');
+            document.getElementById('btn-join').disabled = true;
+            document.getElementById('btn-leave').disabled = false;
+            
+            // Kích hoạt ô nhập và nút gửi tin nhắn
+            document.getElementById('message-input').disabled = false;
+            document.getElementById('btn-send').disabled = false;
+            document.getElementById('message-input').focus();
+        } catch (err) {
+            log(`❌ Lỗi tham gia phòng chat: ${err.message}`, 'error');
+        }
+    }
+
+    async function leaveConversation() {
+        const convId = document.getElementById('conv-id').value.trim();
+        try {
+            await connection.invoke("LeaveConversation", convId);
+            log(`👋 Đã rời phòng chat "conv_${convId}".`, 'info');
+            document.getElementById('btn-join').disabled = false;
+            document.getElementById('btn-leave').disabled = true;
+            
+            // Vô hiệu hóa ô nhập và nút gửi tin nhắn
+            document.getElementById('message-input').disabled = true;
+            document.getElementById('btn-send').disabled = true;
+            document.getElementById('message-input').value = '';
+        } catch (err) {
+            log(`❌ Lỗi rời phòng chat: ${err.message}`, 'error');
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const hubUrl = document.getElementById('hub-url').value.trim();
+        const userId = document.getElementById('user-id').value.trim();
+        const convId = document.getElementById('conv-id').value.trim();
+        const messageInput = document.getElementById('message-input');
+        const content = messageInput.value.trim();
+
+        if (!content) return;
+
+        // Trích xuất Base URL từ Hub URL để gọi API HTTP của ChatService
+        // Ví dụ: "http://localhost:5136/hubs/chat" -> "http://localhost:5136"
+        let baseUrl = "";
+        try {
+            const urlObj = new URL(hubUrl);
+            baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+        } catch (e) {
+            log("🔴 Lỗi phân tích Hub URL để gọi API gửi tin nhắn.", "error");
+            return;
+        }
+
+        const apiEndpoint = `${baseUrl}/api/conversations/${convId}/messages`;
+        log(`Đang gửi tin nhắn qua HTTP POST: ${apiEndpoint}...`);
+
+        try {
+            const response = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Id': userId
+                },
+                body: JSON.stringify({ content: content })
+            });
+
+            const result = await response.json();
+
+            // Kiểm tra thuộc tính 'success' hoặc 'Success' từ ApiResponse trả về
+            const isOk = result.success !== undefined ? result.success : result.Success;
+
+            if (response.ok && isOk) {
+                log(`🚀 Đã gửi thành công tin nhắn lên Server!`, 'success');
+                messageInput.value = '';
+                messageInput.focus();
+            } else {
+                log(`❌ Gửi tin nhắn thất bại: ${result.errorMessage || result.message || response.statusText}`, 'error');
+            }
+        } catch (err) {
+            log(`❌ Lỗi mạng khi gọi API gửi tin nhắn: ${err.message}`, 'error');
+        }
+    }
+</script>
+</body>
+</html>

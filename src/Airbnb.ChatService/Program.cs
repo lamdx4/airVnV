@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Airbnb.ChatService.Infrastructure;
 using Airbnb.ChatService.Infrastructure.HttpClients;
+using Airbnb.ChatService.Features.Consumers;
+using Airbnb.ChatService.Features.Hubs;
 using System.Text.Json.Serialization.Metadata;
 
 [assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
@@ -64,8 +66,8 @@ builder.Services.AddMassTransit(x =>
     });
 
     // Register Consumers
-    x.AddConsumer<Airbnb.ChatService.Features.Consumers.BookingConfirmedEventConsumer>();
-    x.AddConsumer<Airbnb.ChatService.Features.Consumers.UserProfileUpdatedEventConsumer>();
+    x.AddConsumer<BookingConfirmedEventConsumer>();
+    x.AddConsumer<UserProfileUpdatedEventConsumer>();
 
         x.UsingRabbitMq((ctx, cfg) =>
         {
@@ -116,7 +118,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map Hubs
-app.MapHub<Airbnb.ChatService.Features.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<ChatHub>("/hubs/chat");
 
 // Map Aspire defaults
 app.MapDefaultEndpoints();
