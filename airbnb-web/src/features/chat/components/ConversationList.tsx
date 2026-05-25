@@ -86,7 +86,7 @@ export const ConversationList: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-1 pb-4">
+          <div className="divide-y divide-[#ebebeb] pb-4">
             {conversations.map((conv: Conversation) => (
               <button 
                 key={conv.id}
@@ -96,11 +96,10 @@ export const ConversationList: React.FC = () => {
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
-                  group mx-3 my-1 rounded-2xl px-4 py-4
-                  transition-all duration-200 text-left flex items-start gap-4
+                  group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150
                   ${activeConversationId === conv.id 
-                    ? 'bg-white shadow-sm border border-[#efefef]' 
-                    : 'hover:bg-white hover:shadow-xs border border-transparent'
+                    ? 'bg-[#f0f4ff]' 
+                    : 'bg-transparent hover:bg-[#f5f5f5]'
                   }
                 `}
               >
@@ -111,6 +110,9 @@ export const ConversationList: React.FC = () => {
                         {conv.otherParticipantName.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
+                  {/* Chấm tròn xanh lá biểu thị trạng thái online */}
+                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                  
                   {conv.unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
                         <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FF5A5F] border-2 border-white"></span>

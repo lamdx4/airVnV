@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import type { ChatMessage } from '../types/model';
 import { useMessages } from '../hooks/useMessages';
 import { useChat } from '../context/ChatContext';
+import { useInbox } from '../hooks/useInbox';
 import { MessageBubble } from './MessageBubble';
 import { formatChatDate } from '../utils/date';
 import { Loading03Icon } from '@/components/common/Icons';
@@ -10,9 +11,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 export const MessageList: React.FC = () => {
   const { activeConversationId } = useChat();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '');
+  const { data: inboxData } = useInbox();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const messages = data?.pages.flatMap(page => page.items).reverse() || [];
+
+  const conversation = inboxData?.pages
+    .flatMap(page => page.items)
+    .find(c => c.id === activeConversationId);
+
+  const otherParticipantAvatar = conversation?.otherParticipantAvatar;
+  const otherParticipantName = conversation?.otherParticipantName;
 
   useEffect(() => {
     if (scrollRef.current && !isFetchingNextPage) {
@@ -77,16 +86,28 @@ export const MessageList: React.FC = () => {
 
           <div className="space-y-1.5">
             <AnimatePresence initial={false}>
-              {group.items.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <MessageBubble message={msg} />
-                </motion.div>
-              ))}
+              {group.items.map((msg) => {
+                const globalIndex = messages.findIndex(m => m.id === msg.id);
+                const isFirstOfChain = globalIndex === 0 || messages[globalIndex - 1].senderId !== msg.senderId;
+                const isLastOfChain = globalIndex === messages.length - 1 || messages[globalIndex + 1].senderId !== msg.senderId;
+
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <MessageBubble 
+                      message={msg} 
+                      otherParticipantAvatar={otherParticipantAvatar}
+                      otherParticipantName={otherParticipantName}
+                      isFirstOfChain={isFirstOfChain}
+                      isLastOfChain={isLastOfChain}
+                    />
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         </div>
