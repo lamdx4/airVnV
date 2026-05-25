@@ -11,16 +11,9 @@ public class ChatHub(AppDbContext db) : Hub
 
     public override async Task OnConnectedAsync()
     {
-        // Lấy UserId từ Header (do Gateway gắn vào) thông qua HttpContext
+        // Lấy UserId từ Header (do Gateway chuyển từ token (header/query) thành header X-User-Id)
         var httpContext = Context.GetHttpContext();
         var userIdStr = httpContext?.Request.Headers["X-User-Id"].ToString();
-
-        if (string.IsNullOrEmpty(userIdStr))
-        {
-            // Fallback cho WebSockets chạy từ trình duyệt (do trình duyệt không hỗ trợ gửi custom headers qua WebSockets)
-            userIdStr = httpContext?.Request.Query["userId"].ToString() 
-                        ?? httpContext?.Request.Query["X-User-Id"].ToString();
-        }
 
         if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var userId))
         {

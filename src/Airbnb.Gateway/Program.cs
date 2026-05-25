@@ -53,7 +53,7 @@ builder.Services.AddReverseProxy()
                 userId = user.FindFirst("UserId")?.Value;
             }
 
-            // 2. Giải mã thủ công để hỗ trợ các Anonymous Routes có gửi kèm token
+            // 2. Giải mã thủ công để hỗ trợ các Anonymous Routes có gửi kèm token qua Header
             if (string.IsNullOrEmpty(userId) && httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
                 var authStr = authHeader.ToString();
@@ -73,6 +73,25 @@ builder.Services.AddReverseProxy()
                     {
                         // Bỏ qua lỗi giải mã token
                     }
+                }
+            }
+
+            // 3. Giải mã thủ công nếu token được gửi qua Query (ví dụ kết nối WebSockets / SignalR)
+            if (string.IsNullOrEmpty(userId) && httpContext.Request.Query.TryGetValue("access_token", out var tokenQuery))
+            {
+                var token = tokenQuery.ToString();
+                try
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    if (handler.CanReadToken(token))
+                    {
+                        var jwtToken = handler.ReadJwtToken(token);
+                        userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "UserId" || c.Type == "sub")?.Value;
+                    }
+                }
+                catch
+                {
+                    // Bỏ qua lỗi
                 }
             }
 

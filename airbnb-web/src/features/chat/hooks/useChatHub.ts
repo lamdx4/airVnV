@@ -20,14 +20,10 @@ export const useChatHub = (activeConversationId: string | null) => {
   // 1. Khởi tạo Connection duy nhất 1 lần khi Component Mount
   useEffect(() => {
     const token = localStorage.getItem('airbnb_access_token');
-    const userId = localStorage.getItem('airbnb_user_id');
     if (!token) return;
 
-    // Đính kèm userId vào query string để ChatHub.cs OnConnectedAsync tự động nhận dạng được thiết bị
-    const hubUrlWithQuery = userId ? `${HUB_URL}?userId=${userId}` : HUB_URL;
-
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrlWithQuery, {
+      .withUrl(HUB_URL, {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()
