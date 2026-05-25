@@ -30,5 +30,13 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>), TypeInfoPropertyName = "GetMyPropertiesPagedResponse")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>>), TypeInfoPropertyName = "ApiResponseGetMyPropertiesPaged")]
 
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Request), TypeInfoPropertyName = "GetPendingPropertiesRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Response), TypeInfoPropertyName = "GetPendingPropertiesResponse")]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Response>), TypeInfoPropertyName = "ApiResponseGetPendingProperties")]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.RejectProperty.Request), TypeInfoPropertyName = "RejectPropertyRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.RejectProperty.Response), TypeInfoPropertyName = "RejectPropertyResponse")]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.AdminPropertyModeration.RejectProperty.Response>), TypeInfoPropertyName = "ApiResponseRejectProperty")]
+
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng cho validation errors
 internal partial class PropertyJsonContext : JsonSerializerContext { }

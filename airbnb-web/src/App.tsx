@@ -12,6 +12,7 @@ import Trips from './pages/Trips';
 import Reservations from './pages/Reservations';
 import PropertyDetail from './pages/PropertyDetail';
 import NewProperty from './pages/NewProperty';
+import ApprovalQueuePage from './pages/admin/properties/approval-queue/page';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/forgot-password" element={<AirbnbLogin view="forgot-password" />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/host/reservations" element={<Reservations />} />
+            <Route path="/admin/properties/approval-queue" element={<ApprovalQueuePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
