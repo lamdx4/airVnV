@@ -62,10 +62,9 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
-            // Index để phân trang
-            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt })
-                  .IsDescending(false, true) // Mặc định là ASC, ta cấu hình DESC cho CreatedAt khi query
-                  .HasDatabaseName("idx_messages_conversation_created");
+            // Index để phân trang và tính unread count nhanh bằng cách so sánh Id (UUIDv7)
+            entity.HasIndex(e => new { e.ConversationId, e.Id })
+                  .HasDatabaseName("idx_messages_conversation_id");
                   
             entity.Property(e => e.MessageType).HasConversion<string>();
         });
