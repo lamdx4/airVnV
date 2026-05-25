@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
 import { mapConversationDtoToModel } from '../utils/mapper';
+import { useAuthStore } from '../../../store/authStore';
 
 export const useInbox = () => {
-  const currentUserId = localStorage.getItem('airbnb_user_id');
+  const currentUserId = useAuthStore(state => state.userId);
 
   return useInfiniteQuery({
     queryKey: ['chat', 'inbox'],

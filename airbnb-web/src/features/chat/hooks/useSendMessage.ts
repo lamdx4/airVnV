@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
 import type { ChatMessage } from '../types/model';
+import { useAuthStore } from '../../../store/authStore';
 
 export const useSendMessage = (conversationId: string | null) => {
   const queryClient = useQueryClient();
-  const currentUserId = localStorage.getItem('airbnb_user_id') || '';
+  const currentUserId = useAuthStore(state => state.userId) || '';
 
   return useMutation({
     mutationFn: async (content: string) => {

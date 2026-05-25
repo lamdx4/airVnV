@@ -3,6 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage, Conversation } from '../types/model';
 import { mapMessageDtoToModel } from '../utils/mapper';
+import { useAuthStore } from '../../../store/authStore';
 
 const HUB_URL = import.meta.env.VITE_CHAT_HUB_URL || 'http://localhost:5136/hubs/chat';
 
@@ -10,21 +11,28 @@ export const useChatHub = (activeConversationId: string | null) => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const queryClient = useQueryClient();
+  const currentUserId = useAuthStore(state => state.userId);
   
-  // Dùng Ref để lưu activeConversationId mới nhất, tránh bị Stale Closure trong callback nhận tin nhắn
+  // Dùng Ref để lưu lại các giá trị có thể thay đổi, tránh bị Stale Closure trong callback nhận tin nhắn
   const activeConversationIdRef = useRef(activeConversationId);
+  const currentUserIdRef = useRef(currentUserId);
+  
   useEffect(() => {
     activeConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
 
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
+
   // 1. Khởi tạo Connection duy nhất 1 lần khi Component Mount
   useEffect(() => {
-    const token = localStorage.getItem('airbnb_access_token');
-    if (!token) return;
-
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => token,
+        accessTokenFactory: () => {
+          // Lấy token động từ Zustand store, tự động cập nhật nếu có thao tác refresh_token xảy ra
+          return useAuthStore.getState().accessToken || '';
+        },
       })
       .withAutomaticReconnect()
       .build();
@@ -53,11 +61,10 @@ export const useChatHub = (activeConversationId: string | null) => {
 
     // Đăng ký các sự kiện lắng nghe (chỉ đăng ký 1 lần duy nhất)
     connection.on('ReceiveMessage', (messageDto: any) => {
-      const currentUserId = localStorage.getItem('airbnb_user_id');
-      
+      // Dùng Ref để chống Closure trap.
       const newMsg = mapMessageDtoToModel(messageDto);
       const currentActiveId = activeConversationIdRef.current;
-      const isMyMessage = newMsg.senderId?.toLowerCase() === currentUserId?.toLowerCase();
+      const isMyMessage = newMsg.senderId?.toLowerCase() === currentUserIdRef.current?.toLowerCase();
       
       // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
       queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
