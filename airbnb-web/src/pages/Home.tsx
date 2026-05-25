@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Star, Heart } from 'lucide-react'
 import { Icon } from '@iconify/react'
+import { useNavigate } from 'react-router-dom'
 
 // Lấy ảnh từ thư mục locations
 const locationImages = Object.values(
@@ -21,21 +22,19 @@ const categories = [
 ]
 
 export default function Home() {
+  const navigate = useNavigate()
   const [activeCategory, setActiveCategory] = useState('beach')
-  const [likedPlaces, setLikedPlaces] = useState<number[]>([])
+  const [likedPlaces, setLikedPlaces] = useState<string[]>([])
 
   const places = [
-    { id: 1, title: 'Đà Nẵng, Việt Nam', desc: '150 km away', dates: 'May 12 - 17', price: '2,500,000 ₫', rating: '4.92', image: locationImages[0] },
-    { id: 2, title: 'Hội An, Việt Nam', desc: '180 km away', dates: 'May 15 - 20', price: '1,800,000 ₫', rating: '4.88', image: locationImages[1] },
-    { id: 3, title: 'Phú Quốc, Việt Nam', desc: '850 km away', dates: 'Jun 10 - 15', price: '3,200,000 ₫', rating: '4.95', image: locationImages[2] },
-    { id: 4, title: 'Hạ Long, Việt Nam', desc: '1,200 km away', dates: 'Jul 5 - 10', price: '4,000,000 ₫', rating: '4.91', image: locationImages[3] },
-    { id: 5, title: 'Vũng Tàu, Việt Nam', desc: '95 km away', dates: 'May 22 - 27', price: '1,500,000 ₫', rating: '4.75', image: locationImages[4] },
-    { id: 6, title: 'District 1, HCM City', desc: '5 km away', dates: 'Jun 1 - 6', price: '2,900,000 ₫', rating: '4.85', image: locationImages[0] },
-    { id: 7, title: 'Kien Giang, Việt Nam', desc: '820 km away', dates: 'Jun 18 - 23', price: '5,500,000 ₫', rating: '4.98', image: locationImages[2] },
-    { id: 8, title: 'Lan Ha Bay, Việt Nam', desc: '1,250 km away', dates: 'May 14 - 19', price: '6,200,000 ₫', rating: '4.90', image: locationImages[3] },
+    { id: '11111111-1111-7111-8111-111111111111', title: 'Biệt thự nghỉ dưỡng Đà Lạt VIP', desc: 'Đà Lạt, Lâm Đồng, Việt Nam', dates: 'May 22 - 27', price: '150.00 $', rating: '4.98', image: locationImages[0] },
+    { id: '2', title: 'Đà Nẵng, Việt Nam', desc: '150 km away', dates: 'May 12 - 17', price: '2,500,000 ₫', rating: '4.92', image: locationImages[1] },
+    { id: '3', title: 'Hội An, Việt Nam', desc: '180 km away', dates: 'May 15 - 20', price: '1,800,000 ₫', rating: '4.88', image: locationImages[2] },
+    { id: '4', title: 'Phú Quốc, Việt Nam', desc: '850 km away', dates: 'Jun 10 - 15', price: '3,200,000 ₫', rating: '4.95', image: locationImages[3] },
+    { id: '5', title: 'Hạ Long, Việt Nam', desc: '1,200 km away', dates: 'Jul 5 - 10', price: '4,000,000 ₫', rating: '4.91', image: locationImages[4] },
   ]
 
-  const toggleLike = (id: number) => {
+  const toggleLike = (id: string) => {
     setLikedPlaces(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     )
@@ -73,7 +72,11 @@ export default function Home() {
       {/* Listing Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-6 gap-y-10 pt-2">
         {places.map((place) => (
-          <div key={place.id} className="group flex flex-col cursor-pointer transition-all">
+          <div 
+            key={place.id} 
+            onClick={() => navigate(`/properties/${place.id}`)}
+            className="group flex flex-col cursor-pointer transition-all"
+          >
             {/* Image Wrapper */}
             <div className="relative w-full aspect-[20/19] rounded-xl overflow-hidden bg-slate-100 mb-3 shadow-sm hover:shadow-md transition-shadow">
               {place.image ? (

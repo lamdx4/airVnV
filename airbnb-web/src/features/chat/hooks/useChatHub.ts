@@ -1,30 +1,47 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage, Conversation } from '../types/model';
-import type { MessageDto } from '../types/dto';
 import { mapMessageDtoToModel } from '../utils/mapper';
 
-const HUB_URL = import.meta.env.VITE_CHAT_HUB_URL || 'http://localhost:5004/hubs/chat';
+const HUB_URL = import.meta.env.VITE_CHAT_HUB_URL || 'http://localhost:5136/hubs/chat';
 
 export const useChatHub = (activeConversationId: string | null) => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Dùng Ref để lưu activeConversationId mới nhất, tránh bị Stale Closure trong callback nhận tin nhắn
+  const activeConversationIdRef = useRef(activeConversationId);
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
+  // 1. Khởi tạo Connection duy nhất 1 lần khi Component Mount
   useEffect(() => {
     const token = localStorage.getItem('airbnb_access_token');
+    const userId = localStorage.getItem('airbnb_user_id');
     if (!token) return;
 
+    // Đính kèm userId vào query string để ChatHub.cs OnConnectedAsync tự động nhận dạng được thiết bị
+    const hubUrlWithQuery = userId ? `${HUB_URL}?userId=${userId}` : HUB_URL;
+
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL, {
+      .withUrl(hubUrlWithQuery, {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()
       .build();
 
     setConnection(newConnection);
+
+    // Cleanup: Ngắt kết nối khi thoát hẳn màn hình Chat
+    return () => {
+      newConnection.stop().catch(console.error);
+    };
   }, []);
 
+  // 2. Thiết lập Lắng nghe Sự kiện và Start Connection
   useEffect(() => {
     if (!connection) return;
 
@@ -32,93 +49,122 @@ export const useChatHub = (activeConversationId: string | null) => {
       try {
         await connection.start();
         console.log('SignalR Connected.');
-
-        // Khi kết nối thành công, join vào group của conversation hiện tại (nếu có)
-        if (activeConversationId) {
-          await connection.invoke('JoinConversation', activeConversationId);
-        }
-
-        // Lắng nghe tin nhắn mới
-        connection.on('ReceiveMessage', (messageDto: MessageDto) => {
-          const currentUserId = localStorage.getItem('airbnb_user_id');
-          // Bỏ qua message do chính mình gửi vì Optimistic update trong useSendMessage đã thêm rồi
-          if (messageDto.senderId === currentUserId) return;
-
-          const newMsg = mapMessageDtoToModel(messageDto);
-          
-          // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
-          queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
-            if (!old) return old;
-            const newPages = [...old.pages];
-            if (newPages.length > 0) {
-              // Tránh duplicate nếu optimistic UI đã add
-              const exists = newPages[0].items.some((m: ChatMessage) => m.id === newMsg.id || m.id.startsWith('temp-'));
-              if (!exists) {
-                newPages[0] = { ...newPages[0], items: [newMsg, ...newPages[0].items] };
-              }
-            }
-            return { ...old, pages: newPages };
-          });
-
-          // 2. Cập nhật cache của Inbox (đẩy conversation lên đầu, tăng unread, đổi last message)
-          queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
-            if (!old) return old;
-            const newPages = [...old.pages];
-            
-            // Tìm và sửa conversation
-            let found = false;
-            for (let i = 0; i < newPages.length; i++) {
-              const items = [...newPages[i].items];
-              const idx = items.findIndex((c: Conversation) => c.id === newMsg.conversationId);
-              if (idx !== -1) {
-                const conv = { ...items[idx] };
-                conv.lastMessageAt = newMsg.sentAt;
-                // Nếu tin nhắn mới không phải ở conversation đang mở thì tăng unread count
-                if (activeConversationId !== newMsg.conversationId) {
-                  conv.unreadCount += 1;
-                }
-                
-                // Đẩy lên đầu danh sách của page 0
-                items.splice(idx, 1);
-                newPages[0].items = [conv, ...newPages[0].items];
-                
-                // Cập nhật lại các item còn lại cho đúng page (logic này có thể phức tạp, 
-                // đơn giản nhất là invalidate lại inbox nếu muốn chính xác tuyệt đối)
-                found = true;
-                break;
-              }
-            }
-            
-            // Nếu không tìm thấy trong cache (chưa load tới), invalidate
-            if (!found) {
-              queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
-            }
-
-            return { ...old, pages: newPages };
-          });
-        });
-
-        // Lắng nghe sự kiện Read
-        connection.on('MessageRead', (_conversationId: string, _messageId: string) => {
-           // Có thể trigger cập nhật trạng thái "Đã xem" ở UI
-           // (Tùy thuộc model có lưu trường isRead hay không)
-           queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
-        });
-
+        setIsConnected(true);
       } catch (e) {
         console.error('SignalR Connection Error: ', e);
       }
     };
 
+    // Đăng ký các sự kiện lắng nghe (chỉ đăng ký 1 lần duy nhất)
+    connection.on('ReceiveMessage', (messageDto: any) => {
+      const currentUserId = localStorage.getItem('airbnb_user_id');
+      
+      const newMsg = mapMessageDtoToModel(messageDto);
+      const currentActiveId = activeConversationIdRef.current;
+      const isMyMessage = newMsg.senderId?.toLowerCase() === currentUserId?.toLowerCase();
+      
+      // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
+      queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
+        if (!old) return old;
+        const newPages = [...old.pages];
+        if (newPages.length > 0) {
+          const items = [...newPages[0].items];
+          
+          // Tìm xem có tin nhắn tạm (optimistic UI) của chính mình có nội dung giống để thay thế không
+          const tempIdx = items.findIndex((m: ChatMessage) => m.id.startsWith('temp-') && m.content === newMsg.content);
+          
+          if (tempIdx !== -1) {
+            // Thay thế tin nhắn tạm bằng tin nhắn chính thức từ server (có ID thật)
+            items[tempIdx] = newMsg;
+            newPages[0] = { ...newPages[0], items };
+          } else {
+            // Nếu không có tin nhắn tạm (hoặc tin nhắn từ người khác gửi tới), kiểm tra tránh trùng lặp ID
+            const exists = items.some((m: ChatMessage) => m.id === newMsg.id);
+            if (!exists) {
+              newPages[0] = { ...newPages[0], items: [newMsg, ...items] };
+            }
+          }
+        }
+        return { ...old, pages: newPages };
+      });
+
+      // 2. Cập nhật cache của Inbox (đẩy conversation lên đầu, tăng unread, đổi last message)
+      queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
+        if (!old) return old;
+        const newPages = [...old.pages];
+        
+        let targetConv: Conversation | null = null;
+        
+        // Tìm và cắt cuộc hội thoại ra khỏi danh sách cũ (bất kể ở trang nào) để tránh nhân bản (duplicate)
+        for (let i = 0; i < newPages.length; i++) {
+          const items = [...newPages[i].items];
+          const idx = items.findIndex((c: Conversation) => c.id?.toLowerCase() === newMsg.conversationId?.toLowerCase());
+          if (idx !== -1) {
+            targetConv = { ...items[idx] };
+            items.splice(idx, 1);
+            newPages[i] = { ...newPages[i], items };
+            break;
+          }
+        }
+        
+        if (targetConv) {
+          targetConv.lastMessageAt = newMsg.sentAt;
+          
+          // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
+          const isCurrentlyActive = currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase();
+          if (!isMyMessage && !isCurrentlyActive) {
+            targetConv.unreadCount += 1;
+          }
+          
+          // Đẩy cuộc hội thoại đã cập nhật lên đầu trang 0
+          if (newPages.length > 0) {
+            newPages[0] = {
+              ...newPages[0],
+              items: [targetConv, ...newPages[0].items]
+            };
+          }
+        } else {
+          // Nếu cuộc hội thoại chưa tồn tại trong cache, invalidate để tải mới hoàn toàn
+          queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
+        }
+
+        return { ...old, pages: newPages };
+      });
+    });
+
+    // Lắng nghe sự kiện Read
+    connection.on('MessageRead', (_conversationId: string, _messageId: string) => {
+       queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
+    });
+
     startConnection();
 
     return () => {
-      if (activeConversationId) {
-        connection.invoke('LeaveConversation', activeConversationId).catch(console.error);
-      }
-      connection.stop();
+      // Khi component unmount hoặc connection thay đổi, gỡ bỏ lắng nghe sự kiện
+      connection.off('ReceiveMessage');
+      connection.off('MessageRead');
+      setIsConnected(false);
     };
-  }, [connection, activeConversationId, queryClient]);
+  }, [connection, queryClient]);
+
+  // 3. Xử lý Join/Leave phòng chat mỗi khi đổi Conversation mà không ngắt Socket
+  useEffect(() => {
+    if (!connection || !isConnected || !activeConversationId) return;
+
+    // Vào phòng mới
+    connection.invoke('JoinConversation', activeConversationId)
+      .then(() => console.log(`Joined conversation group: ${activeConversationId}`))
+      .catch(err => console.error('Error joining conversation group:', err));
+
+    // Cleanup: Ra khỏi phòng khi đổi phòng hoặc đóng khung chat
+    return () => {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.invoke('LeaveConversation', activeConversationId)
+          .then(() => console.log(`Left conversation group: ${activeConversationId}`))
+          .catch(err => console.error('Error leaving conversation group:', err));
+      }
+    };
+  }, [connection, isConnected, activeConversationId]);
 
   return connection;
 };
