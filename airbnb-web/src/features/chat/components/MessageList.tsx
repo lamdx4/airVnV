@@ -31,7 +31,7 @@ export const MessageList: React.FC = () => {
 
   // Tự động gọi API đánh dấu đã đọc (Mark as read) khi mở chat hoặc có tin nhắn mới
   useEffect(() => {
-    if (!activeConversationId || !lastMessageId) return;
+    if (!activeConversationId || !lastMessageId || lastMessageId.startsWith('temp-')) return;
 
     chatApi.markAsRead(activeConversationId, lastMessageId)
       .then(() => {

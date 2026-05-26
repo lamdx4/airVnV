@@ -19,23 +19,32 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
         }
 
         // Lấy danh sách conversation kèm theo đếm số tin nhắn chưa đọc trong cùng 1 câu query
+        // Sử dụng Select trung gian để cache CurrentParticipant, giúp EF Core không phải lặp lại subquery
         var rawConversations = await query
             .OrderByDescending(c => c.LastMessageAt)
             .Take(req.Limit + 1)
             .Select(c => new
             {
-                c.Id,
-                c.PropertyTitle,
-                c.LastMessageAt,
-                // Lấy thông tin Participant khác
+                Conversation = c,
+                CurrentParticipant = c.Participants.FirstOrDefault(p => p.UserId == req.UserId),
                 OtherParticipant = c.Participants.FirstOrDefault(p => p.UserId != req.UserId),
-                // Đếm tin nhắn chưa đọc trực tiếp bằng cách so sánh Id tin nhắn (UUIDv7) với LastReadMessageId của user hiện tại
-                UnreadCount = c.Messages.Count(m => 
-                    c.Participants.Where(p => p.UserId == req.UserId).Select(p => p.LastReadMessageId).FirstOrDefault() == null ||
-                    m.Id.CompareTo(c.Participants.Where(p => p.UserId == req.UserId).Select(p => p.LastReadMessageId).FirstOrDefault()!.Value) > 0
+                LatestMessage = c.Messages.OrderByDescending(m => m.CreatedAt)
+                                          .Select(m => new { m.Id, m.Content })
+                                          .FirstOrDefault()
+            })
+            .Select(x => new
+            {
+                x.Conversation.Id,
+                x.Conversation.PropertyTitle,
+                x.Conversation.LastMessageAt,
+                x.OtherParticipant,
+                UnreadCount = x.Conversation.Messages.Count(m => 
+                    x.CurrentParticipant == null ||
+                    x.CurrentParticipant.LastReadMessageId == null ||
+                    m.Id.CompareTo(x.CurrentParticipant.LastReadMessageId.Value) > 0
                 ),
-                LatestMessageContent = c.Messages.OrderByDescending(m => m.CreatedAt).Select(m => m.Content).FirstOrDefault(),
-                LatestMessageId = (Guid?)c.Messages.OrderByDescending(m => m.CreatedAt).Select(m => m.Id).FirstOrDefault()
+                LatestMessageContent = x.LatestMessage != null ? x.LatestMessage.Content : null,
+                LatestMessageId = x.LatestMessage != null ? (Guid?)x.LatestMessage.Id : null
             })
             .ToListAsync(ct);
 
