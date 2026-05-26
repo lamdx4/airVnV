@@ -14,7 +14,7 @@ interface MessageBubbleProps {
   isLastMessageOfConversation: boolean;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ 
+export const MessageBubble = React.memo<MessageBubbleProps>(({ 
   message, 
   otherParticipantAvatar, 
   otherParticipantName,
@@ -78,4 +78,31 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Kiểm tra các prop thông thường, nếu thay đổi thì re-render
+  if (
+    prevProps.message.id !== nextProps.message.id ||
+    prevProps.message.content !== nextProps.message.content ||
+    prevProps.message.sentAt !== nextProps.message.sentAt ||
+    prevProps.isFirstOfChain !== nextProps.isFirstOfChain ||
+    prevProps.isLastOfChain !== nextProps.isLastOfChain ||
+    prevProps.isLastMessageOfConversation !== nextProps.isLastMessageOfConversation ||
+    prevProps.otherParticipantAvatar !== nextProps.otherParticipantAvatar ||
+    prevProps.otherParticipantName !== nextProps.otherParticipantName
+  ) {
+    return false;
+  }
+
+  // Chỉ render lại nếu tin nhắn này chính là tin nhắn đối phương vừa đọc (hoặc vừa hết được đọc)
+  const msgId = prevProps.message.id?.toLowerCase();
+  const wasSeen = prevProps.otherLastReadMessageId?.toLowerCase() === msgId;
+  const isSeen = nextProps.otherLastReadMessageId?.toLowerCase() === msgId;
+
+  if (wasSeen !== isSeen) {
+    return false;
+  }
+
+  return true; 
+});
+
+MessageBubble.displayName = 'MessageBubble';

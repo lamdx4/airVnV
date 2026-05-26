@@ -141,7 +141,6 @@ export const useChatHub = (activeConversationId: string | null) => {
       const readerId = data?.readerId || data?.ReaderId;
       const lastReadMessageId = data?.lastReadMessageId || data?.LastReadMessageId;
 
-      // Nếu người vừa đọc tin nhắn KHÔNG phải là chúng ta (tức là đối phương vừa đọc)
       if (readerId?.toLowerCase() !== currentUserIdRef.current?.toLowerCase()) {
         queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
           if (!old) return old;
