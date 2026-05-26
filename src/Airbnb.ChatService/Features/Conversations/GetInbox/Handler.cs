@@ -33,7 +33,9 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
                 UnreadCount = c.Messages.Count(m => 
                     c.Participants.Where(p => p.UserId == req.UserId).Select(p => p.LastReadMessageId).FirstOrDefault() == null ||
                     m.Id.CompareTo(c.Participants.Where(p => p.UserId == req.UserId).Select(p => p.LastReadMessageId).FirstOrDefault()!.Value) > 0
-                )
+                ),
+                LatestMessageContent = c.Messages.OrderByDescending(m => m.CreatedAt).Select(m => m.Content).FirstOrDefault(),
+                LatestMessageId = (Guid?)c.Messages.OrderByDescending(m => m.CreatedAt).Select(m => m.Id).FirstOrDefault()
             })
             .ToListAsync(ct);
 
@@ -47,7 +49,9 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             r.OtherParticipant?.AvatarUrl,
             r.UnreadCount,
             r.LastMessageAt,
-            r.OtherParticipant?.LastReadMessageId
+            r.OtherParticipant?.LastReadMessageId,
+            r.LatestMessageContent,
+            r.LatestMessageId
         )).ToList();
 
         DateTimeOffset? nextCursor = hasMore ? items.Last().LastMessageAt : null;

@@ -7,11 +7,10 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, CheckCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Loading03Icon } from '@/components/common/Icons';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
 
 export const ConversationList: React.FC = () => {
   const { activeConversationId, setActiveConversationId, closeSidebar } = useChat();
@@ -96,7 +95,7 @@ export const ConversationList: React.FC = () => {
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
-                  group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150
+                  relative group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150
                   ${activeConversationId === conv.id 
                     ? 'bg-[#f0f4ff]' 
                     : 'bg-transparent hover:bg-[#f5f5f5]'
@@ -104,44 +103,50 @@ export const ConversationList: React.FC = () => {
                 `}
               >
                 <div className="relative shrink-0">
-                  <Avatar className="h-14 w-14 ring-1 ring-black/5">
+                  <Avatar className="h-16 w-16 ring-1 ring-black/5">
                     <AvatarImage src={conv.otherParticipantAvatar || ''} alt={conv.otherParticipantName} />
-                    <AvatarFallback className="bg-[#f2f2f2] text-[#222222] font-semibold text-lg">
+                    <AvatarFallback className="bg-[#f2f2f2] text-[#222222] font-semibold text-xl">
                         {conv.otherParticipantName.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  {/* Chấm tròn xanh lá biểu thị trạng thái online */}
-                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-                  
-                  {conv.unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
-                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FF5A5F] border-2 border-white"></span>
-                    </span>
-                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-1">
                     <h3 className={`text-[15px] truncate transition-colors ${
-                        conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
+                        conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-normal text-[#222222]'
                     }`}>
                       {conv.otherParticipantName}
                     </h3>
-                    <span className="text-[12px] text-[#b0b0b0] font-normal">
-                      {conv.lastMessageAt ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }) : ''}
+                    <span className="text-[12px] text-[#b0b0b0] font-normal shrink-0 ml-2">
+                      {conv.lastMessageAt 
+                        ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }).replace('less than a minute', 'now') 
+                        : ''}
                     </span>
                   </div>
                   
                   <p className={`text-[14px] truncate leading-snug mb-1 ${
                       conv.unreadCount > 0 ? 'font-semibold text-[#222222]' : 'text-[#6a6a6a] font-normal'
                   }`}>
-                    {conv.propertyTitle}
+                    {conv.propertyTitle.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
                   </p>
                   
                   <p className="text-[12px] text-[#b0b0b0] truncate font-normal">
-                    Tap to view message history
+                    {conv.latestMessageContent || 'Tap to view message history'}
                   </p>
                 </div>
+
+                {conv.unreadCount > 0 && (
+                  <div className="flex items-center justify-center h-6 w-6 bg-[#25D366] text-white rounded-full text-[11px] font-bold shrink-0 self-center">
+                    {conv.unreadCount}
+                  </div>
+                )}
+
+                {conv.latestMessageId && conv.otherLastReadMessageId && conv.latestMessageId.toLowerCase() === conv.otherLastReadMessageId.toLowerCase() && (
+                  <div className="absolute bottom-3 right-4 text-[#25D366]">
+                    <CheckCheck className="h-4 w-4" />
+                  </div>
+                )}
               </button>
             ))}
           </div>

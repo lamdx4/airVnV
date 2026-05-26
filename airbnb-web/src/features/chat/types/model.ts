@@ -19,6 +19,8 @@ export interface Conversation {
   otherParticipantName: string;
   otherParticipantAvatar?: string;
   otherLastReadMessageId?: string;
+  latestMessageContent?: string;
+  latestMessageId?: string;
 }
 
 export interface ChatMessage {

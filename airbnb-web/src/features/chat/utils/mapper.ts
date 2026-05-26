@@ -28,6 +28,8 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
     otherParticipantName: otherParticipantName,
     otherParticipantAvatar: otherParticipantAvatar,
     otherLastReadMessageId: dto.otherLastReadMessageId || dto.OtherLastReadMessageId,
+    latestMessageContent: dto.latestMessageContent || dto.LatestMessageContent,
+    latestMessageId: dto.latestMessageId || dto.LatestMessageId,
   };
 };
 

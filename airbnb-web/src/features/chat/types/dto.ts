@@ -21,6 +21,8 @@ export interface ConversationDto {
   participants: ConversationParticipantDto[];
   unreadCount: number;
   otherLastReadMessageId?: string;
+  latestMessageContent?: string;
+  latestMessageId?: string;
 }
 
 export interface MessageDto {

@@ -47,7 +47,7 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
         <div 
           className={`px-4 py-3 rounded-[20px] text-[15px] leading-[1.4] transition-all ${
             isOwnMessage 
-              ? 'bg-[#3b82f6] text-white rounded-tr-sm' 
+              ? 'bg-[#25D366] text-white rounded-tr-sm' 
               : 'bg-[#f2f2f2] text-[#222222] rounded-tl-sm'
           }`}
         >

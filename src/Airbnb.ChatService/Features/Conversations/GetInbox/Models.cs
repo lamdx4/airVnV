@@ -13,5 +13,7 @@ public record InboxItem(
     string? OtherParticipantAvatar,
     int UnreadCount,
     DateTimeOffset LastMessageAt,
-    Guid? OtherLastReadMessageId
+    Guid? OtherLastReadMessageId,
+    string? LatestMessageContent,
+    Guid? LatestMessageId
 );

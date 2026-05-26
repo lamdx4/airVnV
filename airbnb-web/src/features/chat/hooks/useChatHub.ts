@@ -112,6 +112,8 @@ export const useChatHub = (activeConversationId: string | null) => {
         
         if (targetConv) {
           targetConv.lastMessageAt = newMsg.sentAt;
+          targetConv.latestMessageContent = newMsg.content;
+          targetConv.latestMessageId = newMsg.id;
           
           // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
           const isCurrentlyActive = currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase();
