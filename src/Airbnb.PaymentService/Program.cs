@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization.Metadata;
 using MassTransit;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Airbnb.PaymentService.Infrastructure;
 using Airbnb.SharedKernel.Infrastructure;
@@ -13,6 +14,15 @@ using Mediator;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// JWT Authentication
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing"));
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin", "Moderator"));
+});
+
 // Database registration
 builder.Services.AddDbContext<PaymentDbContext>(options =>
 {
@@ -84,6 +94,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseFastEndpoints(c => {
     c.Serializer.Options.TypeInfoResolver = PaymentJsonContext.Default;

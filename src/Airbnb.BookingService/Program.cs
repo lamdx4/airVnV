@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Airbnb.BookingService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,15 @@ using Mediator;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// JWT Authentication
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing"));
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin", "Moderator"));
+});
+
 // Business DbContext
 builder.Services.AddDbContext<BookingDbContext>(options =>
 {
@@ -35,9 +45,6 @@ builder.AddKafkaConsumer<string, string>("kafka", options =>
 {
     options.Config.GroupId = "booking-service-group";
 });
-
-// Removed old polling-based timeout worker in favor of Saga timeouts
-// builder.Services.AddHostedService<Airbnb.BookingService.Infrastructure.Workers.BookingTimeoutWorker>();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -111,6 +118,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseFastEndpoints(c => {
     c.Serializer.Options.TypeInfoResolver = BookingJsonContext.Default;
