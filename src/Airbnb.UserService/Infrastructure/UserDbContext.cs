@@ -24,6 +24,7 @@ public class UserDbContext : AppDbContextBase
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
+    public DbSet<UserSuspension> UserSuspensions => Set<UserSuspension>();
 
     // MassTransit Outbox Entities
     public DbSet<MassTransit.EntityFrameworkCoreIntegration.InboxState> InboxState => Set<MassTransit.EntityFrameworkCoreIntegration.InboxState>();
@@ -75,6 +76,25 @@ public class UserDbContext : AppDbContextBase
         modelBuilder.Entity<UserRefreshToken>()
             .HasOne(x => x.User)
             .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // User Status & KYC
+        modelBuilder.Entity<User>().Property(x => x.Status).HasConversion<string>();
+        modelBuilder.Entity<User>().Property(x => x.KycStatus).HasConversion<string>();
+        modelBuilder.Entity<User>().Property(p => p.KycSubmittedAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<User>().Property(p => p.KycVerifiedAt).HasColumnType("timestamp with time zone");
+
+        // UserSuspension
+        modelBuilder.Entity<UserSuspension>().ToTable("UserSuspensions").HasKey(x => x.Id);
+        modelBuilder.Entity<UserSuspension>().Property(x => x.Id).ValueGeneratedNever();
+        modelBuilder.Entity<UserSuspension>().Property(p => p.SuspendedAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<UserSuspension>().Property(p => p.ExpiresAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<UserSuspension>().Property(p => p.RevokedAt).HasColumnType("timestamp with time zone");
+
+        modelBuilder.Entity<UserSuspension>()
+            .HasOne(x => x.User)
+            .WithMany(u => u.Suspensions)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 

@@ -13,6 +13,7 @@ import Reservations from './pages/Reservations';
 import PropertyDetail from './pages/PropertyDetail';
 import NewProperty from './pages/NewProperty';
 import ApprovalQueuePage from './pages/admin/properties/approval-queue/page';
+import UsersPage from './pages/admin/users/page';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/trips" element={<Trips />} />
             <Route path="/host/reservations" element={<Reservations />} />
             <Route path="/admin/properties/approval-queue" element={<ApprovalQueuePage />} />
+            <Route path="/admin/users" element={<UsersPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

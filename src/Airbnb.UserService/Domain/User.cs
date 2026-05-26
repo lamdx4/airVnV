@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 using Airbnb.SharedKernel.Domain;
 using Airbnb.UserService.Domain.Events;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Domain;
 
@@ -11,6 +12,24 @@ public enum UserRole
     User,
     Moderator,
     Admin
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<UserStatus>))]
+public enum UserStatus
+{
+    Active,
+    Suspended,
+    Banned,
+    PendingVerification
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<KycStatus>))]
+public enum KycStatus
+{
+    NotSubmitted,
+    Pending,
+    Approved,
+    Rejected
 }
 
 public enum AuthProvider
@@ -24,18 +43,82 @@ public class User : AggregateRoot
 {
     public Guid Id { get; private set; }
     public string Email { get; private set; } = default!;
-    public string? HashedPassword { get; private set; } 
+    public string? HashedPassword { get; private set; }
     public UserRole Role { get; private set; }
+    public UserStatus Status { get; private set; } = UserStatus.Active;
     public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
+
+    // KYC
+    public KycStatus KycStatus { get; private set; } = KycStatus.NotSubmitted;
+    public DateTime? KycSubmittedAt { get; private set; }
+    public DateTime? KycVerifiedAt { get; private set; }
+    public string? KycRejectionReason { get; private set; }
 
     // Relationships
     public UserProfile Profile { get; private set; } = default!;
     public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
     public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
+    public ICollection<UserSuspension> Suspensions { get; private set; } = new List<UserSuspension>();
+
+    public bool IsVerified => KycStatus == KycStatus.Approved;
 
     public void SetPassword(string hashedPassword)
     {
         HashedPassword = hashedPassword;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Suspend(string reason, int? durationDays = null)
+    {
+        if (Status == UserStatus.Banned)
+            throw new BusinessException("Banned users cannot be suspended.", "USER_BANNED");
+
+        var suspension = new UserSuspension(Id, reason, durationDays);
+        Suspensions.Add(suspension);
+        Status = UserStatus.Suspended;
+    }
+
+    public void Unsuspend()
+    {
+        if (Status != UserStatus.Suspended)
+            throw new BusinessException("Only suspended users can be unsuspended.", "USER_NOT_SUSPENDED");
+
+        Status = UserStatus.Active;
+        
+        // Clear active suspensions
+        foreach (var suspension in Suspensions.Where(s => s.IsActive))
+        {
+            suspension.Revoke();
+        }
+    }
+
+    public void SubmitKyc()
+    {
+        if (KycStatus == KycStatus.Approved)
+            throw new BusinessException("User already verified.", "USER_ALREADY_VERIFIED");
+
+        KycStatus = KycStatus.Pending;
+        KycSubmittedAt = DateTime.UtcNow;
+    }
+
+    public void ApproveKyc()
+    {
+        if (KycStatus != KycStatus.Pending)
+            throw new BusinessException("Only pending KYC can be approved.", "KYC_NOT_PENDING");
+
+        KycStatus = KycStatus.Approved;
+        KycVerifiedAt = DateTime.UtcNow;
+    }
+
+    public void RejectKyc(string reason)
+    {
+        if (KycStatus != KycStatus.Pending)
+            throw new BusinessException("Only pending KYC can be rejected.", "KYC_NOT_PENDING");
+
+        KycStatus = KycStatus.Rejected;
+        KycVerifiedAt = DateTime.UtcNow;
+        KycRejectionReason = reason;
     }
 
     private User() { }
@@ -50,6 +133,7 @@ public class User : AggregateRoot
         Email = email;
         HashedPassword = hashedPassword;
         Role = role;
+        Status = UserStatus.Active;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
     }
@@ -64,6 +148,7 @@ public class User : AggregateRoot
         Email = email;
         HashedPassword = null;
         Role = role;
+        Status = UserStatus.Active;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
         AddLogin(provider, providerKey);
@@ -111,6 +196,35 @@ public class UserProfile
     }
 }
 
+public class UserSuspension
+{
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public User User { get; private set; } = default!;
+    public string Reason { get; private set; } = default!;
+    public DateTime SuspendedAt { get; private set; }
+    public DateTime? ExpiresAt { get; private set; }
+    public DateTime? RevokedAt { get; private set; }
+
+    public bool IsActive => RevokedAt == null && (ExpiresAt == null || ExpiresAt > DateTime.UtcNow);
+
+    private UserSuspension() { }
+
+    public UserSuspension(Guid userId, string reason, int? durationDays = null)
+    {
+        Id = Guid.CreateVersion7();
+        UserId = userId;
+        Reason = reason;
+        SuspendedAt = DateTime.UtcNow;
+        ExpiresAt = durationDays.HasValue ? DateTime.UtcNow.AddDays(durationDays.Value) : null;
+    }
+
+    public void Revoke()
+    {
+        RevokedAt = DateTime.UtcNow;
+    }
+}
+
 public class UserLogin
 {
     public Guid Id { get; private set; }
@@ -140,6 +254,7 @@ public class UserRefreshToken
     public string? IpAddress { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
     public DateTime LoginAt { get; private set; }
     public DateTime? RevokedAt { get; private set; }
 
