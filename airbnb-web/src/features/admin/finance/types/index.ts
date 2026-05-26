@@ -33,3 +33,44 @@ export interface DailyFinanceStat {
   payOut: number;
   revenue: number;
 }
+
+// Transaction History Types (UC-C1)
+export interface TransactionItem {
+  paymentId: string;
+  bookingId: string;
+  transactionId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  type: 'PayIn' | 'PayOut';
+  platformFee: number;
+  netAmount: number;
+  createdAt: string;
+  processedAt: string | null;
+}
+
+export interface TransactionSummary {
+  totalPayIn: number;
+  totalPayOut: number;
+  totalTransactions: number;
+  successTransactions: number;
+  failedTransactions: number;
+  pendingTransactions: number;
+}
+
+export interface TransactionResponse {
+  items: TransactionItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  summary: TransactionSummary;
+}
+
+// Platform Fee Config (UC-C3)
+export interface PlatformFeeConfig {
+  hostFeePercent: number;
+  guestFeePercent: number;
+  defaultPlatformFeePercent: number;
+  lastUpdatedBy: string;
+  lastUpdatedAt: string;
+}

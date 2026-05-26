@@ -2,6 +2,8 @@ import { useAdminDashboard } from '@/features/admin/dashboard/hooks/useAdminDash
 import { AdminDashboardStats } from '@/features/admin/dashboard/components/AdminDashboardStats';
 import { useAdminDashboardFinance } from '@/features/admin/finance/hooks/useAdminDashboardFinance';
 import { AdminDashboardFinance } from '@/features/admin/finance/components/AdminDashboardFinance';
+import { TransactionHistoryTable } from '@/features/admin/finance/transaction/components/TransactionHistoryTable';
+import { PlatformFeeConfig } from '@/features/admin/finance/transaction/components/PlatformFeeConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AdminDashboardPage() {
@@ -19,6 +21,8 @@ export default function AdminDashboardPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="settings">Platform Fee</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -27,6 +31,14 @@ export default function AdminDashboardPage() {
 
         <TabsContent value="finance" className="space-y-6">
           <AdminDashboardFinance finance={finance} loading={financeLoading} error={financeError} />
+        </TabsContent>
+
+        <TabsContent value="transactions" className="space-y-6">
+          <TransactionHistoryTable />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <PlatformFeeConfig />
         </TabsContent>
       </Tabs>
     </div>
