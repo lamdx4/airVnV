@@ -18,6 +18,7 @@ export interface Conversation {
   // Computed fields for UI convenience
   otherParticipantName: string;
   otherParticipantAvatar?: string;
+  otherLastReadMessageId?: string;
 }
 
 export interface ChatMessage {

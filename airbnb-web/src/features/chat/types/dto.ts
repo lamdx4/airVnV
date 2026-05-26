@@ -20,6 +20,7 @@ export interface ConversationDto {
   isArchived: boolean;
   participants: ConversationParticipantDto[];
   unreadCount: number;
+  otherLastReadMessageId?: string;
 }
 
 export interface MessageDto {

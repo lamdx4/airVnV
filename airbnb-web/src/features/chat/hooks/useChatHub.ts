@@ -135,9 +135,31 @@ export const useChatHub = (activeConversationId: string | null) => {
       });
     });
 
-    // Lắng nghe sự kiện Read
-    connection.on('MessageRead', (_conversationId: string, _messageId: string) => {
-       queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
+    // Lắng nghe sự kiện Read realtime từ SignalR
+    connection.on('MessageRead', (data: any) => {
+      const conversationId = data?.conversationId || data?.ConversationId;
+      const readerId = data?.readerId || data?.ReaderId;
+      const lastReadMessageId = data?.lastReadMessageId || data?.LastReadMessageId;
+
+      // Nếu người vừa đọc tin nhắn KHÔNG phải là chúng ta (tức là đối phương vừa đọc)
+      if (readerId?.toLowerCase() !== currentUserIdRef.current?.toLowerCase()) {
+        queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
+          if (!old) return old;
+          const newPages = old.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((c: Conversation) => {
+              if (c.id?.toLowerCase() === conversationId?.toLowerCase()) {
+                return {
+                  ...c,
+                  otherLastReadMessageId: lastReadMessageId
+                };
+              }
+              return c;
+            })
+          }));
+          return { ...old, pages: newPages };
+        });
+      }
     });
 
     startConnection();

@@ -10,8 +10,6 @@ export const useMessages = (conversationId: string | null) => {
       const response = await chatApi.getMessages(conversationId, pageParam as string | undefined);
       
       return {
-        // Backend trả về message mới nhất trước (giảm dần theo thời gian).
-        // Phía UI ta có thể cần đảo ngược lại mảng này tuỳ thuộc vào cách render (flex-col-reverse hay normal).
         items: response.items.map(mapMessageDtoToModel),
         nextCursor: response.nextCursor,
       };

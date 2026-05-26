@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import type { ChatMessage } from '../types/model';
+import type { ChatMessage, Conversation } from '../types/model';
 import { useMessages } from '../hooks/useMessages';
 import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
@@ -7,21 +7,54 @@ import { MessageBubble } from './MessageBubble';
 import { formatChatDate } from '../utils/date';
 import { Loading03Icon } from '@/components/common/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { chatApi } from '../api/chatApi';
 
 export const MessageList: React.FC = () => {
   const { activeConversationId } = useChat();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '');
   const { data: inboxData } = useInbox();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
-  const messages = data?.pages.flatMap(page => page.items).reverse() || [];
+  const messages = [...(data?.pages.flatMap(page => page.items) || [])]
+    .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+
+  const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
 
   const conversation = inboxData?.pages
     .flatMap(page => page.items)
-    .find(c => c.id === activeConversationId);
+    .find(c => c.id?.toLowerCase() === activeConversationId?.toLowerCase());
 
   const otherParticipantAvatar = conversation?.otherParticipantAvatar;
   const otherParticipantName = conversation?.otherParticipantName;
+
+  // Tự động gọi API đánh dấu đã đọc (Mark as read) khi mở chat hoặc có tin nhắn mới
+  useEffect(() => {
+    if (!activeConversationId || !lastMessageId) return;
+
+    chatApi.markAsRead(activeConversationId, lastMessageId)
+      .then(() => {
+        // Cập nhật unreadCount của chính mình về 0 trong cache
+        queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
+          if (!old) return old;
+          const newPages = old.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((c: Conversation) => {
+              if (c.id?.toLowerCase() === activeConversationId?.toLowerCase()) {
+                return {
+                  ...c,
+                  unreadCount: 0
+                };
+              }
+              return c;
+            })
+          }));
+          return { ...old, pages: newPages };
+        });
+      })
+      .catch(console.error);
+  }, [activeConversationId, lastMessageId, queryClient]);
 
   useEffect(() => {
     if (scrollRef.current && !isFetchingNextPage) {
@@ -90,6 +123,7 @@ export const MessageList: React.FC = () => {
                 const globalIndex = messages.findIndex(m => m.id === msg.id);
                 const isFirstOfChain = globalIndex === 0 || messages[globalIndex - 1].senderId !== msg.senderId;
                 const isLastOfChain = globalIndex === messages.length - 1 || messages[globalIndex + 1].senderId !== msg.senderId;
+                const isLastMessageOfConversation = globalIndex === messages.length - 1;
 
                 return (
                   <motion.div
@@ -104,6 +138,8 @@ export const MessageList: React.FC = () => {
                       otherParticipantName={otherParticipantName}
                       isFirstOfChain={isFirstOfChain}
                       isLastOfChain={isLastOfChain}
+                      otherLastReadMessageId={conversation?.otherLastReadMessageId}
+                      isLastMessageOfConversation={isLastMessageOfConversation}
                     />
                   </motion.div>
                 );

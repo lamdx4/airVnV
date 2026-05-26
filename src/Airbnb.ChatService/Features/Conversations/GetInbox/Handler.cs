@@ -46,7 +46,8 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             r.OtherParticipant?.DisplayName ?? "Unknown",
             r.OtherParticipant?.AvatarUrl,
             r.UnreadCount,
-            r.LastMessageAt
+            r.LastMessageAt,
+            r.OtherParticipant?.LastReadMessageId
         )).ToList();
 
         DateTimeOffset? nextCursor = hasMore ? items.Last().LastMessageAt : null;

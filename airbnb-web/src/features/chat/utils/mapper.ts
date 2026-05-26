@@ -27,6 +27,7 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
     unreadCount: dto.unreadCount || 0,
     otherParticipantName: otherParticipantName,
     otherParticipantAvatar: otherParticipantAvatar,
+    otherLastReadMessageId: dto.otherLastReadMessageId || dto.OtherLastReadMessageId,
   };
 };
 
