@@ -7,26 +7,26 @@ interface TypingData {
   isTyping: boolean;
 }
 
-export const useTypingStatus = (
+// Hook 1: Dành cho Component cần hiển thị UI (MessageList)
+export const useTypingSubscriber = (
   connection: signalR.HubConnection | null,
   activeConversationId: string | null
 ) => {
-  // state kiểm tra xem đối phương có đang typing không (vì chat 1-1)
   const [isTyping, setIsTyping] = useState(false);
-  
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isTypingRef = useRef(false);
+  const activeConversationIdRef = useRef(activeConversationId);
 
-  // 1. Subscriber: Lắng nghe sự kiện từ đối phương qua SignalR
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
+
   useEffect(() => {
     if (!connection) return;
 
     const handleUserTyping = (data: TypingData) => {
-      // Chỉ quan tâm sự kiện của phòng hiện tại
-      if (!activeConversationId || data.conversationId.toLowerCase() !== activeConversationId.toLowerCase()) {
+      const currentActiveId = activeConversationIdRef.current;
+      if (!currentActiveId || data.conversationId.toLowerCase() !== currentActiveId.toLowerCase()) {
         return;
       }
-
       setIsTyping(data.isTyping);
     };
 
@@ -35,33 +35,42 @@ export const useTypingStatus = (
     return () => {
       connection.off('UserTyping', handleUserTyping);
     };
-  }, [connection, activeConversationId]);
+  }, [connection]);
 
-  // 2. Clear state khi đổi phòng chat
   useEffect(() => {
     setIsTyping(false);
+  }, [activeConversationId]);
+
+  return isTyping;
+};
+
+// Hook 2: Dành cho Component nhập văn bản (MessageInput)
+export const useTypingPublisher = (
+  connection: signalR.HubConnection | null,
+  activeConversationId: string | null
+) => {
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+
+  useEffect(() => {
     isTypingRef.current = false;
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
   }, [activeConversationId]);
 
-  // 3. Publisher: Hàm xử lý khi mình gõ phím (sử dụng debounce)
   const handleTyping = useCallback(() => {
     if (!connection || !activeConversationId || connection.state !== signalR.HubConnectionState.Connected) return;
 
-    // Nếu trước đó chưa gõ, phát tín hiệu true
     if (!isTypingRef.current) {
       isTypingRef.current = true;
       connection.invoke('SendTypingStatus', activeConversationId, true).catch(console.error);
     }
 
-    // Reset lại timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Nếu sau 3 giây không gõ phím nào nữa -> phát tín hiệu false
     typingTimeoutRef.current = setTimeout(() => {
       isTypingRef.current = false;
       if (connection.state === signalR.HubConnectionState.Connected) {
@@ -70,7 +79,6 @@ export const useTypingStatus = (
     }, 3000);
   }, [connection, activeConversationId]);
 
-  // 4. Hàm chủ động báo ngừng gõ ngay lập tức (dùng khi vừa gửi tin nhắn xong)
   const stopTyping = useCallback(() => {
     if (!connection || !activeConversationId || connection.state !== signalR.HubConnectionState.Connected) return;
     
@@ -85,7 +93,6 @@ export const useTypingStatus = (
   }, [connection, activeConversationId]);
 
   return {
-    isTyping,
     handleTyping,
     stopTyping
   };

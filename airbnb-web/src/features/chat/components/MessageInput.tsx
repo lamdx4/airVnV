@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Smile, SendHorizontal, Image, Paperclip, Mic } from 'lucide-react';
 import { Loading03Icon } from '@/components/common/Icons';
+import type * as signalR from '@microsoft/signalr';
+import { useTypingPublisher } from '../hooks/useTypingStatus';
 
 interface MessageInputProps {
   conversationId: string;
-  handleTyping?: () => void;
-  stopTyping?: () => void;
+  connection: signalR.HubConnection | null;
 }
 
-export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, handleTyping, stopTyping }) => {
+export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, connection }) => {
+  const { handleTyping, stopTyping } = useTypingPublisher(connection, conversationId);
   const [content, setContent] = useState('');
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 

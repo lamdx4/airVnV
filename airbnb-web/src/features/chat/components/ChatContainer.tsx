@@ -5,7 +5,6 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { useChat } from '../context/ChatContext';
 import { useChatHub } from '../hooks/useChatHub';
-import { useTypingStatus } from '../hooks/useTypingStatus';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 
@@ -14,7 +13,6 @@ export const ChatContainer: React.FC = () => {
   
   // Initialize SignalR
   const connection = useChatHub(activeConversationId);
-  const { isTyping, handleTyping, stopTyping } = useTypingStatus(connection, activeConversationId);
 
   return (
     <div className="h-[100dvh] bg-[#f7f7f7] p-0 md:p-3">
@@ -43,11 +41,10 @@ export const ChatContainer: React.FC = () => {
                 className="flex-1 flex flex-col h-full"
               >
                 <ChatHeader />
-                <MessageList isTyping={isTyping} />
+                <MessageList connection={connection} activeConversationId={activeConversationId} />
                 <MessageInput 
                   conversationId={activeConversationId} 
-                  handleTyping={handleTyping}
-                  stopTyping={stopTyping}
+                  connection={connection}
                 />
               </motion.div>
             ) : (

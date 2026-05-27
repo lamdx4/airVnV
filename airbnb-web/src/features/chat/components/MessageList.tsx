@@ -1,7 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import type { ChatMessage, Conversation } from '../types/model';
 import { useMessages } from '../hooks/useMessages';
-import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
 import { MessageBubble } from './MessageBubble';
 import { formatChatDate } from '../utils/date';
@@ -10,13 +9,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
 import { Icon } from '@iconify/react';
+import type * as signalR from '@microsoft/signalr';
+import { useTypingSubscriber } from '../hooks/useTypingStatus';
 
 interface MessageListProps {
-  isTyping?: boolean;
+  connection: signalR.HubConnection | null;
+  activeConversationId: string;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ isTyping }) => {
-  const { activeConversationId } = useChat();
+export const MessageList: React.FC<MessageListProps> = ({ connection, activeConversationId }) => {
+  const isTyping = useTypingSubscriber(connection, activeConversationId);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '');
   const { data: inboxData } = useInbox();
   const scrollRef = useRef<HTMLDivElement>(null);
