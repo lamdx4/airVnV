@@ -1,6 +1,7 @@
 import React from 'react';
 import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
+import { usePresence } from '../hooks/usePresence';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronLeft, Info, MoreHorizontal } from 'lucide-react';
@@ -13,6 +14,9 @@ export const ChatHeader: React.FC = () => {
   const conversation = data?.pages
     .flatMap(page => page.items)
     .find(c => c.id === activeConversationId);
+
+  const { data: presence } = usePresence(conversation?.otherParticipantId);
+  const isOnline = presence?.isOnline;
 
   if (!activeConversationId) return null;
 
@@ -50,16 +54,24 @@ export const ChatHeader: React.FC = () => {
                     {conversation.otherParticipantName.charAt(0)}
                 </AvatarFallback>
             </Avatar>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            {isOnline && (
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00a699] border-2 border-white rounded-full z-10 shadow-sm transition-all duration-300 scale-in-center"></div>
+            )}
         </div>
 
         <div className="flex flex-col min-w-0">
           <h2 className="text-[16px] font-semibold text-[#222222] truncate leading-tight">
             {conversation.otherParticipantName}
           </h2>
-          <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
-            {conversation.propertyTitle || 'Guest'}
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
+              {conversation.propertyTitle || 'Guest'}
+            </p>
+            <span className="text-[10px] text-[#dddddd]">•</span>
+            <p className={`text-[13px] font-medium ${isOnline ? 'text-[#00a699]' : 'text-[#717171]'}`}>
+              {isOnline ? 'Online' : 'Offline'}
+            </p>
+          </div>
         </div>
       </div>
 

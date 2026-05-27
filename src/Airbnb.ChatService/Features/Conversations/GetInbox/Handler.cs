@@ -56,6 +56,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             r.PropertyTitle,
             r.OtherParticipant?.DisplayName ?? "Unknown",
             r.OtherParticipant?.AvatarUrl,
+            r.OtherParticipant?.UserId,
             r.UnreadCount,
             r.LastMessageAt,
             r.OtherParticipant?.LastReadMessageId,

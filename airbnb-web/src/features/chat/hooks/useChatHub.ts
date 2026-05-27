@@ -210,6 +210,11 @@ export const useChatHub = (activeConversationId: string | null) => {
       });
     });
 
+    // Lắng nghe sự kiện UserStatusChanged
+    connection.on('UserStatusChanged', (userId: string, status: string) => {
+      queryClient.setQueryData(['presence', userId?.toLowerCase()], { isOnline: status === 'online' });
+    });
+
     startConnection();
 
     return () => {
@@ -217,6 +222,7 @@ export const useChatHub = (activeConversationId: string | null) => {
       connection.off('ReceiveMessage');
       connection.off('MessageRead');
       connection.off('NewMessage');
+      connection.off('UserStatusChanged');
       setIsConnected(false);
     };
   }, [connection, queryClient]);
@@ -239,6 +245,19 @@ export const useChatHub = (activeConversationId: string | null) => {
       }
     };
   }, [connection, isConnected, activeConversationId]);
+
+  // 4. Gửi Heartbeat định kỳ để gia hạn Redis TTL
+  useEffect(() => {
+    if (!connection || !isConnected) return;
+
+    const interval = setInterval(() => {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.invoke('Heartbeat').catch(console.error);
+      }
+    }, 45000); // Mỗi 45 giây
+
+    return () => clearInterval(interval);
+  }, [connection, isConnected]);
 
   return connection;
 };

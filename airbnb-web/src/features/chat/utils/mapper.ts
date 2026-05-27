@@ -10,6 +10,8 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
     (dto.participants?.find((p: any) => p.userId !== currentUserId)?.displayName) || 'Unknown User';
   const otherParticipantAvatar = dto.otherParticipantAvatar || 
     (dto.participants?.find((p: any) => p.userId !== currentUserId)?.avatarUrl);
+  const otherParticipantId = dto.otherParticipantId || 
+    (dto.participants?.find((p: any) => p.userId !== currentUserId)?.userId);
 
   return {
     id: id,
@@ -30,6 +32,7 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
     otherLastReadMessageId: dto.otherLastReadMessageId || dto.OtherLastReadMessageId,
     latestMessageContent: dto.latestMessageContent || dto.LatestMessageContent,
     latestMessageId: dto.latestMessageId || dto.LatestMessageId,
+    otherParticipantId: otherParticipantId,
   };
 };
 

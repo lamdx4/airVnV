@@ -11,6 +11,7 @@ public record InboxItem(
     string PropertyTitle,
     string OtherParticipantName,
     string? OtherParticipantAvatar,
+    Guid? OtherParticipantId,
     int UnreadCount,
     DateTimeOffset LastMessageAt,
     Guid? OtherLastReadMessageId,

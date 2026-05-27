@@ -49,11 +49,19 @@ var redisConnection = builder.Configuration.GetConnectionString("redis");
 if (!string.IsNullOrEmpty(redisConnection))
 {
     builder.Services.AddSignalR().AddStackExchangeRedis(redisConnection);
+    builder.Services.AddStackExchangeRedisCache(options => 
+    {
+        options.Configuration = redisConnection;
+        options.InstanceName = "AirVnV:Chat:";
+    });
 }
 else
 {
     builder.Services.AddSignalR(); // Fallback if no redis string (e.g., local tests)
+    builder.Services.AddDistributedMemoryCache(); // Fallback
 }
+
+
 
 // 4. MassTransit + RabbitMQ + EF Core Outbox
 builder.Services.AddMassTransit(x =>
