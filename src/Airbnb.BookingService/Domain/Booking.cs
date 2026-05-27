@@ -93,7 +93,14 @@ public class Booking : AggregateRoot
             
         Status = BookingStatus.Confirmed;
         Version++;
-        Raise(new BookingConfirmedDomainEvent(Id, Version));
+        Raise(new BookingConfirmedDomainEvent(
+            Id, 
+            PropertyId, 
+            GuestId, 
+            TotalPrice, 
+            CheckIn, 
+            CheckOut, 
+            Version));
     }
 
     public void Reject(Guid currentHostId)

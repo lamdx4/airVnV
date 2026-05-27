@@ -25,7 +25,6 @@ public class UserProfileUpdatedEventConsumer(AppDbContext db) : IConsumer<UserPr
         if (participants.Any())
         {
             await db.SaveChangesAsync(context.CancellationToken);
-            // TODO: (Optional) Push SignalR update to update UI if they are online
         }
     }
 }

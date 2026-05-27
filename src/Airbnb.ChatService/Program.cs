@@ -41,6 +41,10 @@ builder.Services.AddHttpClient<PropertyServiceClient>(client =>
     // Sử dụng Service Discovery name từ Aspire AppHost
     client.BaseAddress = new Uri("http://propertyservice");
 });
+builder.Services.AddHttpClient<UserServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://userservice");
+});
 
 // 3. Redis & SignalR Backplane
 var redisConnection = builder.Configuration.GetConnectionString("redis");

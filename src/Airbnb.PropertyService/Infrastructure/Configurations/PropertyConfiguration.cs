@@ -65,6 +65,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         });
 
         builder.Property(p => p.Status).HasConversion<int>();
+        builder.Property(p => p.BookingMode).HasConversion<string>();
         builder.Property(p => p.SuspensionReason).HasMaxLength(500);
         builder.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
         builder.Property(p => p.UpdatedAt).HasColumnType("timestamp with time zone");

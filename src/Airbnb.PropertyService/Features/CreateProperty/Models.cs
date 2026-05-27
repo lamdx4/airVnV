@@ -4,6 +4,7 @@ using Mediator;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Airbnb.PropertyService.Domain.Enums;
 
 namespace Airbnb.PropertyService.Features.CreateProperty;
 
@@ -41,7 +42,8 @@ public record CreatePropertyDto(
     TimeOnly CheckOutTime,
     bool FlexibleCheckOut = false,
     List<string>? CustomRules = null,
-    List<Guid>? AmenityIds = null);
+    List<Guid>? AmenityIds = null,
+    BookingMode BookingMode = BookingMode.InstantBook);
 
 // ============================================================
 // HTTP Request (Multipart/form-data)

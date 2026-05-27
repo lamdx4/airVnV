@@ -19,6 +19,11 @@ public record BookingCreatedDomainEvent(
 
 public record BookingConfirmedDomainEvent(
     Guid BookingId, 
+    Guid PropertyId,
+    Guid GuestId,
+    decimal TotalPrice,
+    DateOnly CheckIn,
+    DateOnly CheckOut,
     long AggregateVersion
 ) : IDomainEvent
 {

@@ -34,6 +34,7 @@ public class Property : AggregateRoot
     public HouseRules HouseRules { get; private set; } = default!;
 
     public PropertyStatus Status { get; private set; }
+    public BookingMode BookingMode { get; private set; }
     public string? SuspensionReason { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -64,7 +65,8 @@ public class Property : AggregateRoot
         PropertyCapacity capacity,
         HouseRules houseRules,
         string? admin1Code = null,
-        string? admin2Code = null)
+        string? admin2Code = null,
+        BookingMode bookingMode = BookingMode.InstantBook)
     {
         if (hostId == Guid.Empty) throw new BusinessException("HostId cannot be empty.", "PROPERTY_HOST_REQUIRED");
         if (string.IsNullOrWhiteSpace(title)) throw new BusinessException("Title cannot be empty.", "PROPERTY_TITLE_REQUIRED");
@@ -87,6 +89,7 @@ public class Property : AggregateRoot
             Pricing = pricing,
             Capacity = capacity,
             HouseRules = houseRules,
+            BookingMode = bookingMode,
             Status = PropertyStatus.Draft,
             CreatedAt = DateTimeOffset.UtcNow,
         };
@@ -239,7 +242,8 @@ public class Property : AggregateRoot
         string? description,
         Pricing? pricing,
         PropertyCapacity? capacity,
-        HouseRules? houseRules)
+        HouseRules? houseRules,
+        BookingMode? bookingMode)
     {
         if (title is not null)
         {
@@ -251,6 +255,7 @@ public class Property : AggregateRoot
         if (pricing is not null) Pricing = pricing;
         if (capacity is not null) Capacity = capacity;
         if (houseRules is not null) HouseRules = houseRules;
+        if (bookingMode is not null) BookingMode = bookingMode.Value;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

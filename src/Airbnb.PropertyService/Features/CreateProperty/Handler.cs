@@ -67,7 +67,8 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             capacity: capacity,
             houseRules: houseRules,
             admin1Code: admin1Code,
-            admin2Code: admin2Code);
+            admin2Code: admin2Code,
+            bookingMode: data.BookingMode);
 
         db.Properties.Add(property);
 
