@@ -120,8 +120,8 @@ public class Booking : AggregateRoot
     {
         if (currentHostId != HostId)
             throw new InvalidOperationException("Only the host of this property can reject the booking.");
-        if (Status != BookingStatus.Pending)
-            throw new InvalidOperationException("Only Pending bookings can be rejected.");
+        if (Status != BookingStatus.Pending && Status != BookingStatus.AwaitingApproval)
+            throw new InvalidOperationException("Only Pending or AwaitingApproval bookings can be rejected.");
             
         Status = BookingStatus.Cancelled;
         CancelledBy = currentHostId;
