@@ -53,15 +53,14 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
 
         await hubContext.Clients.Group($"conv_{req.ConversationId}").SendAsync("ReceiveMessage", messagePayload, ct);
 
-        // 5. Push SignalR tới user id group của những người tham gia khác
-        var otherUserGroups = conversation.Participants
-            .Where(p => p.UserId != req.SenderId)
+        // 5. Push SignalR tới user id group của tất cả những người tham gia
+        var allUserGroups = conversation.Participants
             .Select(p => $"user_{p.UserId}")
             .ToList();
 
-        if (otherUserGroups.Count > 0)
+        if (allUserGroups.Count > 0)
         {
-            await hubContext.Clients.Groups(otherUserGroups).SendAsync("NewMessage", messagePayload, ct);
+            await hubContext.Clients.Groups(allUserGroups).SendAsync("NewMessage", messagePayload, ct);
         }
 
         return new Response(message.Id, message.CreatedAt);

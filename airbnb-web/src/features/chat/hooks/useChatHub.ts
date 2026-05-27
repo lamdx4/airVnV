@@ -63,8 +63,6 @@ export const useChatHub = (activeConversationId: string | null) => {
     connection.on('ReceiveMessage', (messageDto: any) => {
       // Dùng Ref để chống Closure trap.
       const newMsg = mapMessageDtoToModel(messageDto);
-      const currentActiveId = activeConversationIdRef.current;
-      const isMyMessage = newMsg.senderId?.toLowerCase() === currentUserIdRef.current?.toLowerCase();
       
       // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
       queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
@@ -88,51 +86,6 @@ export const useChatHub = (activeConversationId: string | null) => {
             }
           }
         }
-        return { ...old, pages: newPages };
-      });
-
-      // 2. Cập nhật cache của Inbox (đẩy conversation lên đầu, tăng unread, đổi last message)
-      queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
-        if (!old) return old;
-        const newPages = [...old.pages];
-        
-        let targetConv: Conversation | null = null;
-        
-        // Tìm và cắt cuộc hội thoại ra khỏi danh sách cũ (bất kể ở trang nào) để tránh nhân bản (duplicate)
-        for (let i = 0; i < newPages.length; i++) {
-          const items = [...newPages[i].items];
-          const idx = items.findIndex((c: Conversation) => c.id?.toLowerCase() === newMsg.conversationId?.toLowerCase());
-          if (idx !== -1) {
-            targetConv = { ...items[idx] };
-            items.splice(idx, 1);
-            newPages[i] = { ...newPages[i], items };
-            break;
-          }
-        }
-        
-        if (targetConv) {
-          targetConv.lastMessageAt = newMsg.sentAt;
-          targetConv.latestMessageContent = newMsg.content;
-          targetConv.latestMessageId = newMsg.id;
-          
-          // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
-          const isCurrentlyActive = currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase();
-          if (!isMyMessage && !isCurrentlyActive) {
-            targetConv.unreadCount += 1;
-          }
-          
-          // Đẩy cuộc hội thoại đã cập nhật lên đầu trang 0
-          if (newPages.length > 0) {
-            newPages[0] = {
-              ...newPages[0],
-              items: [targetConv, ...newPages[0].items]
-            };
-          }
-        } else {
-          // Nếu cuộc hội thoại chưa tồn tại trong cache, invalidate để tải mới hoàn toàn
-          queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
-        }
-
         return { ...old, pages: newPages };
       });
     });
@@ -163,15 +116,11 @@ export const useChatHub = (activeConversationId: string | null) => {
       }
     });
 
-    // Lắng nghe sự kiện NewMessage (từ SignalR gửi qua user_ group khi không active)
+    // Lắng nghe sự kiện NewMessage (từ SignalR gửi qua user_ group)
     connection.on('NewMessage', (messageDto: any) => {
       const newMsg = mapMessageDtoToModel(messageDto);
       const currentActiveId = activeConversationIdRef.current;
-
-      // Nếu đang mở khung chat này, ReceiveMessage sẽ xử lý, ta bỏ qua NewMessage để tránh lặp
-      if (currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase()) {
-        return;
-      }
+      const isMyMessage = newMsg.senderId?.toLowerCase() === currentUserIdRef.current?.toLowerCase();
 
       queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
         if (!old) return old;
@@ -194,7 +143,12 @@ export const useChatHub = (activeConversationId: string | null) => {
           targetConv.lastMessageAt = newMsg.sentAt;
           targetConv.latestMessageContent = newMsg.content;
           targetConv.latestMessageId = newMsg.id;
-          targetConv.unreadCount += 1;
+          
+          // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
+          const isCurrentlyActive = currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase();
+          if (!isMyMessage && !isCurrentlyActive) {
+            targetConv.unreadCount += 1;
+          }
           
           if (newPages.length > 0) {
             newPages[0] = {
