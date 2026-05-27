@@ -333,4 +333,51 @@ public class Property : AggregateRoot
         
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    public void UpdateReview(Guid reviewId, Guid guestId, int newRating, string newComment)
+    {
+        var review = _reviews.FirstOrDefault(r => r.Id == reviewId)
+            ?? throw new BusinessException("Review not found.", "PROPERTY_REVIEW_NOT_FOUND");
+
+        if (review.GuestId != guestId)
+            throw new BusinessException("You can only update your own reviews.", "PROPERTY_REVIEW_UNAUTHORIZED");
+
+        // Recalculate AverageRating O(1)
+        var oldRating = review.Rating;
+        review.Update(newRating, newComment);
+
+        if (ReviewCount > 0)
+        {
+            var totalScore = (AverageRating * ReviewCount) - oldRating + newRating;
+            AverageRating = totalScore / ReviewCount;
+        }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void DeleteReview(Guid reviewId, Guid guestId)
+    {
+        var review = _reviews.FirstOrDefault(r => r.Id == reviewId)
+            ?? throw new BusinessException("Review not found.", "PROPERTY_REVIEW_NOT_FOUND");
+
+        if (review.GuestId != guestId)
+            throw new BusinessException("You can only delete your own reviews.", "PROPERTY_REVIEW_UNAUTHORIZED");
+
+        var oldRating = review.Rating;
+        _reviews.Remove(review);
+
+        if (ReviewCount == 1)
+        {
+            ReviewCount = 0;
+            AverageRating = 0m;
+        }
+        else if (ReviewCount > 1)
+        {
+            var totalScore = (AverageRating * ReviewCount) - oldRating;
+            ReviewCount--;
+            AverageRating = totalScore / ReviewCount;
+        }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }

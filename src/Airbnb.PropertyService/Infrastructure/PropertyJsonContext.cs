@@ -31,5 +31,17 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse))]
 [JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.ApiResponse<Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse>))]
 
-[JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng cho validation errors
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.UpdateReview.UpdateReviewRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.UpdateReview.UpdateReviewResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.UpdateReview.UpdateReviewResponse>))]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.DeleteReview.DeleteReviewRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.DeleteReview.DeleteReviewResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.DeleteReview.DeleteReviewResponse>))]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetReviews.GetReviewsRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetReviews.GetReviewsResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetReviews.GetReviewsResponse>))]
+
+[JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng for validation errors
 internal partial class PropertyJsonContext : JsonSerializerContext { }

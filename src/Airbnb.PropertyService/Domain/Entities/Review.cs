@@ -29,4 +29,12 @@ public class Review
         Comment = comment?.Trim() ?? string.Empty;
         CreatedAt = DateTimeOffset.UtcNow;
     }
+
+    public void Update(int newRating, string newComment)
+    {
+        if (newRating < 1 || newRating > 5) throw new ArgumentException("Rating must be between 1 and 5");
+        
+        Rating = newRating;
+        Comment = newComment?.Trim() ?? string.Empty;
+    }
 }
