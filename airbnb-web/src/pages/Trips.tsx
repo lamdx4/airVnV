@@ -1,10 +1,12 @@
 import { useGuestBookings, useCancelBooking } from '@/features/booking';
+import { useInitiatePayment } from '@/features/payment/hooks';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
 export default function Trips() {
   const { data: bookings, isLoading, isError } = useGuestBookings();
   const cancelBooking = useCancelBooking();
+  const initiatePayment = useInitiatePayment();
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading your trips...</div>;
   if (isError) return <div className="p-8 text-center text-red-500">Failed to load trips.</div>;
@@ -51,7 +53,25 @@ export default function Trips() {
                   Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: booking.currencyCode }).format(booking.totalPrice)}
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-gray-100">
+                <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col gap-2">
+                  {booking.status === 'Pending' && (
+                    <Button 
+                      className="w-full bg-[#ff385c] hover:bg-[#e31c5f] text-white"
+                      onClick={() => {
+                        initiatePayment.mutate({ bookingId: booking.id }, {
+                          onSuccess: (data) => {
+                            window.location.href = data.paymentUrl;
+                          },
+                          onError: (err) => {
+                            console.error("Failed to initiate payment:", err);
+                          }
+                        });
+                      }}
+                      disabled={initiatePayment.isPending}
+                    >
+                      {initiatePayment.isPending ? 'Processing...' : 'Pay Now'}
+                    </Button>
+                  )}
                   {booking.status === 'Pending' || booking.status === 'Confirmed' ? (
                     <Button 
                       variant="outline" 
@@ -61,7 +81,7 @@ export default function Trips() {
                           cancelBooking.mutate(booking.id);
                         }
                       }}
-                      disabled={cancelBooking.isPending}
+                      disabled={cancelBooking.isPending || initiatePayment.isPending}
                     >
                       Cancel Reservation
                     </Button>

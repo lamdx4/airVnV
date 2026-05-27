@@ -20,4 +20,4 @@ export const updateReview = async (propertyId: string, reviewId: string, data: R
 
 export const deleteReview = async (propertyId: string, reviewId: string): Promise<any> => {
   return await api.delete(`/api/properties/${propertyId}/reviews/${reviewId}`);
-};
+};  
