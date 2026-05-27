@@ -4,6 +4,7 @@ using Airbnb.BookingService.Infrastructure.HttpClients;
 using Airbnb.ServiceDefaults.Infrastructure;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Airbnb.BookingService.Domain.Enums;
 
 namespace Airbnb.BookingService.Features.CreateBooking;
 
@@ -91,7 +92,8 @@ public sealed class Handler(
             pricing.ServiceFee, 
             taxAmount,
             totalPrice, 
-            pricing.CurrencyCode);
+            pricing.CurrencyCode,
+            propertyInfo.BookingMode);
 
         db.Bookings.Add(booking);
         await db.SaveChangesAsync(ct);

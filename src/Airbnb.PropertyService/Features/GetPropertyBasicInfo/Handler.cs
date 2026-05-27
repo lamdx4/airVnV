@@ -14,7 +14,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
         var property = await db.Properties
             .AsNoTracking()
             .Where(p => p.Id == req.PropertyId)
-            .Select(p => new Response(p.Id, p.Title, p.HostId, p.Pricing, p.CountryCode))
+            .Select(p => new Response(p.Id, p.Title, p.HostId, p.Pricing, p.CountryCode, p.BookingMode))
             .FirstOrDefaultAsync(ct);
 
         if (property == null)

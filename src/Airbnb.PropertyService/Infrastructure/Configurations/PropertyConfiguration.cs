@@ -18,10 +18,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(p => p.Slug).IsRequired().HasMaxLength(300);
         builder.HasIndex(p => p.Slug).IsUnique();
 
-        // [2] Classification – FK -> admin_divisions
+        // [2] Classification – Vietnam only, raw strings
         builder.Property(p => p.CountryCode).IsRequired().HasMaxLength(2);
-        builder.Property(p => p.Admin1Code).HasMaxLength(10);
-        builder.Property(p => p.Admin2Code).HasMaxLength(10);
+        builder.Property(p => p.Admin1Code).HasMaxLength(100);
+        builder.Property(p => p.Admin2Code).HasMaxLength(100);
         builder.HasIndex(p => new { p.CountryCode, p.Admin1Code, p.Admin2Code });
 
         // [3] Display
@@ -31,19 +31,41 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(p => p.Latitude).IsRequired();
         builder.Property(p => p.Longitude).IsRequired();
 
-        // JSONB Value Objects
-        builder.OwnsOne(p => p.AddressRaw, nav => { nav.ToJson(); });
+        // JSONB Value Objects (Dành cho cấu trúc động và Flexible Rules - Native AOT Safe)
+        builder.Property(p => p.AddressRaw)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, PropertyJsonContext.Default.AddressRaw),
+                v => System.Text.Json.JsonSerializer.Deserialize<AddressRaw>(v, PropertyJsonContext.Default.AddressRaw) ?? new AddressRaw()
+            );
 
-        builder.OwnsOne(p => p.Pricing, nav =>
+        builder.Property(p => p.HouseRules)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, PropertyJsonContext.Default.HouseRules),
+                v => System.Text.Json.JsonSerializer.Deserialize<HouseRules>(v, PropertyJsonContext.Default.HouseRules)!
+            );
+
+        // Owned Types phẳng (Dành cho các trường siêu tĩnh, cần Queryability và Index hiệu năng cao)
+        builder.OwnsOne(p => p.Pricing, pricing =>
         {
-            nav.ToJson();
-            nav.Property(x => x.CurrencyCode).HasMaxLength(3);
+            pricing.Property(x => x.BasePrice).HasColumnName("pricing_base_price").IsRequired();
+            pricing.Property(x => x.CurrencyCode).HasColumnName("pricing_currency_code").HasMaxLength(3).IsRequired();
+            pricing.Property(x => x.CleaningFee).HasColumnName("pricing_cleaning_fee").IsRequired();
+            pricing.Property(x => x.ServiceFee).HasColumnName("pricing_service_fee").IsRequired();
+            pricing.Property(x => x.WeekendPremiumPercent).HasColumnName("pricing_weekend_premium_percent").IsRequired();
         });
 
-        builder.OwnsOne(p => p.Capacity, nav => { nav.ToJson(); });
-        builder.OwnsOne(p => p.HouseRules, nav => { nav.ToJson(); });
+        builder.OwnsOne(p => p.Capacity, capacity =>
+        {
+            capacity.Property(x => x.GuestCount).HasColumnName("capacity_guest_count").IsRequired();
+            capacity.Property(x => x.BedroomCount).HasColumnName("capacity_bedroom_count").IsRequired();
+            capacity.Property(x => x.BedCount).HasColumnName("capacity_bed_count").IsRequired();
+            capacity.Property(x => x.BathroomCount).HasColumnName("capacity_bathroom_count").IsRequired();
+        });
 
         builder.Property(p => p.Status).HasConversion<int>();
+        builder.Property(p => p.BookingMode).HasConversion<string>();
         builder.Property(p => p.SuspensionReason).HasMaxLength(500);
         builder.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
         builder.Property(p => p.UpdatedAt).HasColumnType("timestamp with time zone");
@@ -53,5 +75,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
                .WithOne()
                .HasForeignKey(img => img.PropertyId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        // Navigation - Reviews
+        builder.HasMany(p => p.Reviews)
+               .WithOne()
+               .HasForeignKey(r => r.PropertyId)
+               .OnDelete(DeleteBehavior.Cascade);
+               
+        builder.Metadata.FindNavigation(nameof(Property.Reviews))!
+               .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

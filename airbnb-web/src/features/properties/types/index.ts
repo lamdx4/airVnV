@@ -76,12 +76,26 @@ export interface Property {
     checkInTime: string;
     checkOutTime: string;
     flexibleCheckOut: boolean;
+    customRules?: string[];
   };
   
   images: PropertyImage[];
   propertyAmenities: PropertyAmenity[];
   availabilities: PropertyAvailability[];
   
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PropertySummary {
+  id: string;
+  title: string;
+  displayAddress: string;
+  status: PropertyStatus;
+  basePrice: number;
+  coverImageUrl?: string;
+  guestCount: number;
+  bedroomCount: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -108,7 +122,21 @@ export interface EditPropertyInput {
     checkInTime: string;
     checkOutTime: string;
     flexibleCheckOut: boolean;
+    customRules?: string[];
   };
+}
+
+export interface UpdateLocationRequest {
+  latitude: number;
+  longitude: number;
+  countryCode: string;
+  displayAddress: string;
+  streetAddress: string;
+  unit?: string;
+  postalCode?: string;
+  subDivisions?: Record<string, string>;
+  admin1Code?: string;
+  admin2Code?: string;
 }
 
 export interface CreatePropertyFormData {
@@ -144,6 +172,7 @@ export interface CreatePropertyFormData {
   checkInTime: string;
   checkOutTime: string;
   flexibleCheckOut: boolean;
+  customRules?: string[];
 }
 
 export interface CreatePropertyRequest {
@@ -171,6 +200,7 @@ export interface CreatePropertyRequest {
   checkInTime: string;
   checkOutTime: string;
   flexibleCheckOut: boolean;
+  customRules?: string[];
 
   // Location
   latitude: number;
@@ -180,4 +210,45 @@ export interface CreatePropertyRequest {
   streetAddress: string;
   admin1Code?: string;
   admin2Code?: string;
+  unit?: string;
+  subDivisions?: Record<string, string>;
+  amenityIds?: string[];
+}
+
+export interface AddressFieldConfig {
+  id: string;
+  label: string;
+  photonKeys: string[];
+  isRequired: boolean;
+  type?: string;
+}
+
+export interface TaxDto {
+  type: string;
+  rate: number;
+}
+
+export interface PaymentGatewayDto {
+  provider: string;
+  supportedCurrencies: string[];
+}
+
+export interface CountryMasterData {
+  countryCode: string;
+  name: string;
+  nativeCurrency: string;
+  isSupported: boolean;
+  defaultLatitude: number;
+  defaultLongitude: number;
+  taxes: TaxDto[];
+  paymentGateways: PaymentGatewayDto[];
+  addressFormConfig?: AddressFieldConfig[];
+}
+
+export interface SupportedCountry {
+  code: string;
+  name: string;
+  nativeCurrency: string;
+  defaultLatitude: number;
+  defaultLongitude: number;
 }

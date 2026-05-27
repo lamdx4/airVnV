@@ -22,7 +22,7 @@ public sealed class Handler(AppDbContext db)
             req.Unit,
             req.PostalCode,
             req.SubDivisions,
-            null
+            new AddressNotes()
         );
 
         property.UpdateLocation(

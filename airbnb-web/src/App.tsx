@@ -17,6 +17,7 @@ import UsersPage from './pages/admin/users/page';
 import AdminDashboardPage from './pages/admin/dashboard/page';
 import SupportTicketsPage from './pages/admin/support/tickets/page';
 import RefundsPage from './pages/admin/support/refunds/page';
+import PaymentResult from './pages/PaymentResult';
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/support/tickets" element={<SupportTicketsPage />} />
             <Route path="/admin/support/refunds" element={<RefundsPage />} />
+            <Route path="/payment/callback" element={<PaymentResult />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -18,13 +18,17 @@ public sealed class Handler(AppDbContext db, IMediaProvider mediaProvider)
             .FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.HostId == req.RequesterId, ct)
             ?? throw new NotFoundException("Property not found or access denied.");
 
-        var uploadTasks = req.Files.Select(async file => 
+        var uploadResults = new List<Airbnb.Infrastructure.Media.MediaUploadResult>();
+        foreach (var file in req.Files)
         {
-            using var stream = file.OpenReadStream();
-            return await mediaProvider.UploadAsync(stream, file.FileName, "properties", ct);
-        });
-
-        var uploadResults = await Task.WhenAll(uploadTasks);
+            using var requestStream = file.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await requestStream.CopyToAsync(memoryStream, ct);
+            memoryStream.Position = 0;
+            
+            var uploadResult = await mediaProvider.UploadAsync(memoryStream, file.FileName, "properties", ct);
+            uploadResults.Add(uploadResult);
+        }
         var addedImages = new List<ImageResponse>();
 
         try

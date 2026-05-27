@@ -15,6 +15,20 @@ public class BookingSagaDbContext : SagaDbContext
     {
         get { yield return new BookingStateMap(); }
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        // Exclude MassTransit shared outbox tables from migration in this Saga context
+        modelBuilder.Entity<InboxState>().ToTable("InboxState", t => t.ExcludeFromMigrations());
+        modelBuilder.Entity<OutboxMessage>().ToTable("OutboxMessage", t => t.ExcludeFromMigrations());
+        modelBuilder.Entity<OutboxState>().ToTable("OutboxState", t => t.ExcludeFromMigrations());
+    }
 }
 
 public class BookingStateMap : SagaClassMap<BookingState>
@@ -23,6 +37,7 @@ public class BookingStateMap : SagaClassMap<BookingState>
     {
         entity.Property(x => x.CurrentState).HasMaxLength(64);
         entity.Property(x => x.CurrencyCode).HasMaxLength(3);
+        entity.Property(x => x.BookingMode).HasMaxLength(20);
         
         // Ensure index for performance
         entity.HasIndex(x => x.BookingId);

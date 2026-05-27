@@ -49,6 +49,7 @@ builder.AddKafkaConsumer<string, string>("kafka", options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.BookingApprovalTimeoutConsumer>();
     
     // Saga Configuration
     x.AddSagaStateMachine<Airbnb.BookingService.Infrastructure.Saga.BookingStateMachine, Airbnb.BookingService.Infrastructure.Saga.BookingState>()
@@ -59,12 +60,6 @@ builder.Services.AddMassTransit(x =>
         });
 
     x.AddEntityFrameworkOutbox<BookingDbContext>(o =>
-    {
-        o.UsePostgres();
-        o.UseBusOutbox();
-    });
-
-    x.AddEntityFrameworkOutbox<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>(o =>
     {
         o.UsePostgres();
         o.UseBusOutbox();
@@ -130,4 +125,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
 
 app.MapDefaultEndpoints();
+
+// DB Migration
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<BookingDbContext>();
+        await context.Database.MigrateAsync();
+
+        var sagaContext = services.GetRequiredService<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>();
+        await sagaContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 app.Run();

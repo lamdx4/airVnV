@@ -17,6 +17,12 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Aspire Service Defaults (OTEL, HealthChecks, Resilience)
 builder.AddServiceDefaults();
 
+// HTTP Clients
+builder.Services.AddHttpClient<Airbnb.PropertyService.Infrastructure.HttpClients.BookingServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://bookingservice");
+});
+
 // 2. Database - Npgsql
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -63,6 +69,7 @@ builder.Services.AddScoped<DomainEventPublisher>();
 
 // 4. Mediator (source-generated CQRS dispatch – zero reflection)
 builder.Services.AddMediator();
+builder.Services.AddAuthorization();
 
 // 3. FastEndpoints & Swagger
 builder.Services.AddFastEndpoints();
@@ -86,6 +93,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 var app = builder.Build();
 
 // 5. Middleware pipeline
+app.UseAuthorization();
 app.UseFastEndpoints(c =>
 {
     c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(
@@ -100,5 +108,21 @@ if (app.Environment.IsDevelopment())
 
 // Map các endpoint mặc định của Aspire (health, discovery)
 app.MapDefaultEndpoints();
+
+// 6. DB Migration & Seeding
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        await context.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+    }
+}
 
 app.Run();

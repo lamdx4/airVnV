@@ -61,7 +61,14 @@ public class PaymentConsumer(
                     var booking = await db.Bookings.FindAsync([bookingId], stoppingToken);
                     if (booking != null)
                     {
-                        booking.Confirm();
+                        if (booking.BookingMode == Airbnb.BookingService.Domain.Enums.BookingMode.InstantBook)
+                        {
+                            booking.Confirm();
+                        }
+                        else
+                        {
+                            booking.AwaitForApproval();
+                        }
                         
                         // Đánh dấu đã xử lý
                         db.ProcessedEvents.Add(new ProcessedEvent 

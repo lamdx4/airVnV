@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/images/bulk");
+        AllowAnonymous();
         AllowFileUploads();
         Summary(s => {
             s.Summary = "Bulk add images to property (Host only)";

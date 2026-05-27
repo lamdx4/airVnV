@@ -31,7 +31,7 @@ export const HostPropertyDashboard: React.FC = () => {
   const pageSize = 5;
   
   const { data, isLoading } = useMyProperties(page, pageSize);
-  const properties = data?.data || [];
+  const properties = data?.items || [];
   const totalCount = data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -96,14 +96,14 @@ export const HostPropertyDashboard: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 rounded-xl overflow-hidden border bg-slate-100 shrink-0">
                         <img 
-                            src={property.images?.find(i => i.type === 1)?.url || 'https://placehold.co/100x100?text=No+Img'} 
+                            src={property.coverImageUrl || 'https://placehold.co/100x100?text=No+Img'} 
                             className="h-full w-full object-cover" 
                             alt={property.title}
                         />
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-hof truncate max-w-[240px] group-hover:text-rausch transition-colors">{property.title}</p>
-                        <p className="text-xs text-slate-400 mt-1 truncate max-w-[200px]">{property.description}</p>
+                        <p className="text-xs text-slate-400 mt-1 truncate max-w-[200px]">{property.guestCount} guests • {property.bedroomCount} bedrooms</p>
                       </div>
                     </div>
                   </td>
@@ -113,7 +113,7 @@ export const HostPropertyDashboard: React.FC = () => {
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-hof">${property.pricing.basePrice}</span>
+                    <span className="font-bold text-hof">${property.basePrice}</span>
                     <span className="text-xs text-slate-400"> / night</span>
                   </td>
                   <td className="px-6 py-4">

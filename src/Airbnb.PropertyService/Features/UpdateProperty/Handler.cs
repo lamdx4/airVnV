@@ -41,18 +41,21 @@ public sealed class Handler(AppDbContext db)
 
         HouseRules? houseRules = null;
         if (req.AllowPets.HasValue || req.AllowSmoking.HasValue || req.AllowEvents.HasValue ||
-            req.CheckInTime.HasValue || req.CheckOutTime.HasValue || req.FlexibleCheckOut.HasValue)
+            req.CheckInTime.HasValue || req.CheckOutTime.HasValue || req.FlexibleCheckOut.HasValue ||
+            req.CustomRules is not null)
         {
             houseRules = new HouseRules(
-                req.AllowPets ?? property.HouseRules.AllowPets,
-                req.AllowSmoking ?? property.HouseRules.AllowSmoking,
-                req.AllowEvents ?? property.HouseRules.AllowEvents,
-                req.CheckInTime ?? property.HouseRules.CheckInTime,
-                req.CheckOutTime ?? property.HouseRules.CheckOutTime,
-                req.FlexibleCheckOut ?? property.HouseRules.FlexibleCheckOut);
+                AllowPets: req.AllowPets ?? property.HouseRules.AllowPets,
+                AllowSmoking: req.AllowSmoking ?? property.HouseRules.AllowSmoking,
+                AllowEvents: req.AllowEvents ?? property.HouseRules.AllowEvents,
+                CheckInTime: req.CheckInTime ?? property.HouseRules.CheckInTime,
+                CheckOutTime: req.CheckOutTime ?? property.HouseRules.CheckOutTime,
+                FlexibleCheckIn: false,
+                FlexibleCheckOut: req.FlexibleCheckOut ?? property.HouseRules.FlexibleCheckOut,
+                CustomRules: req.CustomRules ?? property.HouseRules.CustomRules);
         }
 
-        property.UpdateCoreInfo(req.Title, req.Description, pricing, capacity, houseRules);
+        property.UpdateCoreInfo(req.Title, req.Description, pricing, capacity, houseRules, req.BookingMode);
         await db.SaveChangesAsync(ct);
 
         return new Response(property.Id, property.UpdatedAt!.Value);

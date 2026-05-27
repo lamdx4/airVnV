@@ -7,29 +7,43 @@ namespace Airbnb.PropertyService.Infrastructure;
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.Request), TypeInfoPropertyName = "CreatePropertyRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.CreatePropertyDto), TypeInfoPropertyName = "CreatePropertyDto")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.Response), TypeInfoPropertyName = "CreatePropertyResponse")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetProperty.Request), TypeInfoPropertyName = "GetPropertyRequest")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetProperty.PropertyDto>), TypeInfoPropertyName = "ApiResponseGetProperty")]
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetCountryMasterData.Request), TypeInfoPropertyName = "GetCountryMasterDataRequest")]
-[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetCountryMasterData.CountryMasterDataDto>), TypeInfoPropertyName = "ApiResponseGetCountryMasterData")]
 
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.ToggleCountrySupport.Request), TypeInfoPropertyName = "ToggleCountrySupportRequest")]
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.ToggleCountrySupport.Response), TypeInfoPropertyName = "ToggleCountrySupportResponse")]
-[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.ToggleCountrySupport.Response>), TypeInfoPropertyName = "ApiResponseToggleCountrySupport")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Domain.ValueObjects.AddressRaw), TypeInfoPropertyName = "AddressRaw")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Domain.ValueObjects.AddressNotes), TypeInfoPropertyName = "AddressNotes")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Domain.ValueObjects.HouseRules), TypeInfoPropertyName = "HouseRules")]
+[JsonSerializable(typeof(System.Collections.Generic.List<string>), TypeInfoPropertyName = "StringList")]
+[JsonSerializable(typeof(Dictionary<string, string>), TypeInfoPropertyName = "StringDictionary")]
 
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateTax.Request), TypeInfoPropertyName = "CreateTaxRequest")]
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateTax.Response), TypeInfoPropertyName = "CreateTaxResponse")]
-[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.CreateTax.Response>), TypeInfoPropertyName = "ApiResponseCreateTax")]
-
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreatePaymentGateway.Request), TypeInfoPropertyName = "CreatePaymentGatewayRequest")]
-[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreatePaymentGateway.Response), TypeInfoPropertyName = "CreatePaymentGatewayResponse")]
-[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.CreatePaymentGateway.Response>), TypeInfoPropertyName = "ApiResponseCreatePaymentGateway")]
 
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetMyProperties.Request), TypeInfoPropertyName = "GetMyPropertiesRequest")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse), TypeInfoPropertyName = "GetMyPropertiesPropertyResponse")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>), TypeInfoPropertyName = "GetMyPropertiesPagedResponse")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>>), TypeInfoPropertyName = "ApiResponseGetMyPropertiesPaged")]
 
+// AddReview
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AddReview.Request))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AddReview.Response))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.AddReview.Response>))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.ApiResponse<Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse>))]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.UpdateReview.UpdateReviewRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.UpdateReview.UpdateReviewResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.UpdateReview.UpdateReviewResponse>))]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.DeleteReview.DeleteReviewRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.DeleteReview.DeleteReviewResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.DeleteReview.DeleteReviewResponse>))]
+
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetReviews.GetReviewsRequest))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetReviews.GetReviewsResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetReviews.GetReviewsResponse>))]
+
+[JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng for validation errors
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Request), TypeInfoPropertyName = "GetPendingPropertiesRequest")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Response), TypeInfoPropertyName = "GetPendingPropertiesResponse")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.AdminPropertyModeration.GetPendingProperties.Response>), TypeInfoPropertyName = "ApiResponseGetPendingProperties")]

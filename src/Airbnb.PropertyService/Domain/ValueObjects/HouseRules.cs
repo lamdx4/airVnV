@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Airbnb.PropertyService.Domain.ValueObjects;
 
 public record HouseRules(
@@ -7,5 +10,6 @@ public record HouseRules(
     TimeOnly CheckInTime,
     TimeOnly CheckOutTime,
     bool FlexibleCheckIn = false,
-    bool FlexibleCheckOut = false
+    bool FlexibleCheckOut = false,
+    List<string>? CustomRules = null
 );

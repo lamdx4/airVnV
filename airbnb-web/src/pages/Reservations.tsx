@@ -41,9 +41,10 @@ export default function Reservations() {
                       <span className={`px-2 py-1 text-xs font-bold rounded-full ${
                         booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
                         booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        booking.status === 'AwaitingApproval' ? 'bg-orange-100 text-orange-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {booking.status}
+                        {booking.status === 'AwaitingApproval' ? 'Awaiting Approval' : booking.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -61,7 +62,7 @@ export default function Reservations() {
                       {new Intl.NumberFormat('en-US', { style: 'currency', currency: booking.currencyCode }).format(booking.totalPrice)}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      {booking.status === 'Pending' && (
+                      {booking.status === 'AwaitingApproval' && (
                         <>
                           <Button 
                             variant="default" 

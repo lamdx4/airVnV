@@ -1,6 +1,7 @@
 using Airbnb.SharedKernel.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PaymentService.Domain;
+using MassTransit;
 
 public class PaymentDbContext(
     DbContextOptions<PaymentDbContext> options,
@@ -26,5 +27,10 @@ public class PaymentDbContext(
                .IsUnique()
                .HasFilter("\"Status\" = 'Pending'")
                .HasDatabaseName("ix_payments_booking_pending");
+
+        // MassTransit Inbox/Outbox configuration
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
