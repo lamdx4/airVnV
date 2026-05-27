@@ -7,9 +7,11 @@ import { Loading03Icon } from '@/components/common/Icons';
 
 interface MessageInputProps {
   conversationId: string;
+  handleTyping?: () => void;
+  stopTyping?: () => void;
 }
 
-export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) => {
+export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, handleTyping, stopTyping }) => {
   const [content, setContent] = useState('');
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 
@@ -17,6 +19,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
     if (!content.trim() || isPending) return;
     sendMessage(content.trim());
     setContent('');
+    stopTyping?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -43,7 +46,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
         <div className="relative flex-1 py-1">
           <Textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              setContent(e.target.value);
+              handleTyping?.();
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="min-h-[24px] h-[24px] max-h-32 border-none shadow-none focus-visible:ring-0 py-0 px-0 transition-all resize-none overflow-y-auto scrollbar-none text-[15px] text-[#222222] placeholder:text-[#9a9a9a]"

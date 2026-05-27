@@ -9,8 +9,13 @@ import { Loading03Icon } from '@/components/common/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
+import { Icon } from '@iconify/react';
 
-export const MessageList: React.FC = () => {
+interface MessageListProps {
+  isTyping?: boolean;
+}
+
+export const MessageList: React.FC<MessageListProps> = ({ isTyping }) => {
   const { activeConversationId } = useChat();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '');
   const { data: inboxData } = useInbox();
@@ -171,6 +176,25 @@ export const MessageList: React.FC = () => {
         </div>
       ))}
       
+      {isTyping && (
+        <div className="flex items-start gap-3 mt-4">
+          <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 border border-[#ebebeb]">
+            {otherParticipantAvatar ? (
+              <img src={otherParticipantAvatar} alt="avatar" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full bg-[#f7f7f7] flex items-center justify-center">
+                <Icon icon="hugeicons:user-01" className="text-[#b0b0b0]" />
+              </div>
+            )}
+          </div>
+          <div className="bg-[#f1f1f1] rounded-2xl rounded-tl-sm px-4 py-2 text-[#222222] self-start inline-flex items-center gap-1 h-10 w-16 justify-center">
+            <span className="h-2 w-2 bg-[#b0b0b0] rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <span className="h-2 w-2 bg-[#b0b0b0] rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <span className="h-2 w-2 bg-[#b0b0b0] rounded-full animate-bounce" />
+          </div>
+        </div>
+      )}
+
       <div className="h-4" />
     </div>
   );

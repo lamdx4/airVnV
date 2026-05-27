@@ -59,6 +59,19 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conv_{conversationId}");
     }
 
+    public async Task SendTypingStatus(Guid conversationId, bool isTyping)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var userIdObj) && userIdObj is Guid userId)
+        {
+            await Clients.OthersInGroup($"conv_{conversationId}").SendAsync("UserTyping", new 
+            { 
+                ConversationId = conversationId, 
+                UserId = userId, 
+                IsTyping = isTyping 
+            });
+        }
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         if (Context.Items.TryGetValue(UserIdKey, out var userIdObj) && userIdObj is Guid userId)
