@@ -113,19 +113,19 @@ export const ConversationList: React.FC = () => {
                 
                 <div className="flex-1 min-w-0 pr-2">
                   <h3 className={`text-[15px] truncate transition-colors mb-1 ${
-                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-normal text-[#222222]'
+                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
                   }`}>
                     {conv.otherParticipantName}
                   </h3>
                   
                   <p className={`text-[14px] truncate leading-snug mb-1 ${
-                      conv.unreadCount > 0 ? 'font-semibold text-[#222222]' : 'text-[#6a6a6a] font-normal'
+                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#6a6a6a] font-medium'
                   }`}>
                     {conv.propertyTitle.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
                   </p>
                   
                   <p className={`text-[13px] truncate ${
-                      conv.unreadCount > 0 ? 'font-semibold text-[#222222]' : 'text-[#b0b0b0] font-normal'
+                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#8a8a8a] font-medium'
                   }`}>
                     {conv.latestMessageContent || 'Tap to view message history'}
                   </p>

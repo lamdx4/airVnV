@@ -48,4 +48,15 @@ public class ChatHub(AppDbContext db) : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conv_{conversationId}");
     }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var userIdObj) && userIdObj is Guid userId)
+        {
+            // Xóa connection khỏi user group (SignalR cũng tự động clear, nhưng thêm vào để tường minh hoặc xử lý thêm logic offline sau này)
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+        }
+
+        await base.OnDisconnectedAsync(exception);
+    }
 }

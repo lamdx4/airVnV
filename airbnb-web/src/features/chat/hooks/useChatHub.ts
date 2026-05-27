@@ -163,12 +163,60 @@ export const useChatHub = (activeConversationId: string | null) => {
       }
     });
 
+    // Lắng nghe sự kiện NewMessage (từ SignalR gửi qua user_ group khi không active)
+    connection.on('NewMessage', (messageDto: any) => {
+      const newMsg = mapMessageDtoToModel(messageDto);
+      const currentActiveId = activeConversationIdRef.current;
+
+      // Nếu đang mở khung chat này, ReceiveMessage sẽ xử lý, ta bỏ qua NewMessage để tránh lặp
+      if (currentActiveId?.toLowerCase() === newMsg.conversationId?.toLowerCase()) {
+        return;
+      }
+
+      queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
+        if (!old) return old;
+        const newPages = [...old.pages];
+        
+        let targetConv: Conversation | null = null;
+        
+        for (let i = 0; i < newPages.length; i++) {
+          const items = [...newPages[i].items];
+          const idx = items.findIndex((c: Conversation) => c.id?.toLowerCase() === newMsg.conversationId?.toLowerCase());
+          if (idx !== -1) {
+            targetConv = { ...items[idx] };
+            items.splice(idx, 1);
+            newPages[i] = { ...newPages[i], items };
+            break;
+          }
+        }
+        
+        if (targetConv) {
+          targetConv.lastMessageAt = newMsg.sentAt;
+          targetConv.latestMessageContent = newMsg.content;
+          targetConv.latestMessageId = newMsg.id;
+          targetConv.unreadCount += 1;
+          
+          if (newPages.length > 0) {
+            newPages[0] = {
+              ...newPages[0],
+              items: [targetConv, ...newPages[0].items]
+            };
+          }
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
+        }
+
+        return { ...old, pages: newPages };
+      });
+    });
+
     startConnection();
 
     return () => {
       // Khi component unmount hoặc connection thay đổi, gỡ bỏ lắng nghe sự kiện
       connection.off('ReceiveMessage');
       connection.off('MessageRead');
+      connection.off('NewMessage');
       setIsConnected(false);
     };
   }, [connection, queryClient]);
