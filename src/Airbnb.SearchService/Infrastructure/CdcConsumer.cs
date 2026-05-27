@@ -48,6 +48,7 @@ public class CdcConsumer(
                         BasePrice = after.GetProperty("pricing_base_price").GetDecimal(),
                         AverageRating = after.GetProperty("AverageRating").GetDecimal(),
                         ReviewCount = after.GetProperty("ReviewCount").GetInt32(),
+                        Location = $"{after.GetProperty("Latitude").GetDouble()},{after.GetProperty("Longitude").GetDouble()}",
                         Address = new AddressVO
                         {
                             CountryCode = after.GetProperty("CountryCode").GetString()!,

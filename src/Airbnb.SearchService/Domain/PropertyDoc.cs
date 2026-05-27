@@ -10,6 +10,7 @@ public class PropertyDoc
     public decimal BasePrice { get; set; }
     public decimal AverageRating { get; set; }
     public int ReviewCount { get; set; }
+    public string Location { get; set; } = default!; // "lat, lon" for Elasticsearch geo_point
     public AddressVO Address { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
 }
