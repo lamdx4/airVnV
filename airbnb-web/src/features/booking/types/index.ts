@@ -1,4 +1,4 @@
-export type BookingStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
+export type BookingStatus = 'Pending' | 'AwaitingApproval' | 'Confirmed' | 'Cancelled' | 'Completed';
 
 // Represents the payload sent to the API
 export interface CreateBookingRequest {
