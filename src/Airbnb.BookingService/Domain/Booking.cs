@@ -19,7 +19,7 @@ public class Booking : AggregateRoot
     public Guid HostId { get; private set; }    
     public Guid GuestId { get; private set; }
     public string CountryCode { get; private set; } = default!; // Added for payment routing
-    public Airbnb.BookingService.Domain.Enums.BookingMode BookingMode { get; private set; }
+    public string BookingMode { get; private set; } = default!;
     public DateOnly CheckIn { get; private set; }
     public DateOnly CheckOut { get; private set; }
     public int GuestCount { get; private set; }
@@ -39,7 +39,7 @@ public class Booking : AggregateRoot
     public static Booking Create(
         Guid propertyId, Guid hostId, Guid guestId, string countryCode,
         DateOnly checkIn, DateOnly checkOut, int guestCount,
-        decimal basePricePerNight, decimal cleaningFee, decimal serviceFee, decimal taxAmount, decimal totalPrice, string currencyCode, Airbnb.BookingService.Domain.Enums.BookingMode bookingMode)
+        decimal basePricePerNight, decimal cleaningFee, decimal serviceFee, decimal taxAmount, decimal totalPrice, string currencyCode, string bookingMode)
     {
         if (propertyId == Guid.Empty) throw new ArgumentException("PropertyId cannot be empty.");
         if (hostId == Guid.Empty) throw new ArgumentException("HostId cannot be empty.");
@@ -75,7 +75,7 @@ public class Booking : AggregateRoot
 
         booking.Raise(new BookingCreatedDomainEvent(
             booking.Id, booking.PropertyId, booking.GuestId, 
-            booking.TotalPrice, booking.CurrencyCode, booking.CountryCode, booking.BookingMode.ToString(),
+            booking.TotalPrice, booking.CurrencyCode, booking.CountryCode, booking.BookingMode,
             booking.Version));
 
         return booking;

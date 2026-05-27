@@ -46,7 +46,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         During(AwaitingPayment,
             When(PaymentSucceeded)
                 .Unschedule(PaymentTimeout)
-                .IfElse(context => context.Saga.BookingMode == "InstantBook",
+                .IfElse(context => context.Saga.BookingMode == Airbnb.BookingService.Domain.Enums.BookingMode.InstantBook,
                     x => x.TransitionTo(Confirmed),
                     x => x.TransitionTo(AwaitingHostApproval)),
 

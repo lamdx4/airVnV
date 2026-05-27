@@ -1,7 +1,7 @@
 namespace Airbnb.BookingService.Domain.Enums;
 
-public enum BookingMode
+public static class BookingMode
 {
-    RequestToBook = 1,
-    InstantBook = 2
+    public const string RequestToBook = "RequestToBook";
+    public const string InstantBook = "InstantBook";
 }

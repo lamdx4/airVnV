@@ -16,7 +16,7 @@ public class BookingDbContext(
         var booking = modelBuilder.Entity<Booking>();
         booking.ToTable("Bookings").HasKey(x => x.Id);
         booking.Property(b => b.Status).HasConversion<string>();
-        booking.Property(b => b.BookingMode).HasConversion<string>();
+        booking.Property(b => b.BookingMode).HasMaxLength(20);
         booking.Property(b => b.CountryCode).HasMaxLength(2).IsRequired();
         booking.Property(b => b.CurrencyCode).HasMaxLength(3).IsRequired();
 

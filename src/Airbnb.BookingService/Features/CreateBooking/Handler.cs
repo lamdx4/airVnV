@@ -93,7 +93,7 @@ public sealed class Handler(
             taxAmount,
             totalPrice, 
             pricing.CurrencyCode,
-            Enum.Parse<BookingMode>(propertyInfo.BookingMode));
+            propertyInfo.BookingMode);
 
         db.Bookings.Add(booking);
         await db.SaveChangesAsync(ct);
