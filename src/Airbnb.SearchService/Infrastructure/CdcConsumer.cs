@@ -42,20 +42,20 @@ public class CdcConsumer(
                     {
                         Id = Guid.Parse(after.GetProperty("Id").GetString()!),
                         HostId = Guid.Parse(after.GetProperty("HostId").GetString()!),
-                        Name = after.GetProperty("Name").GetString()!,
+                        Title = after.GetProperty("Title").GetString()!,
                         Description = after.GetProperty("Description").GetString()!,
-                        PricePerNight = after.GetProperty("PricePerNight").GetDecimal(),
+                        Slug = after.GetProperty("Slug").GetString()!,
+                        BasePrice = after.GetProperty("pricing_base_price").GetDecimal(),
+                        AverageRating = after.GetProperty("AverageRating").GetDecimal(),
+                        ReviewCount = after.GetProperty("ReviewCount").GetInt32(),
                         Address = new AddressVO
                         {
-                            CountryCode = after.GetProperty("Address_CountryCode").GetString()!,
-                            City = after.GetProperty("Address_City").GetString()!,
-                            StateProvince = after.TryGetProperty("Address_StateProvince", out var sp) ? sp.GetString() : null,
-                            Ward = after.TryGetProperty("Address_Ward", out var w) ? w.GetString() : null,
-                            StreetLine1 = after.GetProperty("Address_StreetLine1").GetString()!,
-                            StreetLine2 = after.TryGetProperty("Address_StreetLine2", out var s2) ? s2.GetString() : null,
-                            PostalCode = after.TryGetProperty("Address_PostalCode", out var pc) ? pc.GetString() : null,
-                            Latitude = after.GetProperty("Address_Latitude").GetDouble(),
-                            Longitude = after.GetProperty("Address_Longitude").GetDouble()
+                            CountryCode = after.GetProperty("CountryCode").GetString()!,
+                            Admin1Code = after.TryGetProperty("Admin1Code", out var a1) ? a1.GetString() : null,
+                            Admin2Code = after.TryGetProperty("Admin2Code", out var a2) ? a2.GetString() : null,
+                            DisplayAddress = after.GetProperty("DisplayAddress").GetString()!,
+                            Latitude = after.GetProperty("Latitude").GetDouble(),
+                            Longitude = after.GetProperty("Longitude").GetDouble()
                         },
                         CreatedAt = DateTime.Parse(after.GetProperty("CreatedAt").GetString()!)
                     };

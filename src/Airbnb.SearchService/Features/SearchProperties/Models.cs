@@ -7,7 +7,7 @@ namespace Airbnb.SearchService.Features.SearchProperties;
 public record Request(string? Query, decimal? MinPrice, decimal? MaxPrice);
 public record Response(List<PropertyDoc> Results);
 
-public class Endpoint : FastEndpoints.Endpoint<Request, Response>
+public class Endpoint : FastEndpoints.Endpoint<Request, Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Response>>
 {
     private readonly ElasticsearchClient elasticClient;
     public Endpoint(ElasticsearchClient elasticClient) => this.elasticClient = elasticClient;
@@ -24,20 +24,19 @@ public class Endpoint : FastEndpoints.Endpoint<Request, Response>
             .Indices("properties")
             .Query(q => q
                 .Bool(b => b
-                    .Should(sh => sh.Match(m => m.Field(f => f.Name).Query(req.Query ?? "")))
-                    .Filter(f => f.Range(r => r.Number(nr => nr.Field(f => f.PricePerNight).Gte((double?)(req.MinPrice ?? 0)).Lte((double?)(req.MaxPrice ?? 1000000)))))
+                    .Should(sh => sh.Match(m => m.Field(f => f.Title).Query(req.Query ?? "")))
+                    .Filter(f => f.Range(r => r.Number(nr => nr.Field(f => f.BasePrice).Gte((double?)(req.MinPrice ?? 0)).Lte((double?)(req.MaxPrice ?? 1000000)))))
                 )
             ), ct);
 
         if (searchResponse.IsValidResponse)
         {
-            Response = new Response(searchResponse.Documents.ToList());
+            var result = new Response(searchResponse.Documents.ToList());
+            await Send.ResponseAsync(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Response>.SuccessResult(result), cancellation: ct);
         }
         else
         {
-            // For error responses, gán Response property doesn't work the same as SendErrorsAsync
-            // But since SendErrorsAsync is not working, I'll throw or use a different way
-            throw new Exception("Search failed");
+            await Send.ResponseAsync(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Response>.FailureResult("SEARCH_ERROR", "Search failed: " + searchResponse.DebugInformation), 500, ct);
         }
     }
 }

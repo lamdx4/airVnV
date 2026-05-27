@@ -9,5 +9,6 @@ namespace Airbnb.SearchService.Infrastructure;
 [JsonSerializable(typeof(Response))]
 [JsonSerializable(typeof(PropertyDoc))]
 [JsonSerializable(typeof(List<PropertyDoc>))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Response>))]
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class SearchJsonContext : JsonSerializerContext { }
