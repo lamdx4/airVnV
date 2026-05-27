@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import type { ChatMessage, Conversation } from '../types/model';
 import { useMessages } from '../hooks/useMessages';
 import { useChat } from '../context/ChatContext';
@@ -56,11 +56,33 @@ export const MessageList: React.FC = () => {
       .catch(console.error);
   }, [activeConversationId, lastMessageId, queryClient]);
 
-  useEffect(() => {
-    if (scrollRef.current && !isFetchingNextPage) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  const prevScrollHeightRef = useRef<number>(0);
+  const prevLastMessageIdRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+
+    // Nếu ID tin nhắn cuối thay đổi (có tin nhắn mới hoặc đổi phòng) -> Cuộn xuống đáy
+    if (prevLastMessageIdRef.current !== lastMessageId) {
+      // Nếu có tin nhắn mới trong lúc đang chat thì cuộn mượt, nếu là lần đầu mở phòng thì cuộn tức thì
+      if (prevLastMessageIdRef.current) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      } else {
+        el.scrollTop = el.scrollHeight;
+      }
+    } 
+    // Nếu load thêm tin nhắn cũ (lastMessageId không đổi nhưng scrollHeight tăng) -> Bù trừ vị trí cuộn
+    else if (prevScrollHeightRef.current > 0) {
+      const heightDiff = el.scrollHeight - prevScrollHeightRef.current;
+      if (heightDiff > 0) {
+        el.scrollTop += heightDiff;
+      }
     }
-  }, [messages.length, isFetchingNextPage]);
+
+    prevScrollHeightRef.current = el.scrollHeight;
+    prevLastMessageIdRef.current = lastMessageId;
+  }, [messages.length, lastMessageId, activeConversationId]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
@@ -94,7 +116,7 @@ export const MessageList: React.FC = () => {
   return (
     <div 
       ref={scrollRef}
-      className="flex-1 overflow-y-auto px-4 md:px-12 py-8 space-y-10 bg-[#ffffff] scroll-smooth custom-scrollbar"
+      className="flex-1 overflow-y-auto px-4 md:px-12 py-8 space-y-10 bg-[#ffffff] custom-scrollbar"
       onScroll={handleScroll}
     >
       {hasNextPage && (
