@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,14 @@ builder.Services.AddCors(options =>
 
 // 1. Aspire Service Defaults (OTEL, HealthChecks, Resilience)
 builder.AddServiceDefaults();
+
+// JWT Authentication
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing"));
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin", "Moderator"));
+});
 
 // 2. Database - Npgsql
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -103,6 +112,9 @@ builder.Services.SwaggerDocument(o =>
 
 var app = builder.Build();
 app.UseCors("AllowAll");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // 7. Middleware pipeline
 app.UseFastEndpoints(c =>

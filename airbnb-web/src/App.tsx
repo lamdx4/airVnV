@@ -15,6 +15,8 @@ import NewProperty from './pages/NewProperty';
 import ApprovalQueuePage from './pages/admin/properties/approval-queue/page';
 import UsersPage from './pages/admin/users/page';
 import AdminDashboardPage from './pages/admin/dashboard/page';
+import SupportTicketsPage from './pages/admin/support/tickets/page';
+import RefundsPage from './pages/admin/support/refunds/page';
 
 export default function App() {
   return (
@@ -39,6 +41,8 @@ export default function App() {
             <Route path="/admin/properties/approval-queue" element={<ApprovalQueuePage />} />
             <Route path="/admin/users" element={<UsersPage />} />
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/support/tickets" element={<SupportTicketsPage />} />
+            <Route path="/admin/support/refunds" element={<RefundsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

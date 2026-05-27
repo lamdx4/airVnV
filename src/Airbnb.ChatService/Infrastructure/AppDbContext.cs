@@ -1,4 +1,5 @@
 using Airbnb.ChatService.Domain;
+using Airbnb.ChatService.Domain.Tickets;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,16 @@ public class AppDbContext : DbContext
     {
     }
 
+    // Existing
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
     public DbSet<Message> Messages => Set<Message>();
+
+    // New - Support Tickets (Epic D)
+    public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+    public DbSet<TicketComment> TicketComments => Set<TicketComment>();
+    public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
+    public DbSet<RefundRequest> RefundRequests => Set<RefundRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,8 +57,6 @@ public class AppDbContext : DbContext
             entity.HasKey(e => new { e.ConversationId, e.UserId });
             
             // Index cho việc load Inbox nhanh
-            // Entity Framework Core hiện tại không hỗ trợ trực tiếp INCLUDE qua Fluent API một cách phổ biến
-            // Nên ta có thể tạo index bình thường, hoặc tạo Include qua migration raw sql.
             entity.HasIndex(e => e.UserId)
                   .HasDatabaseName("idx_participants_user_id");
 
@@ -64,10 +70,56 @@ public class AppDbContext : DbContext
             
             // Index để phân trang
             entity.HasIndex(e => new { e.ConversationId, e.CreatedAt })
-                  .IsDescending(false, true) // Mặc định là ASC, ta cấu hình DESC cho CreatedAt khi query
+                  .IsDescending(false, true)
                   .HasDatabaseName("idx_messages_conversation_created");
                   
             entity.Property(e => e.MessageType).HasConversion<string>();
+        });
+
+        // ------------------ Support Tickets (Epic D) ------------------
+        modelBuilder.Entity<SupportTicket>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Priority).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Category).HasConversion<string>().HasMaxLength(20);
+            
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_tickets_status");
+            entity.HasIndex(e => e.Priority).HasDatabaseName("idx_tickets_priority");
+            entity.HasIndex(e => e.CreatedAt).HasDatabaseName("idx_tickets_created");
+            entity.HasIndex(e => e.ReporterId).HasDatabaseName("idx_tickets_reporter");
+            entity.HasIndex(e => e.AssignedToId).HasDatabaseName("idx_tickets_assigned");
+        });
+
+        modelBuilder.Entity<TicketComment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Ticket).WithMany(t => t.Comments).HasForeignKey(e => e.TicketId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.TicketId).HasDatabaseName("idx_ticket_comments_ticket");
+        });
+
+        modelBuilder.Entity<TicketAttachment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Ticket).WithMany(t => t.Attachments).HasForeignKey(e => e.TicketId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ------------------ Refund Requests (Epic D) ------------------
+        modelBuilder.Entity<RefundRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Currency).HasMaxLength(3);
+            entity.Property(e => e.RequestedAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            
+            entity.HasIndex(e => e.BookingId).HasDatabaseName("idx_refunds_booking");
+            entity.HasIndex(e => e.GuestId).HasDatabaseName("idx_refunds_guest");
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_refunds_status");
+            entity.HasIndex(e => e.CreatedAt).HasDatabaseName("idx_refunds_created");
         });
     }
 }
