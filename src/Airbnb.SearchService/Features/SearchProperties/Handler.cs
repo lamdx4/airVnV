@@ -1,5 +1,6 @@
 using Mediator;
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Airbnb.SearchService.Domain;
 using Airbnb.ServiceDefaults.Infrastructure;
 
@@ -9,29 +10,36 @@ public class Handler(ElasticsearchClient elasticClient) : IQueryHandler<Request,
 {
     public async ValueTask<PagedResponse<PropertyDoc>> Handle(Request req, CancellationToken ct)
     {
-        // Phân trang
-        var from = (req.Page - 1) * req.PageSize;
+        var page = Math.Max(req.Page, 1);
+        var pageSize = Math.Clamp(req.PageSize, 1, 100);
+        var from = (page - 1) * pageSize;
+
+        var geoPoint = new LatLonGeoLocation
+        {
+            Lat = req.Latitude,
+            Lon = req.Longitude
+        };
 
         var searchResponse = await elasticClient.SearchAsync<PropertyDoc>(s => s
             .Indices("properties")
+            .TrackTotalHits(new TrackHits(true))
             .From(from)
-            .Size(req.PageSize)
+            .Size(pageSize)
             .Query(q => q
                 .Bool(b => b
                     .Filter(f => f
                         .GeoDistance(g => g
-                            .Field("location")
+                            .Field(p => p.Location)
                             .Distance($"{req.RadiusKm}km")
-                            .Location($"{req.Latitude},{req.Longitude}")
+                            .Location(geoPoint)
                         )
                     )
                 )
             )
-            // Có thể sort theo khoảng cách:
             .Sort(so => so
                 .GeoDistance(gd => gd
-                    .Field("location")
-                    .Location($"{req.Latitude},{req.Longitude}")
+                    .Field(p => p.Location)
+                    .Location(geoPoint)
                     .Order(SortOrder.Asc)
                     .Unit(DistanceUnit.Kilometers)
                 )
@@ -44,8 +52,8 @@ public class Handler(ElasticsearchClient elasticClient) : IQueryHandler<Request,
 
         return new PagedResponse<PropertyDoc>(
             TotalCount: searchResponse.Total,
-            Page: req.Page,
-            PageSize: req.PageSize,
+            Page: page,
+            PageSize: pageSize,
             Results: searchResponse.Documents.ToList()
         );
     }
