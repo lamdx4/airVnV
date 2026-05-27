@@ -30,6 +30,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                     context.Saga.GuestId = context.Message.GuestId;
                     context.Saga.TotalPrice = context.Message.TotalPrice;
                     context.Saga.CurrencyCode = context.Message.CurrencyCode;
+                    context.Saga.BookingMode = context.Message.BookingMode;
                     context.Saga.CreatedAt = DateTimeOffset.UtcNow;
                 })
                 .Send(context => new InitiatePaymentCommand(
@@ -45,7 +46,9 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         During(AwaitingPayment,
             When(PaymentSucceeded)
                 .Unschedule(PaymentTimeout)
-                .TransitionTo(Confirmed),
+                .IfElse(context => context.Saga.BookingMode == "InstantBook",
+                    x => x.TransitionTo(Confirmed),
+                    x => x.TransitionTo(AwaitingHostApproval)),
 
             When(PaymentFailed)
                 .Unschedule(PaymentTimeout)
@@ -66,6 +69,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
 
     // States
     public State AwaitingPayment { get; private set; } = default!;
+    public State AwaitingHostApproval { get; private set; } = default!;
     public State Confirmed { get; private set; } = default!;
     public State Cancelled { get; private set; } = default!;
 

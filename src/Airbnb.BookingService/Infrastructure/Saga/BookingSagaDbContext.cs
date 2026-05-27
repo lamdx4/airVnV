@@ -37,6 +37,7 @@ public class BookingStateMap : SagaClassMap<BookingState>
     {
         entity.Property(x => x.CurrentState).HasMaxLength(64);
         entity.Property(x => x.CurrencyCode).HasMaxLength(3);
+        entity.Property(x => x.BookingMode).HasMaxLength(20);
         
         // Ensure index for performance
         entity.HasIndex(x => x.BookingId);

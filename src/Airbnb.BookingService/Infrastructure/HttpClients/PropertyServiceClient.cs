@@ -4,7 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Airbnb.BookingService.Infrastructure.HttpClients;
 
 public record PricingDto(decimal BasePrice, string CurrencyCode, decimal CleaningFee, decimal ServiceFee, decimal WeekendPremiumPercent);
-public record PropertyBasicInfoResponse(Guid PropertyId, string Title, Guid HostId, PricingDto Pricing, string CountryCode);
+public record PropertyBasicInfoResponse(Guid PropertyId, string Title, Guid HostId, PricingDto Pricing, string CountryCode, string BookingMode);
 
 public record TaxDto(string Type, decimal Rate);
 public record PaymentGatewayDto(string Provider, string[] SupportedCurrencies);

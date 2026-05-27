@@ -9,6 +9,7 @@ public record BookingCreatedDomainEvent(
     decimal TotalPrice, 
     string CurrencyCode, 
     string CountryCode,
+    string BookingMode,
     long AggregateVersion
 ) : IDomainEvent
 {

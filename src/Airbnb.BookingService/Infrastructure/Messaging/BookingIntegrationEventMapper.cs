@@ -15,7 +15,8 @@ public class BookingIntegrationEventMapper : IIntegrationEventMapper
             e.GuestId, 
             e.TotalPrice, 
             e.CurrencyCode, 
-            e.CountryCode),
+            e.CountryCode,
+            e.BookingMode),
 
         BookingConfirmedDomainEvent e => new BookingConfirmedEvent(
             e.BookingId, 
