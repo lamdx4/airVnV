@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAmenityConfiguration());
         modelBuilder.ApplyConfiguration(new PropertyAvailabilityConfiguration());
+        modelBuilder.ApplyConfiguration(new ReviewConfiguration());
 
         // MassTransit Inbox/Outbox configuration
         modelBuilder.AddInboxStateEntity();

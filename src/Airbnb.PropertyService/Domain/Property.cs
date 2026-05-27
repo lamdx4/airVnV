@@ -36,6 +36,12 @@ public class Property : AggregateRoot
     public PropertyStatus Status { get; private set; }
     public BookingMode BookingMode { get; private set; }
     public string? SuspensionReason { get; private set; }
+    
+    // Review Stats
+    public int ReviewCount { get; private set; }
+    public decimal AverageRating { get; private set; }
+    private readonly List<Review> _reviews = new();
+    public IReadOnlyCollection<Review> Reviews => _reviews.AsReadOnly();
 
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -91,6 +97,8 @@ public class Property : AggregateRoot
             HouseRules = houseRules,
             BookingMode = bookingMode,
             Status = PropertyStatus.Draft,
+            ReviewCount = 0,
+            AverageRating = 0m,
             CreatedAt = DateTimeOffset.UtcNow,
         };
     }
@@ -311,6 +319,18 @@ public class Property : AggregateRoot
             
             image.UpdateOrder(order.DisplayOrder);
         }
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void AddReview(Guid bookingId, Guid guestId, int rating, string comment)
+    {
+        var review = new Review(Id, bookingId, guestId, rating, comment);
+        _reviews.Add(review);
+
+        var totalScore = (AverageRating * ReviewCount) + rating;
+        ReviewCount++;
+        AverageRating = totalScore / ReviewCount;
+        
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

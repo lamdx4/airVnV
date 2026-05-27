@@ -75,5 +75,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
                .WithOne()
                .HasForeignKey(img => img.PropertyId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        // Navigation - Reviews
+        builder.HasMany(p => p.Reviews)
+               .WithOne()
+               .HasForeignKey(r => r.PropertyId)
+               .OnDelete(DeleteBehavior.Cascade);
+               
+        builder.Metadata.FindNavigation(nameof(Property.Reviews))!
+               .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

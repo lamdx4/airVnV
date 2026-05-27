@@ -24,5 +24,12 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>), TypeInfoPropertyName = "GetMyPropertiesPagedResponse")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetMyProperties.PagedResponse<Airbnb.PropertyService.Features.GetMyProperties.PropertyResponse>>), TypeInfoPropertyName = "ApiResponseGetMyPropertiesPaged")]
 
+// AddReview
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AddReview.Request))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.AddReview.Response))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.AddReview.Response>))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse))]
+[JsonSerializable(typeof(Airbnb.PropertyService.Infrastructure.HttpClients.ApiResponse<Airbnb.PropertyService.Infrastructure.HttpClients.BookingValidationResponse>))]
+
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng cho validation errors
 internal partial class PropertyJsonContext : JsonSerializerContext { }
