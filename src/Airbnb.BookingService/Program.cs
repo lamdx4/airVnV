@@ -42,6 +42,7 @@ builder.AddKafkaConsumer<string, string>("kafka", options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.BookingApprovalTimeoutConsumer>();
     
     // Saga Configuration
     x.AddSagaStateMachine<Airbnb.BookingService.Infrastructure.Saga.BookingStateMachine, Airbnb.BookingService.Infrastructure.Saga.BookingState>()

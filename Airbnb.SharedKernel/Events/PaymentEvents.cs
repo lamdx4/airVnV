@@ -16,3 +16,5 @@ public record PaymentFailedEvent(Guid PaymentId, Guid BookingId, string? ErrorCo
 {
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }
+
+public record RefundPaymentCommand(Guid BookingId, string Reason);
