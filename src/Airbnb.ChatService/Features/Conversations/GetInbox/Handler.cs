@@ -27,7 +27,16 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             {
                 Conversation = c,
                 CurrentParticipant = c.Participants.FirstOrDefault(p => p.UserId == req.UserId),
-                OtherParticipant = c.Participants.FirstOrDefault(p => p.UserId != req.UserId),
+                OtherParticipant = c.Participants
+                    .Where(p => p.UserId != req.UserId)
+                    .Select(p => new 
+                    { 
+                        p.UserId, 
+                        DisplayName = p.User.DisplayName, 
+                        AvatarUrl = p.User.AvatarUrl, 
+                        p.LastReadMessageId 
+                    })
+                    .FirstOrDefault(),
                 LatestMessage = c.Messages.OrderByDescending(m => m.CreatedAt)
                                           .Select(m => new { m.Id, m.Content })
                                           .FirstOrDefault()

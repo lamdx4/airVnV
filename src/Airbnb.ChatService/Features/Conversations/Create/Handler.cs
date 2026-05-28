@@ -45,14 +45,36 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
 
         db.Conversations.Add(conversation);
 
+        // Ensure Guest ChatUser exists
+        var guestUser = await db.ChatUsers.FindAsync([req.GuestId], ct);
+        if (guestUser == null)
+        {
+            db.ChatUsers.Add(new ChatUser
+            {
+                UserId = req.GuestId,
+                DisplayName = req.GuestName,
+                AvatarUrl = req.GuestAvatarUrl
+            });
+        }
+
+        // Ensure Host ChatUser exists
+        var hostUser = await db.ChatUsers.FindAsync([propertyInfo.HostId], ct);
+        if (hostUser == null)
+        {
+            db.ChatUsers.Add(new ChatUser
+            {
+                UserId = propertyInfo.HostId,
+                DisplayName = "Host",
+                AvatarUrl = null
+            });
+        }
+
         // 4. Add Guest Participant
         db.ConversationParticipants.Add(new ConversationParticipant
         {
             ConversationId = conversation.Id,
             UserId = req.GuestId,
-            Role = ParticipantRole.Guest,
-            DisplayName = req.GuestName, // Frontend truyền lên, hoặc lấy từ JWT claims, hoặc query UserService. Giả sử lấy từ request.
-            AvatarUrl = req.GuestAvatarUrl
+            Role = ParticipantRole.Guest
         });
 
         // 5. Add Host Participant
@@ -62,9 +84,7 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
         {
             ConversationId = conversation.Id,
             UserId = propertyInfo.HostId,
-            Role = ParticipantRole.Host,
-            DisplayName = "Host", // Sync sau
-            AvatarUrl = null
+            Role = ParticipantRole.Host
         });
 
         await db.SaveChangesAsync(ct);

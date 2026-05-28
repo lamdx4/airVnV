@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<ChatUser> ChatUsers => Set<ChatUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +43,12 @@ public class AppDbContext : DbContext
                   .HasDatabaseName("uq_conversation_property_res");
         });
 
+        // ------------------ ChatUsers ------------------
+        modelBuilder.Entity<ChatUser>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+        });
+
         // ------------------ ConversationParticipants ------------------
         modelBuilder.Entity<ConversationParticipant>(entity =>
         {
@@ -55,6 +62,11 @@ public class AppDbContext : DbContext
                   .HasDatabaseName("idx_participants_user_id");
 
             entity.Property(e => e.Role).HasConversion<string>();
+
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Participations)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ------------------ Messages ------------------
