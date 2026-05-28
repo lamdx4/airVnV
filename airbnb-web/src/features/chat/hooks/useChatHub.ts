@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ChatMessage, Conversation } from '../types/model';
+import type { Conversation } from '../types/model';
 import { mapMessageDtoToModel } from '../utils/mapper';
 import { useAuthStore } from '../../../store/authStore';
 

@@ -11,21 +11,12 @@ public class UserProfileUpdatedEventConsumer(AppDbContext db) : IConsumer<UserPr
     {
         var msg = context.Message;
 
-        // Cập nhật tất cả bản ghi Participant của user này trong ChatService
-        var participants = await db.ConversationParticipants
+        // Update all participant records for this user in ChatService
+        await db.ConversationParticipants
             .Where(p => p.UserId == msg.UserId)
-            .ToListAsync(context.CancellationToken);
-
-        foreach (var p in participants)
-        {
-            p.DisplayName = msg.DisplayName;
-            p.AvatarUrl = msg.AvatarUrl;
-        }
-
-        if (participants.Any())
-        {
-            await db.SaveChangesAsync(context.CancellationToken);
-            // TODO: (Optional) Push SignalR update to update UI if they are online
-        }
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.DisplayName, msg.DisplayName)
+                .SetProperty(p => p.AvatarUrl, msg.AvatarUrl),
+                context.CancellationToken);
     }
 }
