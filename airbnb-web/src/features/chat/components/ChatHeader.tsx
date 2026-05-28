@@ -1,4 +1,5 @@
 import React from 'react';
+import * as signalR from '@microsoft/signalr';
 import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
 import { usePresence } from '../hooks/usePresence';
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronLeft, Info, MoreHorizontal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const ChatHeader: React.FC = () => {
+export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }> = ({ connection }) => {
   const { activeConversationId, setActiveConversationId, toggleSidebar } = useChat();
   const { data, isLoading } = useInbox();
 
@@ -15,7 +16,7 @@ export const ChatHeader: React.FC = () => {
     .flatMap(page => page.items)
     .find(c => c.id === activeConversationId);
 
-  const { data: presence } = usePresence(conversation?.otherParticipantId);
+  const { data: presence } = usePresence(conversation?.otherParticipantId, connection);
   const isOnline = presence?.isOnline;
 
   if (!activeConversationId) return null;

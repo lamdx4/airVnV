@@ -59,36 +59,7 @@ export const useChatHub = (activeConversationId: string | null) => {
       }
     };
 
-    // Đăng ký các sự kiện lắng nghe (chỉ đăng ký 1 lần duy nhất)
-    connection.on('ReceiveMessage', (messageDto: any) => {
-      // Dùng Ref để chống Closure trap.
-      const newMsg = mapMessageDtoToModel(messageDto);
-      
-      // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
-      queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
-        if (!old) return old;
-        const newPages = [...old.pages];
-        if (newPages.length > 0) {
-          const items = [...newPages[0].items];
-          
-          // Tìm xem có tin nhắn tạm (optimistic UI) của chính mình có nội dung giống để thay thế không
-          const tempIdx = items.findIndex((m: ChatMessage) => m.id.startsWith('temp-') && m.content === newMsg.content);
-          
-          if (tempIdx !== -1) {
-            // Thay thế tin nhắn tạm bằng tin nhắn chính thức từ server (có ID thật)
-            items[tempIdx] = newMsg;
-            newPages[0] = { ...newPages[0], items };
-          } else {
-            // Nếu không có tin nhắn tạm (hoặc tin nhắn từ người khác gửi tới), kiểm tra tránh trùng lặp ID
-            const exists = items.some((m: ChatMessage) => m.id === newMsg.id);
-            if (!exists) {
-              newPages[0] = { ...newPages[0], items: [newMsg, ...items] };
-            }
-          }
-        }
-        return { ...old, pages: newPages };
-      });
-    });
+    // ReceiveMessage listener is moved to useMessages hook
 
     // Lắng nghe sự kiện Read realtime từ SignalR
     connection.on('MessageRead', (data: any) => {
@@ -164,19 +135,14 @@ export const useChatHub = (activeConversationId: string | null) => {
       });
     });
 
-    // Lắng nghe sự kiện UserStatusChanged
-    connection.on('UserStatusChanged', (userId: string, status: string) => {
-      queryClient.setQueryData(['presence', userId?.toLowerCase()], { isOnline: status === 'online' });
-    });
+    // UserStatusChanged event listener is moved to usePresence hook
 
     startConnection();
 
     return () => {
       // Khi component unmount hoặc connection thay đổi, gỡ bỏ lắng nghe sự kiện
-      connection.off('ReceiveMessage');
       connection.off('MessageRead');
       connection.off('NewMessage');
-      connection.off('UserStatusChanged');
       setIsConnected(false);
     };
   }, [connection, queryClient]);

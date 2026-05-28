@@ -19,7 +19,7 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({ connection, activeConversationId }) => {
   const isTyping = useTypingSubscriber(connection, activeConversationId);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '');
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMessages(activeConversationId || '', connection);
   const { data: inboxData } = useInbox();
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();

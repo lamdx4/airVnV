@@ -40,7 +40,7 @@ export const ChatContainer: React.FC = () => {
                 transition={{ duration: 0.18 }}
                 className="flex-1 flex flex-col h-full"
               >
-                <ChatHeader />
+                <ChatHeader connection={connection} />
                 <MessageList connection={connection} activeConversationId={activeConversationId} />
                 <MessageInput 
                   conversationId={activeConversationId} 
