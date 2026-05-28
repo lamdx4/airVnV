@@ -36,7 +36,7 @@ export interface MessageDto {
 
 export interface CreateConversationRequestDto {
   propertyId: string;
-  hostId: string;
+  reservationId?: string;
 }
 
 export interface SendMessageRequestDto {

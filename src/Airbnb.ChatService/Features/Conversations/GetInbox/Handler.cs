@@ -44,6 +44,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             .Select(x => new
             {
                 x.Conversation.Id,
+                x.Conversation.PropertyId,
                 x.Conversation.PropertyTitle,
                 x.Conversation.LastMessageAt,
                 x.OtherParticipant,
@@ -62,6 +63,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
 
         var items = results.Select(r => new InboxItem(
             r.Id,
+            r.PropertyId,
             r.PropertyTitle,
             r.OtherParticipant?.DisplayName ?? "Unknown",
             r.OtherParticipant?.AvatarUrl,

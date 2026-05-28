@@ -8,6 +8,7 @@ public record Response(List<InboxItem> Items, DateTimeOffset? NextCursor);
 
 public record InboxItem(
     Guid ConversationId,
+    Guid PropertyId,
     string PropertyTitle,
     string OtherParticipantName,
     string? OtherParticipantAvatar,

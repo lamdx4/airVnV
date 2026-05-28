@@ -52,8 +52,8 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
             db.ChatUsers.Add(new ChatUser
             {
                 UserId = req.GuestId,
-                DisplayName = req.GuestName,
-                AvatarUrl = req.GuestAvatarUrl
+                DisplayName = "Guest",
+                AvatarUrl = null
             });
         }
 
@@ -78,8 +78,6 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
         });
 
         // 5. Add Host Participant
-        // (Trong thực tế ta sẽ cần gọi UserService để lấy tên Host, nhưng để tránh delay/HTTP chéo,
-        // ta có thể lưu tạm 'Host' và chờ UserProfileUpdatedEvent đồng bộ, hoặc truyền từ request)
         db.ConversationParticipants.Add(new ConversationParticipant
         {
             ConversationId = conversation.Id,

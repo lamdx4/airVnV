@@ -43,8 +43,8 @@ export const chatApi = {
    */
   createConversation: async (
     data: CreateConversationRequestDto,
-  ): Promise<ConversationDto> => {
-    return api.post<any, ConversationDto>("/api/conversations", data);
+  ): Promise<{ conversationId: string }> => {
+    return api.post<any, { conversationId: string }>("/api/conversations", data);
   },
 
   /**
