@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChatContainer } from "../features/chat/components/ChatContainer";
 import { ChatProvider, useChat } from "../features/chat/context/ChatContext";
@@ -10,26 +10,28 @@ const MessagesContent = () => {
 
   const { setActiveConversationId } = useChat();
   const navigate = useNavigate();
-  const { mutate: initConversation } = useInitConversation();
+  const { mutateAsync: initConversationAsync } = useInitConversation();
+  const initAttemptedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (propertyId) {
+    if (propertyId && initAttemptedRef.current !== propertyId) {
+      initAttemptedRef.current = propertyId;
       // Create or get existing conversation for this property
-      initConversation(
-        { propertyId },
-        {
-          onSuccess: (id) => {
-            setActiveConversationId(id);
-            // Remove search params from URL so it doesn't re-trigger on refresh
-            navigate('/messages', { replace: true });
-          },
-        },
-      );
+      initConversationAsync({ propertyId })
+        .then((id) => {
+          setActiveConversationId(id);
+          // Remove search params from URL so it doesn't re-trigger on refresh
+          navigate('/messages', { replace: true });
+        })
+        .catch((err) => {
+          console.error("Failed to init conversation:", err);
+          initAttemptedRef.current = null; // Reset on failure
+        });
     }
   }, [
     propertyId,
     setActiveConversationId,
-    initConversation,
+    initConversationAsync,
     navigate,
   ]);
 

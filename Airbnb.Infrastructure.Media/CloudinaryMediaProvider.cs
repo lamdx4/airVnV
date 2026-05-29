@@ -32,7 +32,7 @@ public class CloudinaryMediaProvider : IMediaProvider
     {
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         
-        var parameters = new Dictionary<string, object>
+        var parameters = new SortedDictionary<string, object>
         {
             { "folder", folder },
             { "timestamp", timestamp }

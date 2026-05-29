@@ -29,18 +29,15 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
-            // Partial Unique Indexes chống duplicate
-            // Khi không có reservation
+            // Đã gỡ bỏ Unique Index sai logic (1 property chỉ có 1 conversation)
+            // Thay vào đó việc chống duplicate được xử lý ở tầng Application (Handler)
+            
+            // Vẫn giữ lại Index thông thường để query cho nhanh
             entity.HasIndex(e => e.PropertyId)
-                  .IsUnique()
-                  .HasFilter("\"ReservationId\" IS NULL")
-                  .HasDatabaseName("uq_conversation_property_no_res");
+                  .HasDatabaseName("idx_conversation_property");
                   
-            // Khi có reservation
-            entity.HasIndex(e => new { e.PropertyId, e.ReservationId })
-                  .IsUnique()
-                  .HasFilter("\"ReservationId\" IS NOT NULL")
-                  .HasDatabaseName("uq_conversation_property_res");
+            entity.HasIndex(e => e.ReservationId)
+                  .HasDatabaseName("idx_conversation_reservation");
         });
 
         // ------------------ ChatUsers ------------------

@@ -10,6 +10,7 @@ export const uploadToCloudinary = async (
   file: File, 
   sig: SignatureResponse
 ): Promise<CloudinaryUploadResponse> => {
+  console.log('Uploading file to Cloudinary with signature:', sig);
   const formData = new FormData();
   formData.append('file', file);
   formData.append('api_key', sig.apiKey);
