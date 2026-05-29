@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSendMessage } from '../hooks/useSendMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +6,7 @@ import { Smile, SendHorizontal, Image, Paperclip, Mic } from 'lucide-react';
 import { Loading03Icon } from '@/components/common/Icons';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingPublisher } from '../hooks/useTypingStatus';
+import EmojiPicker from 'emoji-picker-react';
 
 interface MessageInputProps {
   conversationId: string;
@@ -15,7 +16,26 @@ interface MessageInputProps {
 export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, connection }) => {
   const { handleTyping, stopTyping } = useTypingPublisher(connection, conversationId);
   const [content, setContent] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleEmojiClick = (emojiObject: any) => {
+    setContent(prev => prev + emojiObject.emoji);
+  };
 
   const handleSend = () => {
     if (!content.trim() || isPending) return;
@@ -35,14 +55,23 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
     <div className="p-5 border-t border-[#ebebeb] bg-white">
       <div className="flex items-center gap-3 max-w-5xl mx-auto rounded-[24px] border border-[#dddddd] bg-white px-4 py-2 focus-within:border-[#222222] transition-all">
         {/* Nút Emoji phía bên trái */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          aria-label="Add emoji"
-          className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors shrink-0"
-        >
-          <Smile className="h-5 w-5" />
-        </Button>
+        <div className="relative" ref={emojiPickerRef}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            aria-label="Add emoji"
+            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors shrink-0"
+          >
+            <Smile className="h-5 w-5" />
+          </Button>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-12 left-0 z-50">
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
+            </div>
+          )}
+        </div>
 
         {/* Ô nhập tin nhắn */}
         <div className="relative flex-1 py-1">
