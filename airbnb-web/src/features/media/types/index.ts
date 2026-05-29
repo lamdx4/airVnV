@@ -4,6 +4,7 @@ export interface SignatureResponse {
   apiKey: string;
   cloudName: string;
   folder: string;
+  publicId?: string;
 }
 
 export interface CloudinaryUploadResponse {
