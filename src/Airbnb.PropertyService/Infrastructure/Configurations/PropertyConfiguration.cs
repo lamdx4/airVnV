@@ -65,6 +65,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         });
 
         builder.Property(p => p.Status).HasConversion<int>();
+        builder.Property(p => p.BookingMode).HasConversion<string>();
         builder.Property(p => p.SuspensionReason).HasMaxLength(500);
         builder.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
         builder.Property(p => p.UpdatedAt).HasColumnType("timestamp with time zone");
@@ -74,5 +75,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
                .WithOne()
                .HasForeignKey(img => img.PropertyId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        // Navigation - Reviews
+        builder.HasMany(p => p.Reviews)
+               .WithOne()
+               .HasForeignKey(r => r.PropertyId)
+               .OnDelete(DeleteBehavior.Cascade);
+               
+        builder.Metadata.FindNavigation(nameof(Property.Reviews))!
+               .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

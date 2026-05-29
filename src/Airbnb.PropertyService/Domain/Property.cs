@@ -34,7 +34,14 @@ public class Property : AggregateRoot
     public HouseRules HouseRules { get; private set; } = default!;
 
     public PropertyStatus Status { get; private set; }
+    public BookingMode BookingMode { get; private set; }
     public string? SuspensionReason { get; private set; }
+    
+    // Review Stats
+    public int ReviewCount { get; private set; }
+    public decimal AverageRating { get; private set; }
+    private readonly List<Review> _reviews = new();
+    public IReadOnlyCollection<Review> Reviews => _reviews.AsReadOnly();
 
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -64,7 +71,8 @@ public class Property : AggregateRoot
         PropertyCapacity capacity,
         HouseRules houseRules,
         string? admin1Code = null,
-        string? admin2Code = null)
+        string? admin2Code = null,
+        BookingMode bookingMode = BookingMode.InstantBook)
     {
         if (hostId == Guid.Empty) throw new BusinessException("HostId cannot be empty.", "PROPERTY_HOST_REQUIRED");
         if (string.IsNullOrWhiteSpace(title)) throw new BusinessException("Title cannot be empty.", "PROPERTY_TITLE_REQUIRED");
@@ -87,7 +95,10 @@ public class Property : AggregateRoot
             Pricing = pricing,
             Capacity = capacity,
             HouseRules = houseRules,
+            BookingMode = bookingMode,
             Status = PropertyStatus.Draft,
+            ReviewCount = 0,
+            AverageRating = 0m,
             CreatedAt = DateTimeOffset.UtcNow,
         };
     }
@@ -239,7 +250,8 @@ public class Property : AggregateRoot
         string? description,
         Pricing? pricing,
         PropertyCapacity? capacity,
-        HouseRules? houseRules)
+        HouseRules? houseRules,
+        BookingMode? bookingMode)
     {
         if (title is not null)
         {
@@ -251,6 +263,7 @@ public class Property : AggregateRoot
         if (pricing is not null) Pricing = pricing;
         if (capacity is not null) Capacity = capacity;
         if (houseRules is not null) HouseRules = houseRules;
+        if (bookingMode is not null) BookingMode = bookingMode.Value;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -306,6 +319,65 @@ public class Property : AggregateRoot
             
             image.UpdateOrder(order.DisplayOrder);
         }
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void AddReview(Guid bookingId, Guid guestId, int rating, string comment)
+    {
+        var review = new Review(Id, bookingId, guestId, rating, comment);
+        _reviews.Add(review);
+
+        var totalScore = (AverageRating * ReviewCount) + rating;
+        ReviewCount++;
+        AverageRating = totalScore / ReviewCount;
+        
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateReview(Guid reviewId, Guid guestId, int newRating, string newComment)
+    {
+        var review = _reviews.FirstOrDefault(r => r.Id == reviewId)
+            ?? throw new BusinessException("Review not found.", "PROPERTY_REVIEW_NOT_FOUND");
+
+        if (review.GuestId != guestId)
+            throw new BusinessException("You can only update your own reviews.", "PROPERTY_REVIEW_UNAUTHORIZED");
+
+        // Recalculate AverageRating O(1)
+        var oldRating = review.Rating;
+        review.Update(newRating, newComment);
+
+        if (ReviewCount > 0)
+        {
+            var totalScore = (AverageRating * ReviewCount) - oldRating + newRating;
+            AverageRating = totalScore / ReviewCount;
+        }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void DeleteReview(Guid reviewId, Guid guestId)
+    {
+        var review = _reviews.FirstOrDefault(r => r.Id == reviewId)
+            ?? throw new BusinessException("Review not found.", "PROPERTY_REVIEW_NOT_FOUND");
+
+        if (review.GuestId != guestId)
+            throw new BusinessException("You can only delete your own reviews.", "PROPERTY_REVIEW_UNAUTHORIZED");
+
+        var oldRating = review.Rating;
+        _reviews.Remove(review);
+
+        if (ReviewCount == 1)
+        {
+            ReviewCount = 0;
+            AverageRating = 0m;
+        }
+        else if (ReviewCount > 1)
+        {
+            var totalScore = (AverageRating * ReviewCount) - oldRating;
+            ReviewCount--;
+            AverageRating = totalScore / ReviewCount;
+        }
+
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

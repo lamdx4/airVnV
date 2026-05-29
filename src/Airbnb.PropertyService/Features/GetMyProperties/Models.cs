@@ -20,6 +20,7 @@ public record PropertyResponse(
     string? CoverImageUrl,
     int GuestCount,
     int BedroomCount,
+    Airbnb.PropertyService.Domain.Enums.BookingMode BookingMode,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt
 );

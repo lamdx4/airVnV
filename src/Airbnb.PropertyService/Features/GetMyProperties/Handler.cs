@@ -44,6 +44,7 @@ public sealed class Handler(AppDbContext db)
                     .FirstOrDefault(),
                 p.Capacity.GuestCount,
                 p.Capacity.BedroomCount,
+                p.BookingMode,
                 p.CreatedAt,
                 p.UpdatedAt
             ))

@@ -13,6 +13,7 @@ public class BookingState : SagaStateMachineInstance
     
     public decimal TotalPrice { get; set; }
     public string CurrencyCode { get; set; } = default!;
+    public string BookingMode { get; set; } = default!;
 
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }

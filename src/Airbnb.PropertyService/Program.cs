@@ -17,6 +17,12 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Aspire Service Defaults (OTEL, HealthChecks, Resilience)
 builder.AddServiceDefaults();
 
+// HTTP Clients
+builder.Services.AddHttpClient<Airbnb.PropertyService.Infrastructure.HttpClients.BookingServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://bookingservice");
+});
+
 // 2. Database - Npgsql
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

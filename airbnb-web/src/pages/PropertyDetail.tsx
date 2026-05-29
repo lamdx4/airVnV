@@ -3,6 +3,7 @@ import { useProperty } from '@/features/properties/hooks/useProperties';
 import { BookingWidget } from '@/features/booking';
 import { MapPin, Star, Medal, Wifi, Car, Coffee, Tv } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReviewList } from '@/features/reviews/components/ReviewList';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -107,6 +108,9 @@ export default function PropertyDetail() {
               )}
             </div>
           </div>
+
+          {/* Reviews Section */}
+          <ReviewList propertyId={property.id} />
         </div>
 
         {/* Right Column - Booking Widget Sidebar */}

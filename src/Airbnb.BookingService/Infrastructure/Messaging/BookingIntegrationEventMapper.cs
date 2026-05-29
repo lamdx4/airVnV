@@ -15,15 +15,16 @@ public class BookingIntegrationEventMapper : IIntegrationEventMapper
             e.GuestId, 
             e.TotalPrice, 
             e.CurrencyCode, 
-            e.CountryCode),
+            e.CountryCode,
+            e.BookingMode),
 
         BookingConfirmedDomainEvent e => new BookingConfirmedEvent(
             e.BookingId, 
-            Guid.Empty, // TODO: PropertyId if needed by external systems
-            Guid.Empty, // TODO: UserId
-            0,          // TODO: TotalPrice
-            DateTimeOffset.MinValue, 
-            DateTimeOffset.MinValue),
+            e.PropertyId,
+            e.GuestId,
+            e.TotalPrice,
+            new DateTimeOffset(e.CheckIn.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)), 
+            new DateTimeOffset(e.CheckOut.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))),
 
         BookingCancelledDomainEvent e => new BookingCancelledEvent(
             e.BookingId, 

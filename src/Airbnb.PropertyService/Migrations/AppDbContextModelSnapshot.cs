@@ -271,6 +271,42 @@ namespace Airbnb.PropertyService.Migrations
                     b.ToTable("property_images", (string)null);
                 });
 
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GuestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.HasIndex("PropertyId");
+
+                    b.ToTable("reviews", (string)null);
+                });
+
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Property", b =>
                 {
                     b.Property<Guid>("Id")
@@ -288,6 +324,13 @@ namespace Airbnb.PropertyService.Migrations
                     b.Property<string>("Admin2Code")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("BookingMode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("CountryCode")
                         .IsRequired()
@@ -319,6 +362,9 @@ namespace Airbnb.PropertyService.Migrations
 
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -550,6 +596,15 @@ namespace Airbnb.PropertyService.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Airbnb.PropertyService.Domain.Entities.Review", b =>
+                {
+                    b.HasOne("Airbnb.PropertyService.Domain.Property", null)
+                        .WithMany("Reviews")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Airbnb.PropertyService.Domain.Property", b =>
                 {
                     b.OwnsOne("Airbnb.PropertyService.Domain.ValueObjects.Pricing", "Pricing", b1 =>
@@ -630,6 +685,8 @@ namespace Airbnb.PropertyService.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("PropertyAmenities");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

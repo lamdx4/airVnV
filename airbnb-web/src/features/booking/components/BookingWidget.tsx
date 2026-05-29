@@ -4,6 +4,7 @@ import { addDays, differenceInDays, format, isBefore, startOfDay, isFriday, isSa
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { useCreateBooking } from '../hooks';
+import { useInitiatePayment } from '@/features/payment/hooks';
 import { useNavigate } from 'react-router-dom';
 
 interface BookingWidgetProps {
@@ -32,6 +33,7 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
   const navigate = useNavigate();
 
   const createBooking = useCreateBooking();
+  const initiatePayment = useInitiatePayment();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -73,8 +75,19 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
       checkOut: format(date.to, 'yyyy-MM-dd'),
       guestCount
     }, {
-      onSuccess: () => {
-        navigate('/trips');
+      onSuccess: (data: any) => {
+        // Chain the payment initiation
+        initiatePayment.mutate({ bookingId: data.bookingId }, {
+          onSuccess: (paymentData) => {
+            // Redirect to VNPay
+            window.location.href = paymentData.paymentUrl;
+          },
+          onError: (err: any) => {
+            console.error("Payment initiation failed:", err);
+            // If payment initiation fails, still go to trips to see the pending booking
+            navigate('/trips');
+          }
+        });
       },
       onError: (err: any) => {
         // Here we could show a toast

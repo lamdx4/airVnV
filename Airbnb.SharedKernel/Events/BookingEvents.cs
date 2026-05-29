@@ -6,7 +6,8 @@ public record BookingCreatedEvent(
     Guid GuestId, 
     decimal TotalPrice, 
     string CurrencyCode, 
-    string CountryCode)
+    string CountryCode,
+    string BookingMode)
 {
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }

@@ -28,7 +28,8 @@ public record Request(
     TimeOnly? CheckInTime,
     TimeOnly? CheckOutTime,
     bool? FlexibleCheckOut,
-    System.Collections.Generic.List<string>? CustomRules = null) : Mediator.ICommand<Response>
+    System.Collections.Generic.List<string>? CustomRules = null,
+    Airbnb.PropertyService.Domain.Enums.BookingMode? BookingMode = null) : Mediator.ICommand<Response>
 {
     [FromHeader("X-User-Id")]
     public Guid RequesterId { get; init; }

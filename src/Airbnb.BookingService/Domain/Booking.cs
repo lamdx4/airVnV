@@ -6,7 +6,7 @@ namespace Airbnb.BookingService.Domain;
 // Enums
 // ============================================================
 
-public enum BookingStatus { Pending, Confirmed, Cancelled }
+public enum BookingStatus { Pending, AwaitingApproval, Confirmed, Cancelled }
 
 // ============================================================
 // Aggregate Root
@@ -19,6 +19,7 @@ public class Booking : AggregateRoot
     public Guid HostId { get; private set; }    
     public Guid GuestId { get; private set; }
     public string CountryCode { get; private set; } = default!; // Added for payment routing
+    public string BookingMode { get; private set; } = default!;
     public DateOnly CheckIn { get; private set; }
     public DateOnly CheckOut { get; private set; }
     public int GuestCount { get; private set; }
@@ -38,7 +39,7 @@ public class Booking : AggregateRoot
     public static Booking Create(
         Guid propertyId, Guid hostId, Guid guestId, string countryCode,
         DateOnly checkIn, DateOnly checkOut, int guestCount,
-        decimal basePricePerNight, decimal cleaningFee, decimal serviceFee, decimal taxAmount, decimal totalPrice, string currencyCode)
+        decimal basePricePerNight, decimal cleaningFee, decimal serviceFee, decimal taxAmount, decimal totalPrice, string currencyCode, string bookingMode)
     {
         if (propertyId == Guid.Empty) throw new ArgumentException("PropertyId cannot be empty.");
         if (hostId == Guid.Empty) throw new ArgumentException("HostId cannot be empty.");
@@ -67,13 +68,14 @@ public class Booking : AggregateRoot
             TaxAmount = taxAmount,
             TotalPrice = totalPrice,
             CurrencyCode = currencyCode,
+            BookingMode = bookingMode,
             Status = BookingStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
         booking.Raise(new BookingCreatedDomainEvent(
             booking.Id, booking.PropertyId, booking.GuestId, 
-            booking.TotalPrice, booking.CurrencyCode, booking.CountryCode,
+            booking.TotalPrice, booking.CurrencyCode, booking.CountryCode, booking.BookingMode,
             booking.Version));
 
         return booking;
@@ -88,20 +90,38 @@ public class Booking : AggregateRoot
 
     public void Confirm()
     {
-        if (Status != BookingStatus.Pending)
-            throw new InvalidOperationException("Only Pending bookings can be confirmed.");
+        if (Status != BookingStatus.Pending && Status != BookingStatus.AwaitingApproval)
+            throw new InvalidOperationException("Only Pending or AwaitingApproval bookings can be confirmed.");
             
         Status = BookingStatus.Confirmed;
         Version++;
-        Raise(new BookingConfirmedDomainEvent(Id, Version));
+        Raise(new BookingConfirmedDomainEvent(
+            Id, 
+            PropertyId, 
+            GuestId, 
+            TotalPrice, 
+            CheckIn, 
+            CheckOut, 
+            Version));
+    }
+
+    public void AwaitForApproval()
+    {
+        if (Status != BookingStatus.Pending)
+            throw new InvalidOperationException("Only Pending bookings can transition to AwaitingApproval.");
+            
+        Status = BookingStatus.AwaitingApproval;
+        Version++;
+        // Ghi chú: Không có Domain Event mới ở đây vì Saga State Machine sẽ ghi nhận trạng thái.
+        // Có thể bổ sung event sau nếu các services khác cần theo dõi.
     }
 
     public void Reject(Guid currentHostId)
     {
         if (currentHostId != HostId)
             throw new InvalidOperationException("Only the host of this property can reject the booking.");
-        if (Status != BookingStatus.Pending)
-            throw new InvalidOperationException("Only Pending bookings can be rejected.");
+        if (Status != BookingStatus.Pending && Status != BookingStatus.AwaitingApproval)
+            throw new InvalidOperationException("Only Pending or AwaitingApproval bookings can be rejected.");
             
         Status = BookingStatus.Cancelled;
         CancelledBy = currentHostId;
