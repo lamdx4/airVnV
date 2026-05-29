@@ -16,6 +16,7 @@ export const ConversationList: React.FC = () => {
   const { activeConversationId, setActiveConversationId, closeSidebar } = useChat();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInbox();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const bottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop === e.currentTarget.clientHeight;
@@ -24,7 +25,29 @@ export const ConversationList: React.FC = () => {
     }
   };
 
-  const conversations = data?.pages.flatMap(page => page.items) || [];
+  const rawConversations = data?.pages.flatMap(page => page.items) || [];
+
+  const conversations = React.useMemo(() => {
+    let result = rawConversations;
+
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(conv => 
+        (conv.otherParticipantName && conv.otherParticipantName.toLowerCase().includes(lowerQuery)) ||
+        (conv.propertyTitle && conv.propertyTitle.toLowerCase().includes(lowerQuery))
+      );
+    }
+
+    // Sort: Unread first, then by latest message date
+    return [...result].sort((a, b) => {
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+      
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [rawConversations, searchQuery]);
 
   if (isLoading) {
     return (
@@ -65,6 +88,8 @@ export const ConversationList: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#b0b0b0] group-focus-within:text-[#222222] transition-colors" />
           <Input 
             placeholder="Search messages" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-11 h-[48px] bg-[#f7f7f7] border-transparent focus:bg-white focus:border-[#222222] transition-all rounded-full text-[14px]"
           />
         </div>
@@ -92,6 +117,7 @@ export const ConversationList: React.FC = () => {
                 aria-label={`Chat with ${conv.otherParticipantName} about ${conv.propertyTitle}`}
                 onClick={() => {
                   setActiveConversationId(conv.id);
+                  setSearchQuery('');
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
