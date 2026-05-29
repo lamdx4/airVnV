@@ -29,7 +29,7 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
         {
             ConversationId = req.ConversationId,
             SenderId = req.SenderId,
-            MessageType = MessageType.Text,
+            MessageType = Enum.Parse<MessageType>(req.MessageType, true),
             Content = req.Content
         };
 
@@ -48,7 +48,8 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
             message.ConversationId,
             message.SenderId,
             message.Content,
-            message.CreatedAt
+            message.CreatedAt,
+            MessageType = message.MessageType.ToString()
         };
 
         await hubContext.Clients.Group($"conv_{req.ConversationId}").SendAsync("ReceiveMessage", messagePayload, ct);

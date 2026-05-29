@@ -44,15 +44,21 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
         )}
         
         {/* Bong bóng tin nhắn */}
-        <div 
-          className={`px-4 py-3 rounded-[20px] text-[15px] leading-[1.4] transition-all ${
-            isOwnMessage 
-              ? 'bg-[#25D366] text-white rounded-tr-sm' 
-              : 'bg-[#f2f2f2] text-[#222222] rounded-tl-sm'
-          }`}
-        >
-          {message.content}
-        </div>
+        {message.messageType === 'Image' ? (
+          <div className="rounded-[16px] overflow-hidden max-w-[240px] sm:max-w-xs border border-[#ebebeb] shadow-sm">
+            <img src={message.content} alt="Image message" className="w-full h-auto object-cover block" />
+          </div>
+        ) : (
+          <div 
+            className={`px-4 py-3 rounded-[20px] text-[15px] leading-[1.4] transition-all ${
+              isOwnMessage 
+                ? 'bg-[#25D366] text-white rounded-tr-sm' 
+                : 'bg-[#f2f2f2] text-[#222222] rounded-tl-sm'
+            }`}
+          >
+            {message.content}
+          </div>
+        )}
       </div>
 
       {/* Thời gian gửi phía dưới bong bóng (chỉ hiện khi là tin nhắn cuối cùng của chain) */}

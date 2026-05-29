@@ -53,8 +53,9 @@ export const chatApi = {
   sendMessage: async (
     conversationId: string,
     content: string,
+    messageType: string = 'Text'
   ): Promise<MessageDto> => {
-    const payload: SendMessageRequestDto = { content };
+    const payload: SendMessageRequestDto = { content, messageType };
     return api.post<any, MessageDto>(
       `/api/conversations/${conversationId}/messages`,
       payload,

@@ -8,11 +8,11 @@ export const useSendMessage = (conversationId: string | null) => {
   const currentUserId = useAuthStore(state => state.userId) || '';
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, messageType = 'Text' }: { content: string, messageType?: string }) => {
       if (!conversationId) throw new Error('No conversation selected');
-      return await chatApi.sendMessage(conversationId, content);
+      return await chatApi.sendMessage(conversationId, content, messageType);
     },
-    onMutate: async (newContent) => {
+    onMutate: async ({ content, messageType = 'Text' }) => {
       if (!conversationId) return;
 
       // Cancel any outgoing refetches
@@ -28,10 +28,10 @@ export const useSendMessage = (conversationId: string | null) => {
         const optimisticMsg: ChatMessage = {
           id: `temp-${Date.now()}`,
           conversationId,
-          content: newContent,
+          content,
           senderId: currentUserId,
           sentAt: new Date(),
-          isSystemMessage: false,
+          messageType,
         };
 
         const newPages = [...old.pages];

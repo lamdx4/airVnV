@@ -31,7 +31,7 @@ export interface MessageDto {
   senderId: string;
   content: string;
   sentAt: string;
-  isSystemMessage: boolean;
+  messageType: string;
 }
 
 export interface CreateConversationRequestDto {
@@ -41,4 +41,5 @@ export interface CreateConversationRequestDto {
 
 export interface SendMessageRequestDto {
   content: string;
+  messageType?: string;
 }

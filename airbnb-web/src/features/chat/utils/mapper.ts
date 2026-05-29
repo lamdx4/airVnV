@@ -41,7 +41,6 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
  */
 export const mapMessageDtoToModel = (dto: any): ChatMessage => {
   const sentAt = dto.sentAt || dto.createdAt;
-  const isSystem = dto.isSystemMessage || dto.messageType === 'System' || dto.messageType === 2;
 
   return {
     id: dto.id,
@@ -49,6 +48,6 @@ export const mapMessageDtoToModel = (dto: any): ChatMessage => {
     senderId: dto.senderId,
     content: dto.content,
     sentAt: sentAt ? new Date(sentAt) : new Date(),
-    isSystemMessage: isSystem,
+    messageType: typeof dto.messageType === 'string' ? dto.messageType : (dto.messageType === 1 || dto.isSystemMessage ? 'System' : (dto.messageType === 2 ? 'Image' : 'Text')),
   };
 };

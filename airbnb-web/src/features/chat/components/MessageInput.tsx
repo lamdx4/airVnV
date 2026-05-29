@@ -39,7 +39,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
 
   const handleSend = () => {
     if (!content.trim() || isPending) return;
-    sendMessage(content.trim());
+    sendMessage({ content: content.trim() });
     setContent('');
     stopTyping?.();
   };
