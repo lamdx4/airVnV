@@ -7,7 +7,7 @@ using Airbnb.UserService.Features;
 
 namespace Airbnb.UserService.Features.Media.GetSignature;
 
-public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiResponse<SignatureResponse>>
 {
     public override void Configure()
     {
@@ -24,6 +24,6 @@ public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiRespo
 
         var signature = mediaProvider.GenerateUploadSignature(req.Folder, publicId);
 
-        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(new Response(signature)), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<SignatureResponse>.SuccessResult(signature), cancellation: ct);
     }
 }

@@ -5,7 +5,8 @@ public record SignatureResponse(
     long Timestamp,
     string ApiKey,
     string CloudName,
-    string Folder
+    string Folder,
+    string? PublicId = null
 );
 
 public record MediaUploadResult(
