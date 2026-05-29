@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Airbnb.ChatService.Features.Conversations.Create;
 
-public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClient) : ICommandHandler<Request, Response>
+public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClient, UserServiceClient userClient) : ICommandHandler<Request, Response>
 {
     public async ValueTask<Response> Handle(Request req, CancellationToken ct)
     {
@@ -49,11 +49,12 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
         var guestUser = await db.ChatUsers.FindAsync([req.GuestId], ct);
         if (guestUser == null)
         {
+            var guestProfile = await userClient.GetPublicProfileAsync(req.GuestId, ct);
             db.ChatUsers.Add(new ChatUser
             {
                 UserId = req.GuestId,
-                DisplayName = "Guest",
-                AvatarUrl = null
+                DisplayName = guestProfile?.FullName ?? "Guest",
+                AvatarUrl = guestProfile?.AvatarUrl
             });
         }
 
@@ -61,11 +62,12 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
         var hostUser = await db.ChatUsers.FindAsync([propertyInfo.HostId], ct);
         if (hostUser == null)
         {
+            var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, ct);
             db.ChatUsers.Add(new ChatUser
             {
                 UserId = propertyInfo.HostId,
-                DisplayName = "Host",
-                AvatarUrl = null
+                DisplayName = hostProfile?.FullName ?? "Host",
+                AvatarUrl = hostProfile?.AvatarUrl
             });
         }
 

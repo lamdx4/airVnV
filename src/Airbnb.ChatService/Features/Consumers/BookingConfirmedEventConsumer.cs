@@ -39,14 +39,43 @@ public class BookingConfirmedEventConsumer(
                 return;
             }
 
-            // 2. Fetch User Profiles
-            var guestProfile = await userClient.GetPublicProfileAsync(message.UserId, context.CancellationToken);
-            var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, context.CancellationToken);
-
-            if (guestProfile == null || hostProfile == null)
+            // 2. Fetch User Profiles if they don't exist in ChatUsers
+            var guestUser = await db.ChatUsers.FindAsync(new object[] { message.UserId }, context.CancellationToken);
+            if (guestUser == null)
             {
-                logger.LogWarning("Cannot fetch user profiles. Aborting conversation creation.");
-                return;
+                var guestProfile = await userClient.GetPublicProfileAsync(message.UserId, context.CancellationToken);
+                if (guestProfile == null)
+                {
+                    logger.LogWarning("Cannot fetch guest profile for {UserId}. Aborting conversation creation.", message.UserId);
+                    return;
+                }
+                
+                guestUser = new ChatUser
+                {
+                    UserId = message.UserId,
+                    DisplayName = guestProfile.FullName,
+                    AvatarUrl = guestProfile.AvatarUrl
+                };
+                db.ChatUsers.Add(guestUser);
+            }
+
+            var hostUser = await db.ChatUsers.FindAsync(new object[] { propertyInfo.HostId }, context.CancellationToken);
+            if (hostUser == null)
+            {
+                var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, context.CancellationToken);
+                if (hostProfile == null)
+                {
+                    logger.LogWarning("Cannot fetch host profile for {HostId}. Aborting conversation creation.", propertyInfo.HostId);
+                    return;
+                }
+                
+                hostUser = new ChatUser
+                {
+                    UserId = propertyInfo.HostId,
+                    DisplayName = hostProfile.FullName,
+                    AvatarUrl = hostProfile.AvatarUrl
+                };
+                db.ChatUsers.Add(hostUser);
             }
 
             // 3. Create Conversation
@@ -60,16 +89,12 @@ public class BookingConfirmedEventConsumer(
                     new ConversationParticipant
                     {
                         UserId = message.UserId,
-                        Role = ParticipantRole.Guest,
-                        DisplayName = guestProfile.FullName,
-                        AvatarUrl = guestProfile.AvatarUrl
+                        Role = ParticipantRole.Guest
                     },
                     new ConversationParticipant
                     {
                         UserId = propertyInfo.HostId,
-                        Role = ParticipantRole.Host,
-                        DisplayName = hostProfile.FullName,
-                        AvatarUrl = hostProfile.AvatarUrl
+                        Role = ParticipantRole.Host
                     }
                 }
             };
