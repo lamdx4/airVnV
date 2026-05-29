@@ -50,7 +50,8 @@ public class CloudinaryMediaProvider : IMediaProvider
             timestamp,
             _options.ApiKey,
             _options.CloudName,
-            folder
+            folder,
+            publicId
         );
     }
 
