@@ -19,8 +19,10 @@ public class Endpoint(IMediaProvider mediaProvider) : Endpoint<Request, ApiRespo
     {
         var userId = User.FindFirstValue("UserId");
         
-        // Tạo PublicId duy nhất gắn với UserId để quản lý Ownership
-        var publicId = $"{req.Folder}/{userId}_{Guid.CreateVersion7():N}";
+        // Nếu là upload avatar, cố định ID để Cloudinary ghi đè file cũ (Overwrite) -> Chống rác dung lượng.
+        var publicId = req.Folder.Equals("avatars", StringComparison.OrdinalIgnoreCase) 
+            ? $"{req.Folder}/{userId}" 
+            : $"{req.Folder}/{userId}_{Guid.CreateVersion7():N}";
 
         var signature = mediaProvider.GenerateUploadSignature(req.Folder, publicId);
 
