@@ -5,6 +5,7 @@ using Airbnb.PropertyService.Domain.ValueObjects;
 using Airbnb.PropertyService.Infrastructure;
 using Airbnb.PropertyService.Infrastructure.Messaging;
 using Airbnb.Infrastructure.Media;
+using Airbnb.ServiceDefaults.Infrastructure;
 using Airbnb.PropertyService.Domain.Enums;
 using Airbnb.PropertyService.Domain.Entities;
 
@@ -80,6 +81,14 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
                 .Select(a => a.Id)
                 .ToListAsync(ct);
 
+            if (validAmenities.Count != data.AmenityIds.Count)
+            {
+                var invalidIds = data.AmenityIds.Except(validAmenities).ToList();
+                throw new BusinessException(
+                    $"One or more amenity IDs are invalid: {string.Join(", ", invalidIds)}", 
+                    "PROPERTY_AMENITY_INVALID");
+            }
+
             foreach (var amenityId in validAmenities)
             {
                 property.AddAmenity(amenityId);
@@ -117,6 +126,9 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
         try
         {
             int nextOrder = 0;
+            bool assignedCover = false;
+            var imagesToCreate = new List<(Uri Url, string PublicId, ImageType Type, int Order)>();
+
             foreach (var (fileName, uploadResult) in uploadResults)
             {
                 // Normalize filenames by extracting baseline name (stripping paths, quotes, and whitespace)
@@ -138,13 +150,39 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
                     imageType = (nextOrder == 0 && !hasCoverInMetadata) ? ImageType.Cover : ImageType.Gallery;
                 }
                 
+                // Absolute Security Rule: Enforce at most exactly one Cover image
+                if (imageType == ImageType.Cover)
+                {
+                    if (assignedCover)
+                    {
+                        imageType = ImageType.Gallery; // Auto-demote duplicate covers to gallery
+                    }
+                    else
+                    {
+                        assignedCover = true;
+                    }
+                }
+                
+                imagesToCreate.Add((uploadResult.Url, uploadResult.PublicId, imageType, nextOrder++));
+            }
+
+            // Self-healing guard: if no cover was successfully assigned, promote the first image as the Cover
+            if (!assignedCover && imagesToCreate.Count > 0)
+            {
+                var first = imagesToCreate[0];
+                imagesToCreate[0] = (first.Url, first.PublicId, ImageType.Cover, first.Order);
+            }
+
+            // Create and add property images
+            foreach (var img in imagesToCreate)
+            {
                 var image = PropertyImage.Create(
                     property.Id,
                     req.HostId,
-                    uploadResult.Url,
-                    uploadResult.PublicId,
-                    imageType,
-                    nextOrder++);
+                    img.Url,
+                    img.PublicId,
+                    img.Type,
+                    img.Order);
 
                 property.AddImage(image);
             }
