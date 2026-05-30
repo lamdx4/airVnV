@@ -19,11 +19,20 @@ public class CdcConsumer(
         consumer.Subscribe(topic);
         logger.LogInformation("Subscribed to CDC topic: {topic}", topic);
 
+        bool isConnected = false;
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var result = consumer.Consume(stoppingToken);
+                
+                if (!isConnected)
+                {
+                    logger.LogInformation("Successfully connected and listening to CDC topic '{topic}'.", topic);
+                    isConnected = true;
+                }
+
                 if (result == null) continue;
 
                 logger.LogInformation("Received CDC message from Kafka: {key}", result.Message.Key);
