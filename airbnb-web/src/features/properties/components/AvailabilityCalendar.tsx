@@ -14,6 +14,9 @@ import type { PropertyAvailability } from '../types';
 import { useBlockDates, useRemoveAvailability } from '../hooks/useProperties';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface AvailabilityCalendarProps {
   propertyId: string;
@@ -116,13 +119,17 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ prop
             <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400">{t('calendar.from')}</label>
+                        <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                          {t('calendar.from')}
+                        </Label>
                         <div className="bg-white/10 p-3 rounded-xl border border-white/10 text-sm">
                             {selectedRange?.from ? format(selectedRange.from, 'MMM dd, yyyy') : t('calendar.selectDate')}
                         </div>
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400">{t('calendar.to')}</label>
+                        <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                          {t('calendar.to')}
+                        </Label>
                         <div className="bg-white/10 p-3 rounded-xl border border-white/10 text-sm">
                             {selectedRange?.to ? format(selectedRange.to, 'MMM dd, yyyy') : t('calendar.selectDate')}
                         </div>
@@ -130,23 +137,28 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ prop
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-slate-400">{t('calendar.noteInternal')}</label>
-                    <input 
+                    <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                      {t('calendar.noteInternal')}
+                    </Label>
+                    <Input
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
                         placeholder={t('calendar.notePlaceholder')}
-                        className="w-full bg-white/10 p-3 rounded-xl border border-white/10 text-sm outline-none focus:border-rausch transition-all"
+                        className="bg-white/10 border-white/10 text-white placeholder:text-slate-400 focus-visible:ring-rausch focus-visible:border-rausch rounded-xl"
                     />
                 </div>
 
-                <button
+                <Button
                     onClick={handleBlock}
                     disabled={!selectedRange?.from || blockDatesMutation.isPending}
-                    className="w-full bg-rausch hover:bg-rausch-dark h-12 rounded-xl font-bold transition-all disabled:bg-slate-700 disabled:text-slate-500 mt-2 flex items-center justify-center gap-2"
+                    className="w-full bg-rausch hover:bg-rausch/90 h-12 rounded-xl font-bold transition-all disabled:bg-slate-700 disabled:text-slate-500 mt-2"
                 >
-                    {blockDatesMutation.isPending ? <Loading03Icon className="h-5 w-5 animate-spin" /> : <Tick02Icon className="h-5 w-5" />}
+                    {blockDatesMutation.isPending
+                      ? <Loading03Icon className="h-5 w-5 animate-spin mr-2" />
+                      : <Tick02Icon className="h-5 w-5 mr-2" />
+                    }
                     {t('calendar.blockSelection')}
-                </button>
+                </Button>
             </div>
         </div>
 
@@ -171,12 +183,15 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ prop
                                 {item.note && <p className="text-[10px] text-slate-400 italic">"{item.note}"</p>}
                             </div>
                         </div>
-                        <button 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleRemove(item.id)}
-                            className="p-2 text-slate-300 hover:text-rausch hover:bg-rausch/10 rounded-lg transition-all"
+                            disabled={removeAvailabilityMutation.isPending}
+                            className="text-slate-300 hover:text-rausch hover:bg-rausch/10 rounded-lg h-9 w-9"
                         >
                             <Delete02Icon className="h-5 w-5" />
-                        </button>
+                        </Button>
                     </div>
                 ))}
 

@@ -10,6 +10,8 @@ import type { PropertyAmenity } from '../types';
 import { useAvailableAmenities, useAddAmenity, useRemoveAmenity, useUpdateAmenityInfo } from '../hooks/useProperties';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface AmenityManagerProps {
   propertyId: string;
@@ -82,6 +84,8 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
 
               return (
                 <div key={amenity.id} className="space-y-2">
+                    {/* Amenity Toggle – dùng bare button vì cần custom visual state phức tạp
+                        (ring, bg-rausch/5, border-2) không phải variant chuẩn của Button */}
                     <button
                         onClick={() => handleToggle(amenity.id)}
                         className={`
@@ -106,33 +110,40 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
                         <div className="px-2">
                             {editingId === amenity.id ? (
                                 <div className="flex items-center gap-2">
-                                    <input 
+                                    <Input
                                         autoFocus
                                         value={noteValue}
                                         onChange={(e) => setNoteValue(e.target.value)}
                                         placeholder={t('amenitiesManager.notePlaceholder')}
-                                        className="flex-1 text-xs p-2 rounded-lg border-2 border-slate-200 focus:border-rausch outline-none transition-all"
+                                        className="flex-1 text-xs h-8 rounded-lg border-slate-200 focus-visible:ring-rausch focus-visible:border-rausch"
                                         onKeyDown={(e) => e.key === 'Enter' && handleSaveNote(amenity.id)}
                                     />
-                                    <button 
+                                    <Button
+                                        size="icon"
                                         onClick={() => handleSaveNote(amenity.id)}
-                                        className="p-2 bg-rausch text-white rounded-lg hover:bg-rausch-dark transition-colors"
+                                        disabled={updateInfoMutation.isPending}
+                                        className="h-8 w-8 bg-rausch hover:bg-rausch/90 text-white rounded-lg shrink-0"
                                     >
-                                        <SentIcon className="h-4 w-4" />
-                                    </button>
+                                        {updateInfoMutation.isPending
+                                          ? <Loading03Icon className="h-3 w-3 animate-spin" />
+                                          : <SentIcon className="h-3 w-3" />
+                                        }
+                                    </Button>
                                 </div>
                             ) : (
-                                <button 
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => handleStartEdit(amenity.id, selected.additionalInfo || '')}
-                                    className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-rausch transition-colors group"
+                                    className="h-auto px-0 py-0 text-[10px] font-bold text-slate-400 hover:text-rausch hover:bg-transparent gap-1"
                                 >
                                     <NoteIcon className="h-3 w-3" />
                                     {selected.additionalInfo ? (
                                         <span className="truncate max-w-[150px] italic">"{selected.additionalInfo}"</span>
                                     ) : (
-                                        <span className="uppercase tracking-widest group-hover:underline">{t('amenitiesManager.addNote')}</span>
+                                        <span className="uppercase tracking-widest">{t('amenitiesManager.addNote')}</span>
                                     )}
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}

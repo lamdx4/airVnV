@@ -6,6 +6,9 @@ import { Location01Icon, PinIcon, Loading03Icon, SentIcon } from 'hugeicons-reac
 import { useTranslation } from 'react-i18next';
 import { useUpdateLocation } from '../hooks/useProperties';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -281,9 +284,9 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
           {/* Province Selection */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+            <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
               {t('location.province')}
-            </label>
+            </Label>
             <Select
               value={selectedProvinceCode}
               onValueChange={(val) => {
@@ -313,9 +316,9 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
           {/* Ward Selection */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+            <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
               {t('location.ward')}
-            </label>
+            </Label>
             <Select
               value={selectedWardCode}
               onValueChange={setSelectedWardCode}
@@ -344,13 +347,13 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
           {/* Street Address */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+            <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
               {t('location.streetAddress')}
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               value={streetAddress}
               onChange={(e) => setStreetAddress(e.target.value)}
-              className={`w-full text-sm text-hof bg-white p-3 rounded-lg border min-h-[80px] focus:outline-none focus:border-rausch transition-all ${isReverseGeocoding ? 'opacity-50' : ''}`}
+              className={`min-h-[80px] rounded-xl border-slate-200 focus-visible:ring-rausch focus-visible:border-rausch text-sm text-hof resize-none ${isReverseGeocoding ? 'opacity-50' : ''}`}
               placeholder={t('location.streetAddressPlaceholder')}
             />
             {isReverseGeocoding && (
@@ -363,16 +366,16 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
           {/* Coordinates */}
           <div className="space-y-1 pt-2 border-t border-slate-200">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+            <Label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
               {t('location.coordinates')}
-            </label>
+            </Label>
             <div className="text-sm font-mono text-hof bg-white p-2 rounded-lg border">
               {position[0].toFixed(6)}, {position[1].toFixed(6)}
             </div>
           </div>
         </div>
 
-        <button
+        <Button
           onClick={handleSave}
           disabled={
             updateLocationMutation.isPending ||
@@ -380,14 +383,14 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
             !selectedProvinceCode ||
             !selectedWardCode
           }
-          className="w-full bg-hof text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed"
+          className="w-full bg-hof text-white h-12 rounded-xl font-bold hover:bg-slate-800"
         >
           {updateLocationMutation.isPending
-            ? <Loading03Icon className="h-5 w-5 animate-spin" />
-            : <SentIcon className="h-5 w-5" />
+            ? <Loading03Icon className="h-5 w-5 animate-spin mr-2" />
+            : <SentIcon className="h-5 w-5 mr-2" />
           }
           {t('location.saveLocation')}
-        </button>
+        </Button>
       </div>
 
       {/* Map Display */}

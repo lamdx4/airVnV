@@ -23,6 +23,10 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PropertyStatus, PropertyType } from '../types';
 import { getStatusColor, getStatusText } from '../utils/status';
 
@@ -62,7 +66,9 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    watch,
+    setValue
   } = useForm<EditPropertyInput>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -216,20 +222,21 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
             {/* Tab Navigation Menu */}
             <div className="bg-white rounded-3xl border shadow-sm overflow-hidden p-2">
                 {tabs.map(tab => (
-                    <button
+                    <Button
                         key={tab.id}
+                        variant="ghost"
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all
+                            w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all justify-start h-auto
                             ${activeTab === tab.id 
-                                ? 'bg-hof text-white shadow-md' 
+                                ? 'bg-hof text-white shadow-md hover:bg-hof hover:text-white' 
                                 : 'text-slate-500 hover:bg-slate-50 hover:text-hof'
                             }
                         `}
                     >
                         <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-rausch' : 'text-slate-300'}`} />
                         {tab.label}
-                    </button>
+                    </Button>
                 ))}
             </div>
         </div>
@@ -241,55 +248,63 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                     <div className="space-y-4">
                         <h3 className="text-xl font-bold text-hof">{t('editProperty.basicInformation')}</h3>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.listingTitle')}</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.listingTitle')}</Label>
+                            <Input
                                 {...register('title')}
-                                className="w-full text-lg p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-medium"
+                                className="text-lg h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-medium"
                                 placeholder={t('editProperty.titlePlaceholder')}
                             />
                             {errors.title && <p className="text-xs text-rausch font-semibold mt-1">{errors.title.message}</p>}
                         </div>
                         
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.description')}</label>
-                            <textarea 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.description')}</Label>
+                            <Textarea
                                 {...register('description')}
                                 rows={6}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all text-hof leading-relaxed"
+                                className="rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch text-hof leading-relaxed resize-none"
                                 placeholder={t('editProperty.descPlaceholder')}
                             />
                             {errors.description && <p className="text-xs text-rausch font-semibold mt-1">{errors.description.message}</p>}
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.propertyType')}</label>
-                            <select 
-                                {...register('type', { valueAsNumber: true })}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all text-hof font-medium bg-white appearance-none"
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.propertyType')}</Label>
+                            <Select
+                                value={String(watch('type') ?? '')}
+                                onValueChange={(val) => setValue('type', Number(val) as any)}
                             >
-                                {Object.entries(PropertyType).map(([key, value]) => (
-                                    <option key={value as number} value={value as number}>{key}</option>
-                                ))}
-                            </select>
+                                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-slate-100 focus:ring-rausch font-medium">
+                                    <SelectValue placeholder={t('editProperty.propertyType')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(PropertyType)
+                                        .filter(([, v]) => typeof v === 'number')
+                                        .map(([key, value]) => (
+                                            <SelectItem key={value as number} value={String(value)}>{key}</SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select>
                             {errors.type && <p className="text-xs text-rausch font-semibold mt-1">{errors.type.message}</p>}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.basePrice')}</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.basePrice')}</Label>
+                            <Input
                                 type="number"
                                 {...register('basePrice', { valueAsNumber: true })}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-bold"
+                                className="h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-bold text-lg"
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.cleaningFee')}</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.cleaningFee')}</Label>
+                            <Input
                                 type="number"
                                 {...register('cleaningFee', { valueAsNumber: true })}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-bold"
+                                className="h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-bold text-lg"
                             />
                         </div>
                     </div>
