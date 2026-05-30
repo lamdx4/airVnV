@@ -47,6 +47,7 @@ export function PhotosSection({
         <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Thêm hình ảnh cho nơi ở của bạn</h2>
         <p className="text-base font-normal text-slate-600 leading-relaxed">
           Bạn cần ít nhất 5 bức ảnh để bắt đầu. Hình ảnh đầu tiên sẽ được dùng làm ảnh bìa.
+          <span className="block mt-1 text-xs text-rose-500 font-semibold">💡 Mẹo: Sau khi tạo xong tin đăng nháp, bạn có thể vào mục "Chỉnh sửa phòng" để tự do phân loại chi tiết từng bức ảnh cho phòng ngủ, phòng tắm, hoặc cảnh quan!</span>
         </p>
       </CardHeader>
       <CardContent className="px-6 py-6 space-y-6">
