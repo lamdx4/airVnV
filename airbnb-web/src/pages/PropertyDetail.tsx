@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProperty } from '@/features/properties/hooks/useProperties';
 import { useReviews } from '@/features/reviews/hooks/useReviews';
@@ -5,6 +6,7 @@ import { BookingWidget } from '@/features/booking';
 import { MapPin, Star, Medal, Wifi, Car, Coffee, Tv, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
+import { ImageLightbox } from '@/components/common/ImageLightbox';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,10 @@ export default function PropertyDetail() {
   const isPreview = searchParams.get('isPreview') === 'true';
   const { data: property, isLoading, isError } = useProperty(id || '');
   
+  // State for image lightbox viewer
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
   // Dynamic reviews query to get rating and review count instead of hardcoded placeholders
   const { data: reviewsData } = useReviews(id || '', 1, 50);
 
@@ -25,6 +31,11 @@ export default function PropertyDetail() {
     : 'New';
 
   const allImages = property.images || [];
+
+  const openImage = (index: number) => {
+    setActiveImageIndex(index);
+    setIsLightboxOpen(true);
+  };
 
   const renderGallery = () => {
     if (allImages.length === 0) {
@@ -40,7 +51,7 @@ export default function PropertyDetail() {
 
     if (allImages.length === 1) {
       return (
-        <div className="w-full h-[500px] mb-12 rounded-2xl overflow-hidden cursor-pointer group">
+        <div onClick={() => openImage(0)} className="w-full h-[500px] mb-12 rounded-2xl overflow-hidden cursor-pointer group">
           <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
         </div>
       );
@@ -50,7 +61,7 @@ export default function PropertyDetail() {
       return (
         <div className="grid grid-cols-2 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
           {allImages.slice(0, 2).map((img, idx) => (
-            <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+            <div key={img.id} onClick={() => openImage(idx)} className="relative group cursor-pointer overflow-hidden">
               <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
             </div>
           ))}
@@ -61,12 +72,12 @@ export default function PropertyDetail() {
     if (allImages.length === 3) {
       return (
         <div className="grid grid-cols-3 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
-          <div className="col-span-2 relative group cursor-pointer overflow-hidden">
+          <div onClick={() => openImage(0)} className="col-span-2 relative group cursor-pointer overflow-hidden">
             <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
           </div>
           <div className="grid grid-rows-2 gap-2">
             {allImages.slice(1, 3).map((img, idx) => (
-              <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+              <div key={img.id} onClick={() => openImage(idx + 1)} className="relative group cursor-pointer overflow-hidden">
                 <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
               </div>
             ))}
@@ -78,12 +89,12 @@ export default function PropertyDetail() {
     if (allImages.length === 4) {
       return (
         <div className="grid grid-cols-4 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
-          <div className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
+          <div onClick={() => openImage(0)} className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
             <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
           </div>
           <div className="col-span-2 grid grid-cols-2 gap-2">
             {allImages.slice(1, 4).map((img, idx) => (
-              <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+              <div key={img.id} onClick={() => openImage(idx + 1)} className="relative group cursor-pointer overflow-hidden">
                 <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
               </div>
             ))}
@@ -96,17 +107,18 @@ export default function PropertyDetail() {
     const gallery = allImages.filter(i => i.id !== cover.id).slice(0, 4);
     return (
       <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
-        <div className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
+        <div onClick={() => openImage(allImages.indexOf(cover))} className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
           <img src={cover.url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
         </div>
-        {gallery.map((img, idx) => (
-          <div key={img.id} className="relative group cursor-pointer overflow-hidden">
-            <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+        {gallery.map((img) => (
+          <div key={img.id} onClick={() => openImage(allImages.indexOf(img))} className="relative group cursor-pointer overflow-hidden">
+            <img src={img.url} alt={`Gallery Image`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
           </div>
         ))}
       </div>
     );
   };
+
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -247,6 +259,14 @@ export default function PropertyDetail() {
           )}
         </div>
       </div>
+
+      {/* Fully reusable fullscreen Image Lightbox */}
+      <ImageLightbox
+        isOpen={isLightboxOpen}
+        images={allImages}
+        initialIndex={activeImageIndex}
+        onClose={() => setIsLightboxOpen(false)}
+      />
     </div>
   );
 }
