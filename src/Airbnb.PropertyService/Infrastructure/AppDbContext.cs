@@ -8,10 +8,24 @@ namespace Airbnb.PropertyService.Infrastructure;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) 
+    {
+        ChangeTracker.Tracked += OnEntityTracked;
+    }
 
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<Amenity> Amenities => Set<Amenity>();
+
+    private void OnEntityTracked(object? sender, Microsoft.EntityFrameworkCore.ChangeTracking.EntityTrackedEventArgs e)
+    {
+        if (!e.FromQuery && (e.Entry.State == EntityState.Modified || e.Entry.State == EntityState.Unchanged))
+        {
+            if (e.Entry.Entity is PropertyAvailability or PropertyImage or Review)
+            {
+                e.Entry.State = EntityState.Added;
+            }
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
