@@ -24,7 +24,6 @@ import {
   StarIcon
 } from 'hugeicons-react';
 import type { PropertyImage } from '../types';
-import { ImageType } from '../types';
 import { useAddImages, useRemoveImage, useReorderImages } from '../hooks/useProperties';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
