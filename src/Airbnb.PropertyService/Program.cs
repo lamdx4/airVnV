@@ -1,4 +1,5 @@
 using FastEndpoints;
+// Force dotnet watch full rebuild and process restart to refresh route discovery metadata cache
 using FastEndpoints.Swagger;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
