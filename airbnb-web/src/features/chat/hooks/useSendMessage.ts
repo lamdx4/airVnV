@@ -2,15 +2,24 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
 import type { ChatMessage } from '../types/model';
 import { useAuthStore } from '../../../store/authStore';
+import { getUploadSignature, uploadToCloudinary } from '../../media/api/media';
 
 export const useSendMessage = (conversationId: string | null) => {
   const queryClient = useQueryClient();
   const currentUserId = useAuthStore(state => state.userId) || '';
 
   return useMutation({
-    mutationFn: async ({ content, messageType = 'Text' }: { content: string, messageType?: string }) => {
+    mutationFn: async ({ content, messageType = 'Text', file }: { content: string, messageType?: string, file?: File }) => {
       if (!conversationId) throw new Error('No conversation selected');
-      return await chatApi.sendMessage(conversationId, content, messageType);
+      
+      let finalContent = content;
+      if (file && messageType === 'Image') {
+        const sig = await getUploadSignature('chat_images');
+        const res = await uploadToCloudinary(file, sig);
+        finalContent = res.secure_url;
+      }
+      
+      return await chatApi.sendMessage(conversationId, finalContent, messageType);
     },
     onMutate: async ({ content, messageType = 'Text' }) => {
       if (!conversationId) return;

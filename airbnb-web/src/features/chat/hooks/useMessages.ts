@@ -7,7 +7,7 @@ import type * as signalR from "@microsoft/signalr";
 
 export const useMessages = (
   conversationId: string | null,
-  connection?: signalR.HubConnection | null
+  connection?: signalR.HubConnection | null,
 ) => {
   const queryClient = useQueryClient();
 
@@ -15,34 +15,44 @@ export const useMessages = (
     if (!connection) return;
 
     const handleReceiveMessage = (messageDto: any) => {
+      console.log("Received message:", messageDto);
       const newMsg = mapMessageDtoToModel(messageDto);
-      
-      queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
-        if (!old) return old;
-        const newPages = [...old.pages];
-        if (newPages.length > 0) {
-          const items = [...newPages[0].items];
-          
-          const tempIdx = items.findIndex((m: ChatMessage) => m.id.startsWith('temp-') && m.content === newMsg.content);
-          
-          if (tempIdx !== -1) {
-            items[tempIdx] = newMsg;
-            newPages[0] = { ...newPages[0], items };
-          } else {
-            const exists = items.some((m: ChatMessage) => m.id === newMsg.id);
-            if (!exists) {
-              newPages[0] = { ...newPages[0], items: [newMsg, ...items] };
+
+      queryClient.setQueryData(
+        ["chat", "messages", newMsg.conversationId],
+        (old: any) => {
+          if (!old) return old;
+          const newPages = [...old.pages];
+          if (newPages.length > 0) {
+            const items = [...newPages[0].items];
+
+            const tempIdx = items.findIndex(
+              (m: ChatMessage) =>
+                m.id.startsWith("temp-") &&
+                (m.content === newMsg.content ||
+                  (m.messageType === "Image" &&
+                    newMsg.messageType === "Image")),
+            );
+
+            if (tempIdx !== -1) {
+              items[tempIdx] = newMsg;
+              newPages[0] = { ...newPages[0], items };
+            } else {
+              const exists = items.some((m: ChatMessage) => m.id === newMsg.id);
+              if (!exists) {
+                newPages[0] = { ...newPages[0], items: [newMsg, ...items] };
+              }
             }
           }
-        }
-        return { ...old, pages: newPages };
-      });
+          return { ...old, pages: newPages };
+        },
+      );
     };
 
-    connection.on('ReceiveMessage', handleReceiveMessage);
+    connection.on("ReceiveMessage", handleReceiveMessage);
 
     return () => {
-      connection.off('ReceiveMessage', handleReceiveMessage);
+      connection.off("ReceiveMessage", handleReceiveMessage);
     };
   }, [connection, queryClient]);
 

@@ -7,6 +7,7 @@ import { Loading03Icon } from '@/components/common/Icons';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingPublisher } from '../hooks/useTypingStatus';
 import EmojiPicker from 'emoji-picker-react';
+import { getUploadSignature, uploadToCloudinary } from '../../media/api/media';
 
 interface MessageInputProps {
   conversationId: string;
@@ -17,7 +18,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
   const { handleTyping, stopTyping } = useTypingPublisher(connection, conversationId);
   const [content, setContent] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 
   useEffect(() => {
@@ -38,10 +41,29 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
   };
 
   const handleSend = () => {
-    if (!content.trim() || isPending) return;
+    if (!content.trim() || isPending || isUploadingImage) return;
     sendMessage({ content: content.trim() });
     setContent('');
     stopTyping?.();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create a local blob URL for optimistic UI
+    const blobUrl = URL.createObjectURL(file);
+    
+    // Optimistic send (upload happens inside mutation)
+    sendMessage({ 
+      content: blobUrl, 
+      messageType: 'Image',
+      file 
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Reset input
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -106,13 +128,26 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             )}
           </Button>
 
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            accept="image/*" 
+            className="hidden" 
+          />
           <Button 
             variant="ghost" 
             size="icon" 
             aria-label="Add image"
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingImage}
+            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors disabled:opacity-50"
           >
-            <Image className="h-5 w-5" />
+            {isUploadingImage ? (
+              <Loading03Icon className="h-5 w-5 animate-spin" />
+            ) : (
+              <Image className="h-5 w-5" />
+            )}
           </Button>
 
           <Button 
