@@ -1,5 +1,6 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProperty } from '@/features/properties/hooks/useProperties';
+import { useReviews } from '@/features/reviews/hooks/useReviews';
 import { BookingWidget } from '@/features/booking';
 import { MapPin, Star, Medal, Wifi, Car, Coffee, Tv, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,9 +11,18 @@ export default function PropertyDetail() {
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get('isPreview') === 'true';
   const { data: property, isLoading, isError } = useProperty(id || '');
+  
+  // Dynamic reviews query to get rating and review count instead of hardcoded placeholders
+  const { data: reviewsData } = useReviews(id || '', 1, 50);
 
   if (isLoading) return <PropertyDetailSkeleton />;
   if (isError || !property) return <div className="p-12 text-center text-red-500 text-xl font-semibold">Failed to load property details.</div>;
+
+  const reviewCount = reviewsData?.totalCount || 0;
+  const reviewsList = reviewsData?.items || [];
+  const averageRating = reviewCount > 0
+    ? (reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsList.length).toFixed(2)
+    : 'New';
 
   const coverImage = property.images?.find(i => i.type === 1)?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200';
   const galleryImages = property.images?.filter(i => i.type === 0).slice(0, 4) || [];
@@ -42,8 +52,11 @@ export default function PropertyDetail() {
       {/* Header */}
       <h1 className="text-3xl font-semibold text-gray-900 mb-2">{property.title}</h1>
       <div className="flex items-center text-sm text-gray-600 mb-6 space-x-4">
-        <span className="flex items-center font-medium text-gray-900"><Star className="w-4 h-4 mr-1 fill-current" /> 4.98</span>
-        {!isPreview && <span className="underline cursor-pointer">124 reviews</span>}
+        <span className="flex items-center font-medium text-gray-900">
+          <Star className="w-4 h-4 mr-1 fill-current text-yellow-500" /> {averageRating}
+        </span>
+        {!isPreview && reviewCount > 0 && <span className="underline cursor-pointer">{reviewCount} reviews</span>}
+        {!isPreview && reviewCount === 0 && <span className="text-slate-400">No reviews yet</span>}
         {isPreview && <span className="text-slate-400">0 reviews (Preview)</span>}
         <span className="flex items-center"><Medal className="w-4 h-4 mr-1" /> Superhost</span>
         <span className="flex items-center underline cursor-pointer"><MapPin className="w-4 h-4 mr-1" /> {property.displayAddress}</span>
