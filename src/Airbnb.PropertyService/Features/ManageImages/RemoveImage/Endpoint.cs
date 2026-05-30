@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/api/properties/{PropertyId}/images/{ImageId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Remove property image (Host only)";
             s.Description = "Possible Error Codes: \n" +

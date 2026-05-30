@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Put("/api/properties/{PropertyId}/location");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Update property location coordinates and address";
             s.Description = 

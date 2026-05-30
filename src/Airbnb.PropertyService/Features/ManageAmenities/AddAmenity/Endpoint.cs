@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/amenities/{AmenityId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Add amenity to property (Host only)";
             s.Description = "Possible Error Codes: \n" +
