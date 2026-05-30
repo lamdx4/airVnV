@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "generate-endpoints.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gen-all": "node generate-db-schema-from-db.js userdb ../src/Airbnb.UserService/README.md && node generate-db-schema-from-db.js propdb ../src/Airbnb.PropertyService/README.md && node generate-db-schema-from-db.js bookdb ../src/Airbnb.BookingService/README.md && node generate-db-schema-from-db.js paydb ../src/Airbnb.PaymentService/README.md && node generate-db-schema-from-db.js chatdb ../src/Airbnb.ChatService/README.md"
   },
   "keywords": [],
   "author": "",

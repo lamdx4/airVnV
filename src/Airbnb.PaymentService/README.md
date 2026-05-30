@@ -109,6 +109,32 @@ erDiagram
 - `PK_Payments`
 - `ix_payments_booking_pending`
 
+## Indexes
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `Payments`
+
+- `PK_Payments`
+- `ix_payments_booking_pending`
+
 ## 🔌 API Endpoints (FastEndpoints)
 
 | Method | Path | Description |

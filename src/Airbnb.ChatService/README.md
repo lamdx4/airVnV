@@ -145,6 +145,43 @@ erDiagram
 - `IX_OutboxState_Created`
 - `PK_OutboxState`
 
+## Indexes
+
+### `ConversationParticipants`
+
+- `PK_ConversationParticipants`
+- `idx_participants_user_id`
+
+### `Conversations`
+
+- `PK_Conversations`
+- `uq_conversation_property_no_res`
+- `uq_conversation_property_res`
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `Messages`
+
+- `PK_Messages`
+- `idx_messages_conversation_created`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
 ## 🔌 API Endpoints (FastEndpoints)
 
 | Method | Path | Description |

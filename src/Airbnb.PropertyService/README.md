@@ -211,6 +211,57 @@ erDiagram
 - `IX_reviews_PropertyId`
 - `PK_reviews`
 
+## Indexes
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `amenities`
+
+- `PK_amenities`
+
+### `properties`
+
+- `IX_properties_CountryCode_Admin1Code_Admin2Code`
+- `IX_properties_Slug`
+- `PK_properties`
+
+### `property_amenities`
+
+- `PK_property_amenities`
+
+### `property_availabilities`
+
+- `IX_property_availabilities_PropertyId`
+- `PK_property_availabilities`
+
+### `property_images`
+
+- `IX_property_images_PropertyId_Type`
+- `PK_property_images`
+
+### `reviews`
+
+- `IX_reviews_BookingId`
+- `IX_reviews_PropertyId`
+- `PK_reviews`
+
 ## 🔌 API Endpoints (FastEndpoints)
 
 | Method | Path | Description |

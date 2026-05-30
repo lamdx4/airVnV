@@ -150,6 +150,43 @@ erDiagram
 
 - `PK_ProcessedEvents`
 
+## Indexes
+
+### `BookingState`
+
+- `IX_BookingState_BookingId`
+- `PK_BookingState`
+
+### `Bookings`
+
+- `PK_Bookings`
+- `idx_bookings_guest_id`
+- `idx_bookings_host_id`
+- `idx_bookings_property_dates`
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `ProcessedEvents`
+
+- `PK_ProcessedEvents`
+
 ## 🔌 API Endpoints (FastEndpoints)
 
 | Method | Path | Description |
