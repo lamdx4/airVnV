@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Location01Icon, PinIcon, Loading03Icon, SentIcon } from 'hugeicons-react';
+import { useTranslation } from 'react-i18next';
 import { useUpdateLocation } from '../hooks/useProperties';
 import { toast } from 'sonner';
 import {
@@ -58,6 +59,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
   initialAddress,
   initialSubDivisions
 }) => {
+  const { t } = useTranslation();
   // Map State
   const [position, setPosition] = useState<[number, number]>([initialLat, initialLng]);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
@@ -182,9 +184,9 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
           }
         }
       });
-      toast.success('Location updated successfully');
+      toast.success(t('location.updateSuccess'));
     } catch (err) {
-      toast.error('Failed to update location');
+      toast.error(t('location.updateFailed'));
     }
   };
 
@@ -195,10 +197,10 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
         <div>
           <h3 className="text-lg font-bold text-hof flex items-center gap-2">
             <Location01Icon className="h-5 w-5 text-rausch" />
-            Property Address
+            {t('location.propertyAddress')}
           </h3>
           <p className="text-sm text-slate-500 mt-1">
-            Specify the administrative boundaries and exact map coordinates.
+            {t('location.addressSubtitle')}
           </p>
         </div>
 
@@ -206,7 +208,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
             
             {/* Province Selection */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Province / City</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{t('location.province')}</label>
               <Select 
                 value={selectedProvinceCode} 
                 onValueChange={(val) => {
@@ -216,7 +218,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
                 disabled={isLoadingProvinces}
               >
                 <SelectTrigger className="w-full bg-white h-11 border-slate-200">
-                  <SelectValue placeholder={isLoadingProvinces ? "Loading provinces..." : "Select a province..."} />
+                  <SelectValue placeholder={isLoadingProvinces ? t('location.loadingProvinces') : t('location.selectProvincePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {provinces.map((prov) => (
@@ -230,14 +232,14 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
             {/* Ward Selection */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Ward / Commune</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{t('location.ward')}</label>
               <Select 
                 value={selectedWardCode} 
                 onValueChange={setSelectedWardCode}
                 disabled={!selectedProvinceCode || isLoadingWards}
               >
                 <SelectTrigger className="w-full bg-white h-11 border-slate-200">
-                  <SelectValue placeholder={!selectedProvinceCode ? "Select province first" : (isLoadingWards ? "Loading wards..." : "Select a ward...")} />
+                  <SelectValue placeholder={!selectedProvinceCode ? t('location.selectProvinceFirst') : (isLoadingWards ? t('location.loadingWards') : t('location.selectWardPlaceholder'))} />
                 </SelectTrigger>
                 <SelectContent>
                   {wards.map((ward) => (
@@ -251,17 +253,17 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
 
             {/* Street Address */}
             <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Street Address / House Number</label>
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{t('location.streetAddress')}</label>
                 <textarea 
                   value={streetAddress}
                   onChange={(e) => setStreetAddress(e.target.value)}
                   className={`w-full text-sm text-hof bg-white p-3 rounded-lg border min-h-[80px] focus:outline-none focus:border-rausch transition-all ${isReverseGeocoding ? 'opacity-50' : ''}`}
-                  placeholder="e.g., 123 Nguyen Trai Street"
+                  placeholder={t('location.streetAddressPlaceholder')}
                 />
             </div>
 
             <div className="space-y-1 pt-2 border-t border-slate-200">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Coordinates</label>
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{t('location.coordinates')}</label>
                 <div className="text-sm font-mono text-hof bg-white p-2 rounded-lg border">
                     {position[0].toFixed(6)}, {position[1].toFixed(6)}
                 </div>
@@ -274,7 +276,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
           className="w-full bg-hof text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed"
         >
           {updateLocationMutation.isPending ? <Loading03Icon className="h-5 w-5 animate-spin" /> : <SentIcon className="h-5 w-5" />}
-          Save Location
+          {t('location.saveLocation')}
         </button>
       </div>
 
@@ -290,7 +292,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
           
           <div className="absolute top-4 left-4 z-[1000] bg-white/95 backdrop-blur px-4 py-2 rounded-full shadow-lg border flex items-center gap-2 pointer-events-none">
              <PinIcon className="h-4 w-4 text-rausch" />
-             <span className="text-xs font-bold text-hof">Click map or drag pin</span>
+             <span className="text-xs font-bold text-hof">{t('location.clickOrDrag')}</span>
           </div>
       </div>
     </div>

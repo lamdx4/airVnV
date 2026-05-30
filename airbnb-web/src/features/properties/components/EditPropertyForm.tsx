@@ -316,7 +316,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                     propertyId={propertyId} 
                     initialLat={property.latitude} 
                     initialLng={property.longitude}
-                    initialAddress={property.displayAddress || ''}
+                    initialAddress={property.streetAddress || ''}
                     initialSubDivisions={property.subDivisions}
                 />
             )}

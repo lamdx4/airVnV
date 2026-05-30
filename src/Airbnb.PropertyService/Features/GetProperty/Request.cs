@@ -22,6 +22,8 @@ public record PropertyDto(
     double Longitude,
     string DisplayAddress,
     string CountryCode,
+    string StreetAddress,
+    System.Collections.Generic.Dictionary<string, string>? SubDivisions,
     Pricing Pricing,
     PropertyCapacity Capacity,
     HouseRules HouseRules,

@@ -66,6 +66,7 @@ export interface Property {
   longitude: number;
   displayAddress: string;
   countryCode: string;
+  streetAddress?: string;
   subDivisions?: Record<string, string>;
   
   // Nested Objects matching Backend DTOs
