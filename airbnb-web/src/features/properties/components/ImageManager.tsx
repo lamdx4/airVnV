@@ -29,16 +29,6 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const getImageTypeText = (type: number): string => {
-  switch (type) {
-    case 0: return 'Cover';
-    case 1: return 'Gallery';
-    case 2: return 'Room';
-    case 3: return 'Bathroom';
-    case 4: return 'View';
-    default: return 'Gallery';
-  }
-};
 
 const getImageTypeColor = (type: number): string => {
   switch (type) {
