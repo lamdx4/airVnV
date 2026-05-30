@@ -26,6 +26,7 @@ import {
 import type { PropertyImage } from '../types';
 import { useAddImages, useRemoveImage, useReorderImages } from '../hooks/useProperties';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const getImageTypeText = (type: number): string => {
@@ -62,6 +63,7 @@ interface SortableImageProps {
 }
 
 const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, isRemoving }) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -105,7 +107,11 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, isRemovi
       <div className="absolute top-3 left-3 flex gap-2">
         <div className={`backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm ${getImageTypeColor(image.type)}`}>
           {image.type === 0 && <StarIcon className="h-3 w-3 fill-rose-600 text-rose-600" />}
-          {getImageTypeText(image.type)}
+          {image.type === 0 ? t('photos.cover') : 
+           image.type === 1 ? t('photos.gallery') : 
+           image.type === 2 ? t('photos.room') : 
+           image.type === 3 ? t('photos.bathroom') : 
+           image.type === 4 ? t('photos.view') : t('photos.gallery')}
         </div>
       </div>
 
@@ -124,6 +130,7 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, isRemovi
 };
 
 export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }) => {
+  const { t } = useTranslation();
   const addImagesMutation = useAddImages();
   const removeImageMutation = useRemoveImage();
   const reorderImagesMutation = useReorderImages();
@@ -169,9 +176,9 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
 
       try {
         await reorderImagesMutation.mutateAsync({ propertyId, orders });
-        toast.success('Gallery order saved');
+        toast.success(t('photos.orderSaved'));
       } catch (err) {
-        toast.error('Failed to save gallery order');
+        toast.error(t('photos.orderSaveFailed'));
         setItems([...images].sort((a, b) => a.displayOrder - b.displayOrder));
       }
     }
@@ -183,18 +190,18 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
 
     try {
       await addImagesMutation.mutateAsync({ propertyId, files, type: uploadType });
-      toast.success('Images uploaded successfully');
+      toast.success(t('photos.uploadSuccess'));
     } catch (err) {
-      toast.error('Upload failed');
+      toast.error(t('photos.uploadFailed'));
     }
   };
 
   const handleRemove = async (imageId: string) => {
     try {
       await removeImageMutation.mutateAsync({ propertyId, imageId });
-      toast.success('Image removed');
+      toast.success(t('photos.removeSuccess'));
     } catch (err) {
-      toast.error('Failed to remove image');
+      toast.error(t('photos.removeFailed'));
     }
   };
 
@@ -202,8 +209,8 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-hof">Property Gallery</h3>
-          <p className="text-sm text-slate-500">Categorize your photos. Drag and drop to adjust display order.</p>
+          <h3 className="text-lg font-bold text-hof">{t('photos.title')}</h3>
+          <p className="text-sm text-slate-500">{t('photos.subtitle')}</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -213,14 +220,14 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
               onValueChange={(val) => setUploadType(parseInt(val))}
             >
               <SelectTrigger className="rounded-xl border-slate-200 bg-white">
-                <SelectValue placeholder="Upload Category" />
+                <SelectValue placeholder={t('photos.uploadCategory')} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="0">⭐ Cover Image</SelectItem>
-                <SelectItem value="1">🖼️ General Gallery</SelectItem>
-                <SelectItem value="2">🛏️ Rooms & Spaces</SelectItem>
-                <SelectItem value="3">🚿 Bathrooms</SelectItem>
-                <SelectItem value="4">🌅 Scenic Views</SelectItem>
+                <SelectItem value="0">{t('photos.coverImage')}</SelectItem>
+                <SelectItem value="1">{t('photos.generalGallery')}</SelectItem>
+                <SelectItem value="2">{t('photos.rooms')}</SelectItem>
+                <SelectItem value="3">{t('photos.bathrooms')}</SelectItem>
+                <SelectItem value="4">{t('photos.views')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -239,7 +246,7 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
               className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:bg-slate-300 font-medium text-sm"
             >
               {addImagesMutation.isPending ? <Loading03Icon className="h-5 w-5 animate-spin" /> : <ImageAdd01Icon className="h-5 w-5" />}
-              <span>Upload Photos</span>
+              <span>{t('photos.uploadPhotos')}</span>
             </button>
           </div>
         </div>
@@ -274,7 +281,7 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
                         className="absolute inset-0 opacity-0 cursor-pointer"
                     />
                     <ImageAdd01Icon className="h-8 w-8" />
-                    <span className="text-xs font-semibold">Add more</span>
+                    <span className="text-xs font-semibold">{t('photos.addMore')}</span>
                 </div>
             )}
           </div>
@@ -287,8 +294,8 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
             <ImageAdd01Icon className="h-10 w-10 text-slate-300" />
           </div>
           <div className="space-y-1">
-            <p className="font-bold text-hof">Your gallery is empty</p>
-            <p className="text-sm text-slate-500">Upload at least 5 high-quality photos to publish your listing.</p>
+            <p className="font-bold text-hof">{t('photos.emptyTitle')}</p>
+            <p className="text-sm text-slate-500">{t('photos.emptySubtitle')}</p>
           </div>
         </div>
       )}

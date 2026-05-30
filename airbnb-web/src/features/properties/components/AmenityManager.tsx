@@ -7,13 +7,9 @@ import {
   SentIcon
 } from 'hugeicons-react';
 import type { PropertyAmenity } from '../types';
-import { 
-  useAvailableAmenities, 
-  useAddAmenity, 
-  useRemoveAmenity,
-  useUpdateAmenityInfo 
-} from '../hooks/useProperties';
+import { useAvailableAmenities, useAddAmenity, useRemoveAmenity, useUpdateAmenityInfo } from '../hooks/useProperties';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface AmenityManagerProps {
   propertyId: string;
@@ -21,6 +17,7 @@ interface AmenityManagerProps {
 }
 
 export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, selectedAmenities }) => {
+  const { t } = useTranslation();
   const { data: availableAmenities, isLoading } = useAvailableAmenities();
   const addMutation = useAddAmenity();
   const removeMutation = useRemoveAmenity();
@@ -40,7 +37,7 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
         await addMutation.mutateAsync({ propertyId, amenityId });
       }
     } catch (err: any) {
-      toast.error('Failed to update amenity');
+      toast.error(t('amenitiesManager.updateFailed'));
     }
   };
 
@@ -57,9 +54,9 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
         additionalInfo: noteValue 
       });
       setEditingId(null);
-      toast.success('Note saved');
+      toast.success(t('amenitiesManager.noteSaved'));
     } catch (err) {
-      toast.error('Failed to save note');
+      toast.error(t('amenitiesManager.noteSaveFailed'));
     }
   };
 
@@ -113,7 +110,7 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
                                         autoFocus
                                         value={noteValue}
                                         onChange={(e) => setNoteValue(e.target.value)}
-                                        placeholder="Add details (e.g. Wifi pass...)"
+                                        placeholder={t('amenitiesManager.notePlaceholder')}
                                         className="flex-1 text-xs p-2 rounded-lg border-2 border-slate-200 focus:border-rausch outline-none transition-all"
                                         onKeyDown={(e) => e.key === 'Enter' && handleSaveNote(amenity.id)}
                                     />
@@ -133,7 +130,7 @@ export const AmenityManager: React.FC<AmenityManagerProps> = ({ propertyId, sele
                                     {selected.additionalInfo ? (
                                         <span className="truncate max-w-[150px] italic">"{selected.additionalInfo}"</span>
                                     ) : (
-                                        <span className="uppercase tracking-widest group-hover:underline">Add Note</span>
+                                        <span className="uppercase tracking-widest group-hover:underline">{t('amenitiesManager.addNote')}</span>
                                     )}
                                 </button>
                             )}
