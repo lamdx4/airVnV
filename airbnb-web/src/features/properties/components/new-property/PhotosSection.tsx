@@ -89,7 +89,7 @@ export function PhotosSection({
       // If we removed the cover image, automatically promote the next remaining image to Cover
       const hasCover = remaining.some(f => f.type === 0);
       if (!hasCover && remaining.length > 0) {
-        remaining[0].type = 0;
+        remaining[0] = { ...remaining[0], type: 0 };
       }
       return remaining;
     });

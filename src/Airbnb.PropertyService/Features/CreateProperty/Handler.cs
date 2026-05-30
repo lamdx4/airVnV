@@ -104,9 +104,24 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             int nextOrder = 0;
             foreach (var (fileName, uploadResult) in uploadResults)
             {
-                // Match image type by looking up the filename in ImageMetadata, falling back to default logic
-                var imageType = data.ImageMetadata?.FirstOrDefault(m => m.FileName == fileName)?.Type 
-                    ?? (nextOrder == 0 ? ImageType.Cover : ImageType.Gallery);
+                // Normalize filenames by extracting baseline name (stripping paths, quotes, and whitespace)
+                var cleanFileName = System.IO.Path.GetFileName(fileName).Trim('"').Trim();
+                
+                var matchedMetadata = data.ImageMetadata?.FirstOrDefault(m => 
+                    System.IO.Path.GetFileName(m.FileName).Trim('"').Trim()
+                    .Equals(cleanFileName, StringComparison.OrdinalIgnoreCase));
+                
+                ImageType imageType;
+                if (matchedMetadata != null)
+                {
+                    imageType = matchedMetadata.Type;
+                }
+                else
+                {
+                    // Fallback logic: check if any metadata already specifies a Cover image
+                    var hasCoverInMetadata = data.ImageMetadata?.Any(m => m.Type == ImageType.Cover) ?? false;
+                    imageType = (nextOrder == 0 && !hasCoverInMetadata) ? ImageType.Cover : ImageType.Gallery;
+                }
                 
                 var image = PropertyImage.Create(
                     property.Id,
