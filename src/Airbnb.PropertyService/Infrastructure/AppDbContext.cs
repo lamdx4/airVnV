@@ -15,6 +15,9 @@ public class AppDbContext : DbContext
 
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<Amenity> Amenities => Set<Amenity>();
+    public DbSet<PropertyAvailability> PropertyAvailabilities => Set<PropertyAvailability>();
+    public DbSet<PropertyImage> PropertyImages => Set<PropertyImage>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     private void OnEntityTracked(object? sender, Microsoft.EntityFrameworkCore.ChangeTracking.EntityTrackedEventArgs e)
     {
