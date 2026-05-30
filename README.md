@@ -36,11 +36,13 @@ To understand the deeper business logic and architectural decisions, refer to th
 
 | Microservice / Module | Source Code Path | Domain & Feature Documentation |
 |-----------------------|------------------|--------------------------------|
-| **Property Service**  | [`src/Airbnb.PropertyService`](./src/Airbnb.PropertyService) | [Calendar & Pricing Rules](./tasks/property-management/property-calendar-pricing.md) |
-| **Search Service**    | [`src/Airbnb.SearchService`](./src/Airbnb.SearchService) | [Geo-Filtering](./tasks/search-discovery/search-geo-filtering.md) 🔹 [CDC Sync Logic](./tasks/search-discovery/search-cdc-sync.md) |
-| **Booking Service**   | [`src/Airbnb.BookingService`](./src/Airbnb.BookingService) | [Pricing & Concurrency Controls](./tasks/booking-engine/booking-pricing-concurrency.md) |
-| **Payment Service**   | [`src/Airbnb.PaymentService`](./src/Airbnb.PaymentService) | [VNPay Integration Workflow](./tasks/payment-system/payment-vnpay-integration.md) |
-| **Chat Service**      | [`src/Airbnb.ChatService`](./src/Airbnb.ChatService) | [Chat BA & Replication Rules](./docs/message_ba.md) |
+| **API Gateway**       | [`src/Airbnb.Gateway`](./src/Airbnb.Gateway) | [Routing & Auth Specs](./src/Airbnb.Gateway/README.md) |
+| **Property Service**  | [`src/Airbnb.PropertyService`](./src/Airbnb.PropertyService) | [Property Domain & Endpoints](./src/Airbnb.PropertyService/README.md) |
+| **Search Service**    | [`src/Airbnb.SearchService`](./src/Airbnb.SearchService) | [Search Domain & Endpoints](./src/Airbnb.SearchService/README.md) |
+| **Booking Service**   | [`src/Airbnb.BookingService`](./src/Airbnb.BookingService) | [Booking Domain & Endpoints](./src/Airbnb.BookingService/README.md) |
+| **Payment Service**   | [`src/Airbnb.PaymentService`](./src/Airbnb.PaymentService) | [Payment Domain & Endpoints](./src/Airbnb.PaymentService/README.md) |
+| **Chat Service**      | [`src/Airbnb.ChatService`](./src/Airbnb.ChatService) | [Chat Domain & Endpoints](./src/Airbnb.ChatService/README.md) |
+| **User Service**      | [`src/Airbnb.UserService`](./src/Airbnb.UserService) | [Identity Domain & Endpoints](./src/Airbnb.UserService/README.md) |
 | **React Frontend**    | [`airbnb-web/`](./airbnb-web) | [Frontend Architecture Rules](./.agents/rules/frontend.md) |
 | **Engineering Rules** | `.agents/rules/` | [Backend Rules](./.agents/rules/backend.md) 🔹 [Project Rules](./.agents/rules/project.md) |
 
