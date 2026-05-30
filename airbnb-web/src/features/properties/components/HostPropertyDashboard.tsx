@@ -31,9 +31,15 @@ export const HostPropertyDashboard: React.FC = () => {
   const pageSize = 5;
   
   const { data, isLoading } = useMyProperties(page, pageSize);
+  const { data: allData } = useMyProperties(1, 1000);
+  
   const properties = data?.items || [];
-  const totalCount = data?.totalCount || 0;
+  const totalCount = allData?.totalCount || data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const allProperties = allData?.items || [];
+  const activeCount = allProperties.filter(p => p.status === PropertyStatus.Published).length;
+  const draftCount = allProperties.filter(p => p.status === PropertyStatus.Draft).length;
 
   if (isLoading) return <DashboardSkeleton />;
 
@@ -54,11 +60,11 @@ export const HostPropertyDashboard: React.FC = () => {
         </Button>
       </div>
 
-      {/* Stats Bar (Optional/Placeholder for future) */}
+      {/* Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          <StatCard label="Total Listings" value={totalCount.toString()} icon={Home01Icon} color="bg-blue-50 text-blue-600" />
-         <StatCard label="Active" value={properties.filter(p => p.status === PropertyStatus.Published).length.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
-         <StatCard label="Drafts" value={properties.filter(p => p.status === PropertyStatus.Draft).length.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
+         <StatCard label="Active" value={activeCount.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
+         <StatCard label="Drafts" value={draftCount.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
       </div>
 
       {/* Filter & Search */}
