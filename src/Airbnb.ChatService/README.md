@@ -20,85 +20,130 @@ The primary tables in this microservice:
 | `Messages` | Core metadata and storage for Messages. |
 | `OutboxMessage` | Core metadata and storage for OutboxMessage. |
 | `OutboxState` | Core metadata and storage for OutboxState. |
+| `o` | Core metadata and storage for O. |
 
 ### Entity Relationship Diagram (ERD)
 ```mermaid
 erDiagram
-    CONVERSATIONPARTICIPANTS {
-        uuid ConversationId PK,FK
-        uuid UserId PK
-        text Role 
-        text DisplayName 
-        text AvatarUrl 
-        uuid LastReadMessageId 
-        boolean IsArchived 
-    }
-    CONVERSATIONS {
-        uuid Id PK
-        uuid PropertyId 
-        text PropertyTitle 
-        uuid ReservationId 
-        timestamptz LastMessageAt 
-        timestamptz CreatedAt 
-    }
-    INBOXSTATE {
-        bigint Id PK
-        uuid MessageId 
-        uuid ConsumerId 
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Received 
-        integer ReceiveCount 
-        timestamptz ExpirationTime 
-        timestamptz Consumed 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    MESSAGES {
-        uuid Id PK
-        uuid ConversationId FK
-        uuid SenderId 
-        text MessageType 
-        text Content 
-        timestamptz CreatedAt 
-    }
-    OUTBOXMESSAGE {
-        bigint SequenceNumber PK
-        timestamptz EnqueueTime 
-        timestamptz SentTime 
-        text Headers 
-        text Properties 
-        uuid InboxMessageId FK
-        uuid InboxConsumerId FK
-        uuid OutboxId FK
-        uuid MessageId 
-        varchar(256) ContentType 
-        text MessageType 
-        text Body 
-        uuid ConversationId 
-        uuid CorrelationId 
-        uuid InitiatorId 
-        uuid RequestId 
-        varchar(256) SourceAddress 
-        varchar(256) DestinationAddress 
-        varchar(256) ResponseAddress 
-        varchar(256) FaultAddress 
-        timestamptz ExpirationTime 
-    }
-    OUTBOXSTATE {
-        uuid OutboxId PK
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Created 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
+
+    ConversationParticipants {
+        ConversationId uuid PK "not null"
+        UserId uuid PK "not null"
+        ConversationId uuid FK "not null"
+        IsArchived boolean "not null"
+        DisplayName text "not null"
+        Role text "not null"
+        AvatarUrl text "null"
+        LastReadMessageId uuid "null"
     }
 
-    CONVERSATIONS ||--o{ CONVERSATIONPARTICIPANTS : "has"
-    CONVERSATIONS ||--o{ MESSAGES : "has"
-    INBOXSTATE ||--o{ OUTBOXMESSAGE : "has"
-    OUTBOXSTATE ||--o{ OUTBOXMESSAGE : "has"
+    Conversations {
+        Id uuid PK "not null"
+        PropertyTitle text "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        LastMessageAt timestamp_with_time_zone "not null"
+        PropertyId uuid "not null"
+        ReservationId uuid "null"
+    }
+
+    InboxState {
+        Id bigint PK "not null"
+        ReceiveCount integer "not null"
+        Received timestamp_with_time_zone "not null"
+        ConsumerId uuid "not null"
+        LockId uuid "not null"
+        MessageId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Consumed timestamp_with_time_zone "null"
+        Delivered timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+    }
+
+    Messages {
+        Id uuid PK "not null"
+        ConversationId uuid FK "not null"
+        Content text "not null"
+        MessageType text "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        SenderId uuid "null"
+    }
+
+    OutboxMessage {
+        SequenceNumber bigint PK "not null"
+        InboxConsumerId uuid FK "null"
+        InboxMessageId uuid FK "null"
+        OutboxId uuid FK "null"
+        ContentType character_varying "not null"
+        Body text "not null"
+        MessageType text "not null"
+        SentTime timestamp_with_time_zone "not null"
+        MessageId uuid "not null"
+        DestinationAddress character_varying "null"
+        FaultAddress character_varying "null"
+        ResponseAddress character_varying "null"
+        SourceAddress character_varying "null"
+        Headers text "null"
+        Properties text "null"
+        EnqueueTime timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+        ConversationId uuid "null"
+        CorrelationId uuid "null"
+        InitiatorId uuid "null"
+        RequestId uuid "null"
+    }
+
+    OutboxState {
+        OutboxId uuid PK "not null"
+        Created timestamp_with_time_zone "not null"
+        LockId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Delivered timestamp_with_time_zone "null"
+    }
+
+    Conversations ||--o{ ConversationParticipants : "ConversationParticipants(ConversationId) -> Conversations(Id)"
+    Conversations ||--o{ Messages : "Messages(ConversationId) -> Conversations(Id)"
+    InboxState ||--o{ OutboxMessage : "OutboxMessage(InboxConsumerId, InboxMessageId) -> InboxState(ConsumerId, MessageId)"
+    OutboxState ||--o{ OutboxMessage : "OutboxMessage(OutboxId) -> OutboxState(OutboxId)"
 ```
+
+## Indexes
+
+### `ConversationParticipants`
+
+- `PK_ConversationParticipants`
+- `idx_participants_user_id`
+
+### `Conversations`
+
+- `PK_Conversations`
+- `uq_conversation_property_no_res`
+- `uq_conversation_property_res`
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `Messages`
+
+- `PK_Messages`
+- `idx_messages_conversation_created`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
 
 ## 🔌 API Endpoints (FastEndpoints)
 

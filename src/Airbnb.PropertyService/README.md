@@ -19,6 +19,7 @@ The primary tables in this microservice:
 | `OutboxMessage` | Core metadata and storage for OutboxMessage. |
 | `OutboxState` | Core metadata and storage for OutboxState. |
 | `amenities` | Core metadata and storage for Amenities. |
+| `o` | Core metadata and storage for O. |
 | `properties` | Core metadata and storage for Properties. |
 | `property_amenities` | Core metadata and storage for Property Amenities. |
 | `property_availabilities` | Core metadata and storage for Property Availabilities. |
@@ -28,126 +29,187 @@ The primary tables in this microservice:
 ### Entity Relationship Diagram (ERD)
 ```mermaid
 erDiagram
-    INBOXSTATE {
-        bigint Id PK
-        uuid MessageId 
-        uuid ConsumerId 
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Received 
-        integer ReceiveCount 
-        timestamptz ExpirationTime 
-        timestamptz Consumed 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    OUTBOXMESSAGE {
-        bigint SequenceNumber PK
-        timestamptz EnqueueTime 
-        timestamptz SentTime 
-        text Headers 
-        text Properties 
-        uuid InboxMessageId 
-        uuid InboxConsumerId 
-        uuid OutboxId 
-        uuid MessageId 
-        varchar(256) ContentType 
-        text MessageType 
-        text Body 
-        uuid ConversationId 
-        uuid CorrelationId 
-        uuid InitiatorId 
-        uuid RequestId 
-        varchar(256) SourceAddress 
-        varchar(256) DestinationAddress 
-        varchar(256) ResponseAddress 
-        varchar(256) FaultAddress 
-        timestamptz ExpirationTime 
-    }
-    OUTBOXSTATE {
-        uuid OutboxId PK
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Created 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    AMENITIES {
-        uuid Id PK
-        varchar(100) Name 
-        varchar(50) Category 
-        varchar(50) IconCode 
-    }
-    PROPERTIES {
-        uuid Id PK
-        uuid HostId 
-        varchar(255) Title 
-        varchar(5000) Description 
-        varchar(2) CountryCode 
-        double_precision Latitude 
-        double_precision Longitude 
-        timestamptz CreatedAt 
-        jsonb AddressRaw 
-        varchar(100) Admin1Code 
-        varchar(100) Admin2Code 
-        varchar(500) DisplayAddress 
-        jsonb HouseRules 
-        varchar(300) Slug 
-        integer Status 
-        varchar(500) SuspensionReason 
-        timestamptz UpdatedAt 
-        bigint Version 
-        integer capacity_bathroom_count 
-        integer capacity_bed_count 
-        integer capacity_bedroom_count 
-        integer capacity_guest_count 
-        numeric pricing_base_price 
-        numeric pricing_cleaning_fee 
-        varchar(3) pricing_currency_code 
-        numeric pricing_service_fee 
-        numeric pricing_weekend_premium_percent 
-        numeric AverageRating 
-        text BookingMode 
-        integer ReviewCount 
-        integer Type 
-    }
-    PROPERTY_AMENITIES {
-        uuid PropertyId PK,FK
-        uuid AmenityId PK
-        varchar(200) AdditionalInfo 
-    }
-    PROPERTY_AVAILABILITIES {
-        uuid Id PK
-        uuid PropertyId FK
-        date StartDate 
-        date EndDate 
-        integer Type 
-        varchar(255) Note 
-    }
-    PROPERTY_IMAGES {
-        uuid Id PK
-        uuid PropertyId FK
-        uuid UploadedBy 
-        varchar(2048) Url 
-        text PublicId 
-        varchar(20) Type 
-        integer DisplayOrder 
-    }
-    REVIEWS {
-        uuid Id PK
-        uuid PropertyId FK
-        uuid BookingId 
-        uuid GuestId 
-        integer Rating 
-        varchar(1000) Comment 
-        timestamptz CreatedAt 
+
+    InboxState {
+        Id bigint PK "not null"
+        ReceiveCount integer "not null"
+        Received timestamp_with_time_zone "not null"
+        ConsumerId uuid "not null"
+        LockId uuid "not null"
+        MessageId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Consumed timestamp_with_time_zone "null"
+        Delivered timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
     }
 
-    PROPERTIES ||--o{ PROPERTY_AMENITIES : "has"
-    PROPERTIES ||--o{ PROPERTY_IMAGES : "has"
-    PROPERTIES ||--o{ PROPERTY_AVAILABILITIES : "has"
-    PROPERTIES ||--o{ REVIEWS : "has"
+    OutboxMessage {
+        SequenceNumber bigint PK "not null"
+        ContentType character_varying "not null"
+        Body text "not null"
+        MessageType text "not null"
+        SentTime timestamp_with_time_zone "not null"
+        MessageId uuid "not null"
+        DestinationAddress character_varying "null"
+        FaultAddress character_varying "null"
+        ResponseAddress character_varying "null"
+        SourceAddress character_varying "null"
+        Headers text "null"
+        Properties text "null"
+        EnqueueTime timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+        ConversationId uuid "null"
+        CorrelationId uuid "null"
+        InboxConsumerId uuid "null"
+        InboxMessageId uuid "null"
+        InitiatorId uuid "null"
+        OutboxId uuid "null"
+        RequestId uuid "null"
+    }
+
+    OutboxState {
+        OutboxId uuid PK "not null"
+        Created timestamp_with_time_zone "not null"
+        LockId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Delivered timestamp_with_time_zone "null"
+    }
+
+    amenities {
+        Id uuid PK "not null"
+        Category character_varying "not null"
+        Name character_varying "not null"
+        IconCode character_varying "null"
+    }
+
+    properties {
+        Id uuid PK "not null"
+        Version bigint "not null"
+        CountryCode character_varying "not null"
+        Description character_varying "not null"
+        DisplayAddress character_varying "not null"
+        Slug character_varying "not null"
+        Title character_varying "not null"
+        pricing_currency_code character_varying "not null"
+        Latitude double_precision "not null"
+        Longitude double_precision "not null"
+        ReviewCount integer "not null"
+        Status integer "not null"
+        Type integer "not null"
+        capacity_bathroom_count integer "not null"
+        capacity_bed_count integer "not null"
+        capacity_bedroom_count integer "not null"
+        capacity_guest_count integer "not null"
+        AddressRaw jsonb "not null"
+        HouseRules jsonb "not null"
+        AverageRating numeric "not null"
+        pricing_base_price numeric "not null"
+        pricing_cleaning_fee numeric "not null"
+        pricing_service_fee numeric "not null"
+        pricing_weekend_premium_percent numeric "not null"
+        BookingMode text "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        HostId uuid "not null"
+        Admin1Code character_varying "null"
+        Admin2Code character_varying "null"
+        SuspensionReason character_varying "null"
+        UpdatedAt timestamp_with_time_zone "null"
+    }
+
+    property_amenities {
+        AmenityId uuid PK "not null"
+        PropertyId uuid PK "not null"
+        PropertyId uuid FK "not null"
+        AdditionalInfo character_varying "null"
+    }
+
+    property_availabilities {
+        Id uuid PK "not null"
+        PropertyId uuid FK "not null"
+        EndDate date "not null"
+        StartDate date "not null"
+        Type integer "not null"
+        Note character_varying "null"
+    }
+
+    property_images {
+        Id uuid PK "not null"
+        PropertyId uuid FK "not null"
+        Type character_varying "not null"
+        Url character_varying "not null"
+        DisplayOrder integer "not null"
+        PublicId text "not null"
+        UploadedBy uuid "not null"
+    }
+
+    reviews {
+        Id uuid PK "not null"
+        PropertyId uuid FK "not null"
+        Comment character_varying "not null"
+        Rating integer "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        BookingId uuid "not null"
+        GuestId uuid "not null"
+    }
+
+    properties ||--o{ property_amenities : "property_amenities(PropertyId) -> properties(Id)"
+    properties ||--o{ property_availabilities : "property_availabilities(PropertyId) -> properties(Id)"
+    properties ||--o{ property_images : "property_images(PropertyId) -> properties(Id)"
+    properties ||--o{ reviews : "reviews(PropertyId) -> properties(Id)"
 ```
+
+## Indexes
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `amenities`
+
+- `PK_amenities`
+
+### `properties`
+
+- `IX_properties_CountryCode_Admin1Code_Admin2Code`
+- `IX_properties_Slug`
+- `PK_properties`
+
+### `property_amenities`
+
+- `PK_property_amenities`
+
+### `property_availabilities`
+
+- `IX_property_availabilities_PropertyId`
+- `PK_property_availabilities`
+
+### `property_images`
+
+- `IX_property_images_PropertyId_Type`
+- `PK_property_images`
+
+### `reviews`
+
+- `IX_reviews_BookingId`
+- `IX_reviews_PropertyId`
+- `PK_reviews`
 
 ## 🔌 API Endpoints (FastEndpoints)
 

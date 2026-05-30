@@ -23,90 +23,132 @@ The primary tables in this microservice:
 ### Entity Relationship Diagram (ERD)
 ```mermaid
 erDiagram
-    BOOKINGSTATE {
-        uuid CorrelationId PK
-        varchar(64) CurrentState 
-        uuid BookingId 
-        uuid GuestId 
-        uuid PropertyId 
-        numeric TotalPrice 
-        varchar(3) CurrencyCode 
-        timestamptz CreatedAt 
-        timestamptz UpdatedAt 
-        uuid ExpirationTokenId 
-    }
-    BOOKINGS {
-        uuid Id PK
-        uuid PropertyId 
-        uuid HostId 
-        uuid GuestId 
-        date CheckIn 
-        date CheckOut 
-        integer GuestCount 
-        integer NightCount 
-        numeric BasePricePerNight 
-        numeric CleaningFee 
-        numeric ServiceFee 
-        numeric TotalPrice 
-        varchar(3) CurrencyCode 
-        text Status 
-        uuid CancelledBy 
-        timestamptz CreatedAt 
-        numeric TaxAmount 
-        varchar(2) CountryCode 
-        bigint Version 
-    }
-    INBOXSTATE {
-        bigint Id PK
-        uuid MessageId 
-        uuid ConsumerId 
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Received 
-        integer ReceiveCount 
-        timestamptz ExpirationTime 
-        timestamptz Consumed 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    OUTBOXMESSAGE {
-        bigint SequenceNumber PK
-        timestamptz EnqueueTime 
-        timestamptz SentTime 
-        text Headers 
-        text Properties 
-        uuid InboxMessageId 
-        uuid InboxConsumerId 
-        uuid OutboxId 
-        uuid MessageId 
-        varchar(256) ContentType 
-        text MessageType 
-        text Body 
-        uuid ConversationId 
-        uuid CorrelationId 
-        uuid InitiatorId 
-        uuid RequestId 
-        varchar(256) SourceAddress 
-        varchar(256) DestinationAddress 
-        varchar(256) ResponseAddress 
-        varchar(256) FaultAddress 
-        timestamptz ExpirationTime 
-    }
-    OUTBOXSTATE {
-        uuid OutboxId PK
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Created 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    PROCESSEDEVENTS {
-        uuid EventId PK
-        timestamptz ProcessedAt 
-        text EventType 
+
+    BookingState {
+        CorrelationId uuid PK "not null"
+        CurrencyCode character_varying "not null"
+        CurrentState character_varying "not null"
+        TotalPrice numeric "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        BookingId uuid "not null"
+        GuestId uuid "not null"
+        PropertyId uuid "not null"
+        UpdatedAt timestamp_with_time_zone "null"
+        ExpirationTokenId uuid "null"
     }
 
+    Bookings {
+        Id uuid PK "not null"
+        Version bigint "not null"
+        CountryCode character_varying "not null"
+        CurrencyCode character_varying "not null"
+        CheckIn date "not null"
+        CheckOut date "not null"
+        GuestCount integer "not null"
+        NightCount integer "not null"
+        BasePricePerNight numeric "not null"
+        CleaningFee numeric "not null"
+        ServiceFee numeric "not null"
+        TaxAmount numeric "not null"
+        TotalPrice numeric "not null"
+        Status text "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        GuestId uuid "not null"
+        HostId uuid "not null"
+        PropertyId uuid "not null"
+        CancelledBy uuid "null"
+    }
+
+    InboxState {
+        Id bigint PK "not null"
+        ReceiveCount integer "not null"
+        Received timestamp_with_time_zone "not null"
+        ConsumerId uuid "not null"
+        LockId uuid "not null"
+        MessageId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Consumed timestamp_with_time_zone "null"
+        Delivered timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+    }
+
+    OutboxMessage {
+        SequenceNumber bigint PK "not null"
+        ContentType character_varying "not null"
+        Body text "not null"
+        MessageType text "not null"
+        SentTime timestamp_with_time_zone "not null"
+        MessageId uuid "not null"
+        DestinationAddress character_varying "null"
+        FaultAddress character_varying "null"
+        ResponseAddress character_varying "null"
+        SourceAddress character_varying "null"
+        Headers text "null"
+        Properties text "null"
+        EnqueueTime timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+        ConversationId uuid "null"
+        CorrelationId uuid "null"
+        InboxConsumerId uuid "null"
+        InboxMessageId uuid "null"
+        InitiatorId uuid "null"
+        OutboxId uuid "null"
+        RequestId uuid "null"
+    }
+
+    OutboxState {
+        OutboxId uuid PK "not null"
+        Created timestamp_with_time_zone "not null"
+        LockId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Delivered timestamp_with_time_zone "null"
+    }
+
+    ProcessedEvents {
+        EventId uuid PK "not null"
+        EventType text "not null"
+        ProcessedAt timestamp_with_time_zone "not null"
+    }
 ```
+
+## Indexes
+
+### `BookingState`
+
+- `IX_BookingState_BookingId`
+- `PK_BookingState`
+
+### `Bookings`
+
+- `PK_Bookings`
+- `idx_bookings_guest_id`
+- `idx_bookings_host_id`
+- `idx_bookings_property_dates`
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `ProcessedEvents`
+
+- `PK_ProcessedEvents`
 
 ## 🔌 API Endpoints (FastEndpoints)
 

@@ -21,64 +21,93 @@ The primary tables in this microservice:
 ### Entity Relationship Diagram (ERD)
 ```mermaid
 erDiagram
-    INBOXSTATE {
-        bigint Id PK
-        uuid MessageId 
-        uuid ConsumerId 
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Received 
-        integer ReceiveCount 
-        timestamptz ExpirationTime 
-        timestamptz Consumed 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    OUTBOXMESSAGE {
-        bigint SequenceNumber PK
-        timestamptz EnqueueTime 
-        timestamptz SentTime 
-        text Headers 
-        text Properties 
-        uuid InboxMessageId 
-        uuid InboxConsumerId 
-        uuid OutboxId 
-        uuid MessageId 
-        varchar(256) ContentType 
-        text MessageType 
-        text Body 
-        uuid ConversationId 
-        uuid CorrelationId 
-        uuid InitiatorId 
-        uuid RequestId 
-        varchar(256) SourceAddress 
-        varchar(256) DestinationAddress 
-        varchar(256) ResponseAddress 
-        varchar(256) FaultAddress 
-        timestamptz ExpirationTime 
-    }
-    OUTBOXSTATE {
-        uuid OutboxId PK
-        uuid LockId 
-        bytea RowVersion 
-        timestamptz Created 
-        timestamptz Delivered 
-        bigint LastSequenceNumber 
-    }
-    PAYMENTS {
-        uuid Id PK
-        uuid BookingId 
-        numeric Amount 
-        varchar(3) Currency 
-        text Status 
-        varchar(255) TransactionId 
-        timestamptz CreatedAt 
-        timestamptz ExpiresAt 
-        varchar(2048) PaymentUrl 
-        bigint Version 
+
+    InboxState {
+        Id bigint PK "not null"
+        ReceiveCount integer "not null"
+        Received timestamp_with_time_zone "not null"
+        ConsumerId uuid "not null"
+        LockId uuid "not null"
+        MessageId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Consumed timestamp_with_time_zone "null"
+        Delivered timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
     }
 
+    OutboxMessage {
+        SequenceNumber bigint PK "not null"
+        ContentType character_varying "not null"
+        Body text "not null"
+        MessageType text "not null"
+        SentTime timestamp_with_time_zone "not null"
+        MessageId uuid "not null"
+        DestinationAddress character_varying "null"
+        FaultAddress character_varying "null"
+        ResponseAddress character_varying "null"
+        SourceAddress character_varying "null"
+        Headers text "null"
+        Properties text "null"
+        EnqueueTime timestamp_with_time_zone "null"
+        ExpirationTime timestamp_with_time_zone "null"
+        ConversationId uuid "null"
+        CorrelationId uuid "null"
+        InboxConsumerId uuid "null"
+        InboxMessageId uuid "null"
+        InitiatorId uuid "null"
+        OutboxId uuid "null"
+        RequestId uuid "null"
+    }
+
+    OutboxState {
+        OutboxId uuid PK "not null"
+        Created timestamp_with_time_zone "not null"
+        LockId uuid "not null"
+        LastSequenceNumber bigint "null"
+        RowVersion bytea "null"
+        Delivered timestamp_with_time_zone "null"
+    }
+
+    Payments {
+        Id uuid PK "not null"
+        Version bigint "not null"
+        Currency character_varying "not null"
+        Amount numeric "not null"
+        Status text "not null"
+        CreatedAt timestamp_with_time_zone "not null"
+        BookingId uuid "not null"
+        PaymentUrl character_varying "null"
+        TransactionId character_varying "null"
+        ExpiresAt timestamp_with_time_zone "null"
+    }
 ```
+
+## Indexes
+
+### `InboxState`
+
+- `AK_InboxState_MessageId_ConsumerId`
+- `IX_InboxState_Delivered`
+- `PK_InboxState`
+
+### `OutboxMessage`
+
+- `IX_OutboxMessage_EnqueueTime`
+- `IX_OutboxMessage_ExpirationTime`
+- `IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber`
+- `IX_OutboxMessage_OutboxId_SequenceNumber`
+- `PK_OutboxMessage`
+
+### `OutboxState`
+
+- `IX_OutboxState_Created`
+- `PK_OutboxState`
+
+### `Payments`
+
+- `PK_Payments`
+- `ix_payments_booking_pending`
 
 ## 🔌 API Endpoints (FastEndpoints)
 

@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { Client } = require('pg');
 
 function getPostgresInfo() {
   let port = 5435;
@@ -58,149 +57,70 @@ async function main() {
 
   console.log(`Connecting to database "${dbName}" on localhost:${port}...`);
 
-  const client = new Client({
-    host: 'localhost',
-    port: port,
-    database: dbName,
-    user: 'postgres',
-    password: password,
-  });
+  // Target paths
+  const tempFile = path.resolve(__dirname, 'temp_db_schema.md');
+  const targetReadme = path.resolve(readmePath);
 
-  try {
-    await client.connect();
-  } catch (err) {
-    console.error(`Failed to connect to database "${dbName}":`, err.message);
+  if (!fs.existsSync(targetReadme)) {
+    console.error(`Target README not found: ${targetReadme}`);
     process.exit(1);
   }
 
   try {
-    // 1. Fetch tables and columns
-    const columnsQuery = `
-      SELECT 
-        table_name,
-        column_name,
-        data_type,
-        is_nullable,
-        character_maximum_length
-      FROM 
-        information_schema.columns
-      WHERE 
-        table_schema = 'public'
-        AND table_name NOT LIKE '__EFMigrationsHistory'
-      ORDER BY 
-        table_name, ordinal_position;
-    `;
-    const columnsResult = await client.query(columnsQuery);
+    console.log(`Generating database schema using pg-mermaid...`);
+    // Run npx pg-mermaid programmatically
+    // We pass the PGPASSWORD environment variable so pg-mermaid can authenticate silently without prompt
+    execSync(`npx -y pg-mermaid@0.2.1 -h localhost -p ${port} -U postgres -d ${dbName} --output-path "${tempFile}"`, {
+      env: { ...process.env, PGPASSWORD: password },
+      stdio: 'inherit'
+    });
 
-    // 2. Fetch primary keys
-    const pKeysQuery = `
-      SELECT 
-        kcu.table_name,
-        kcu.column_name
-      FROM 
-        information_schema.table_constraints tc
-        JOIN information_schema.key_column_usage kcu 
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-      WHERE 
-        tc.constraint_type = 'PRIMARY KEY'
-        AND tc.table_schema = 'public';
-    `;
-    const pKeysResult = await client.query(pKeysQuery);
-    const pKeysSet = new Set(pKeysResult.rows.map(r => `${r.table_name}.${r.column_name}`));
+    if (!fs.existsSync(tempFile)) {
+      throw new Error("pg-mermaid did not generate the output schema file.");
+    }
 
-    // 3. Fetch foreign keys and relationships
-    const fKeysQuery = `
-      SELECT
-        tc.table_name AS from_table, 
-        kcu.column_name AS from_column, 
-        ccu.table_name AS to_table,
-        ccu.column_name AS to_column
-      FROM 
-        information_schema.table_constraints AS tc 
-        JOIN information_schema.key_column_usage AS kcu
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-        JOIN information_schema.constraint_column_usage AS ccu
-          ON ccu.constraint_name = tc.constraint_name
-          AND ccu.table_schema = tc.table_schema
-      WHERE 
-        tc.constraint_type = 'FOREIGN KEY'
-        AND tc.table_schema = 'public';
-    `;
-    const fKeysResult = await client.query(fKeysQuery);
+    let generatedMarkdown = fs.readFileSync(tempFile, 'utf-8');
+    
+    // Clean up or format the generated markdown to exclude the __EFMigrationsHistory table if present
+    // It's cleaner to remove the EFMigrationsHistory from the Mermaid ERD and the Indexes
+    generatedMarkdown = generatedMarkdown.replace(/\s*__EFMigrationsHistory\s*\{[^}]*\}/g, '');
+    generatedMarkdown = generatedMarkdown.replace(/### `__EFMigrationsHistory`[\s\S]*?(?=### `|$)/g, '');
 
-    // Group columns by table
-    const tables = {};
-    for (const row of columnsResult.rows) {
-      if (!tables[row.table_name]) {
-        tables[row.table_name] = [];
+    // In a microservice README, pg-mermaid's output is perfect. Let's wrap it nicely
+    let formattedOutput = 'The primary tables in this microservice:\n\n';
+    
+    // Extract table names to build a neat index description table
+    const tableRegex = /(\w+)\s*\{/g;
+    let match;
+    const tables = new Set();
+    while ((match = tableRegex.exec(generatedMarkdown)) !== null) {
+      if (match[1] && match[1] !== 'erDiagram') {
+        tables.add(match[1]);
       }
-      tables[row.table_name].push(row);
     }
 
-    if (Object.keys(tables).length === 0) {
-      console.warn(`No tables found in public schema for database "${dbName}".`);
-      process.exit(0);
-    }
-
-    // Generate Markdown Tables
-    let markdownOutput = 'The primary tables in this microservice:\n\n';
-    markdownOutput += '| Table Name | Description |\n';
-    markdownOutput += '|------------|-------------|\n';
-    for (const tableName of Object.keys(tables)) {
+    formattedOutput += '| Table Name | Description |\n';
+    formattedOutput += '|------------|-------------|\n';
+    for (const tableName of Array.from(tables).sort()) {
       const formattedName = tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      markdownOutput += `| \`${tableName}\` | Core metadata and storage for ${formattedName}. |\n`;
+      formattedOutput += `| \`${tableName}\` | Core metadata and storage for ${formattedName}. |\n`;
     }
 
-    markdownOutput += '\n### Entity Relationship Diagram (ERD)\n';
-    markdownOutput += '```mermaid\nerDiagram\n';
-
-    // Generate Mermaid properties
-    for (const [tableName, cols] of Object.entries(tables)) {
-      markdownOutput += `    ${tableName.toUpperCase()} {\n`;
-      for (const col of cols) {
-        const isPk = pKeysSet.has(`${tableName}.${col.column_name}`);
-        const isFk = fKeysResult.rows.some(fk => fk.from_table === tableName && fk.from_column === col.column_name);
-        
-        let type = col.data_type;
-        if (col.character_maximum_length) {
-          type += `(${col.character_maximum_length})`;
-        }
-        // Simplify common types for cleaner diagram
-        type = type.replace('character varying', 'varchar');
-        type = type.replace('timestamp with time zone', 'timestamptz');
-        
-        let keyFlag = '';
-        if (isPk && isFk) keyFlag = 'PK,FK';
-        else if (isPk) keyFlag = 'PK';
-        else if (isFk) keyFlag = 'FK';
-
-        markdownOutput += `        ${type.replace(/\s+/g, '_')} ${col.column_name} ${keyFlag}\n`;
-      }
-      markdownOutput += '    }\n';
+    formattedOutput += '\n### Entity Relationship Diagram (ERD)\n';
+    
+    // Extract the Mermaid block
+    const mermaidMatch = generatedMarkdown.match(/```mermaid[\s\S]*?```/);
+    if (mermaidMatch) {
+      formattedOutput += mermaidMatch[0] + '\n\n';
     }
 
-    // Generate Mermaid relationships
-    markdownOutput += '\n';
-    const drawnRelations = new Set();
-    for (const fk of fKeysResult.rows) {
-      const relationKey = `${fk.from_table}-${fk.to_table}`;
-      if (!drawnRelations.has(relationKey)) {
-        markdownOutput += `    ${fk.to_table.toUpperCase()} ||--o{ ${fk.from_table.toUpperCase()} : "has"\n`;
-        drawnRelations.add(relationKey);
-      }
+    // Extract the Indexes block
+    const indexesMatch = generatedMarkdown.match(/## Indexes[\s\S]*/);
+    if (indexesMatch) {
+      formattedOutput += indexesMatch[0] + '\n';
     }
-
-    markdownOutput += '```\n';
 
     // Inject into target README.md
-    const targetReadme = path.resolve(readmePath);
-    if (!fs.existsSync(targetReadme)) {
-      console.error(`Target README not found: ${targetReadme}`);
-      process.exit(1);
-    }
-
     let readmeContent = fs.readFileSync(targetReadme, 'utf-8');
     const startMarkerRegex = /##.*Database Schema/i;
     
@@ -215,7 +135,7 @@ async function main() {
       if (startMarkerRegex.test(line)) {
         newLines.push(line);
         newLines.push('');
-        newLines.push(markdownOutput.trim());
+        newLines.push(formattedOutput.trim());
         newLines.push('');
         inSchemaSection = true;
         schemaInserted = true;
@@ -235,7 +155,7 @@ async function main() {
     if (!schemaInserted) {
       console.warn(`Could not find '## Database Schema' section in ${readmePath}. Appending to end.`);
       newLines.push('\n## 🗄️ Database Schema\n');
-      newLines.push(markdownOutput.trim());
+      newLines.push(formattedOutput.trim());
       newLines.push('');
     }
 
@@ -243,9 +163,12 @@ async function main() {
     console.log(`Successfully generated and updated database schema in ${targetReadme}!`);
 
   } catch (err) {
-    console.error('Error querying database:', err.message);
+    console.error('Error generating schema:', err.message);
   } finally {
-    await client.end();
+    // Clean up temp file
+    if (fs.existsSync(tempFile)) {
+      fs.unlinkSync(tempFile);
+    }
   }
 }
 
