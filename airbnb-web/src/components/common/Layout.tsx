@@ -10,7 +10,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
-      <main className="flex-grow max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 py-8">
+      <main className="flex-grow w-full max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 py-8">
         {children || <Outlet />}
       </main>
 

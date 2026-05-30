@@ -5,4 +5,4 @@ namespace Airbnb.PropertyService.Features.GetPropertyBasicInfo;
 
 public record Request(Guid PropertyId) : IQuery<Response>;
 
-public record Response(Guid PropertyId, string Title, Guid HostId, Pricing Pricing, string CountryCode, Airbnb.PropertyService.Domain.Enums.BookingMode BookingMode);
+public record Response(Guid PropertyId, string Title, string Description, Guid HostId, Pricing Pricing, PropertyCapacity Capacity, HouseRules HouseRules, string CountryCode, Airbnb.PropertyService.Domain.Enums.PropertyType Type, Airbnb.PropertyService.Domain.Enums.BookingMode BookingMode);

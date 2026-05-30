@@ -5,26 +5,13 @@ import { useSearchProperties } from '../features/search/hooks/useSearchPropertie
 import { MapView } from '../features/search/components/MapView'
 import { Skeleton } from '@/components/ui/skeleton'
 
-const categories = [
-  { id: 'beach', label: 'Beachfront', icon: 'hugeicons:beach-02' },
-  { id: 'mountain', label: 'Amazing pools', icon: 'hugeicons:swimming-pool' },
-  { id: 'lake', label: 'Islands', icon: 'hugeicons:island-01' },
-  { id: 'cabin', label: 'Cabins', icon: 'hugeicons:home-01' },
-  { id: 'mansion', label: 'Mansions', icon: 'hugeicons:castle-01' },
-  { id: 'farm', label: 'Farms', icon: 'hugeicons:farm-01' },
-  { id: 'camping', label: 'Camping', icon: 'hugeicons:tent-01' },
-  { id: 'arctic', label: 'Arctic', icon: 'hugeicons:snow-02' },
-  { id: 'desert', label: 'Desert', icon: 'hugeicons:desert-01' },
-  { id: 'trending', label: 'Trending', icon: 'hugeicons:zap' },
-]
-
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState('beach')
   const [likedPlaces, setLikedPlaces] = useState<string[]>([])
   const [showMap, setShowMap] = useState(false)
   
   // Default coordinates (HCMC, Vietnam)
   const [location, setLocation] = useState({ latitude: 10.762622, longitude: 106.660172 })
+  const [propertyType, setPropertyType] = useState<number | null>(null)
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -43,6 +30,7 @@ export default function Home() {
     latitude: location.latitude,
     longitude: location.longitude,
     radiusKm: 50,
+    propertyType: propertyType !== null ? propertyType : undefined,
     page: 1,
     pageSize: 20
   })
@@ -56,30 +44,29 @@ export default function Home() {
   return (
     <div className="space-y-6 pb-24 relative">
       {/* Category Bar */}
-      <div className="sticky top-[80px] z-30 bg-white/95 backdrop-blur-sm -mx-12 px-12 pt-4">
-        <div className="flex items-center gap-8 overflow-x-auto pb-3 scrollbar-none border-b border-slate-100">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex flex-col items-center gap-2 min-w-[70px] pb-3 border-b-2 transition-all duration-200 group relative ${
-                activeCategory === cat.id
-                  ? 'border-slate-900 text-slate-900'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-200'
-              }`}
-            >
-              <Icon 
-                icon={cat.icon} 
-                className={`text-[24px] ${
-                  activeCategory === cat.id ? 'opacity-100' : 'opacity-60'
-                }`} 
-              />
-              <span className={`text-xs whitespace-nowrap font-semibold tracking-tight ${activeCategory === cat.id ? 'text-slate-900' : 'text-slate-500'}`}>
-                {cat.label}
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center gap-8 overflow-x-auto no-scrollbar py-4 px-2 border-b border-slate-100">
+        {[
+          { id: null, label: 'All', icon: 'hugeicons:earth' },
+          { id: 1, label: 'Apartment', icon: 'hugeicons:building-04' },
+          { id: 2, label: 'House', icon: 'hugeicons:home-03' },
+          { id: 3, label: 'Villa', icon: 'hugeicons:castle-02' },
+          { id: 4, label: 'Homestay', icon: 'hugeicons:house-02' },
+          { id: 5, label: 'Hotel', icon: 'hugeicons:hotel-01' },
+          { id: 6, label: 'Resort', icon: 'hugeicons:swimming-pool' },
+        ].map((category) => (
+          <button
+            key={category.id || 'all'}
+            onClick={() => setPropertyType(category.id)}
+            className={`flex flex-col items-center gap-2 min-w-max pb-3 border-b-2 transition-all ${
+              propertyType === category.id
+                ? 'border-slate-900 text-slate-900'
+                : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+            }`}
+          >
+            <Icon icon={category.icon} className="text-2xl" />
+            <span className="text-sm font-semibold">{category.label}</span>
+          </button>
+        ))}
       </div>
 
       {isLoading ? (

@@ -40,6 +40,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, PropertyDt
             property.Title,
             property.Description,
             property.Slug,
+            property.Type,
             property.Status,
             property.BookingMode,
             property.Latitude,

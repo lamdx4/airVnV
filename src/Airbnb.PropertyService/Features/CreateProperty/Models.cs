@@ -16,6 +16,7 @@ public record CreatePropertyDto(
     string Title,
     string Description,
     string Slug,
+    PropertyType Type,
     decimal BasePrice,
     string CurrencyCode,
     decimal CleaningFee,

@@ -26,8 +26,9 @@ export function AirbnbLogin({ view }: AirbnbLoginProps) {
   }, [])
 
   return (
-    <div className="flex flex-col md:flex-row w-full min-h-[600px] rounded-3xl shadow-2xl overflow-hidden bg-white border border-slate-100 mt-4 font-sans">
-      {/* Left Section - Slideshow for MD+ screens */}
+    <div className="w-full flex justify-center py-8">
+      <div className="flex flex-col md:flex-row w-full max-w-5xl min-h-[600px] rounded-3xl shadow-2xl overflow-hidden bg-white border border-slate-100 mt-4 font-sans">
+        {/* Left Section - Slideshow for MD+ screens */}
       <div className="hidden md:block md:w-1/2 relative overflow-hidden bg-slate-900">
         {locationImages.map((src, index) => (
           <div
@@ -79,6 +80,7 @@ export function AirbnbLogin({ view }: AirbnbLoginProps) {
           
         </div>
       </div>
+    </div>
     </div>
   )
 }

@@ -27,6 +27,7 @@ export function toCreatePropertyRequest(
     title: formData.title || '',
     description: formData.description || '',
     slug: slugify(formData.title || '') + '-' + Math.random().toString(36).substring(2, 9), // Auto slug có entropy tránh trùng lặp
+    type: Number(formData.type || 1),
     
     // Pricing
     basePrice: Number(formData.basePrice || 0),

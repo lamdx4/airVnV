@@ -22,12 +22,13 @@ import { AvailabilityCalendar } from './AvailabilityCalendar';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PropertyStatus } from '../types';
+import { PropertyStatus, PropertyType } from '../types';
 import { getStatusColor, getStatusText } from '../utils/status';
 
 const schema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
+  type: z.number().min(1, 'Property type is required'),
   basePrice: z.number().min(1, 'Price must be at least 1'),
   cleaningFee: z.number(),
   allowPets: z.boolean(),
@@ -65,6 +66,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
     defaultValues: {
       title: '',
       description: '',
+      type: PropertyType.Apartment,
       basePrice: 0,
       cleaningFee: 0,
       allowPets: false,
@@ -81,6 +83,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
       reset({
         title: property.title,
         description: property.description,
+        type: property.type,
         basePrice: property.pricing.basePrice,
         cleaningFee: property.pricing.cleaningFee,
         allowPets: property.houseRules.allowPets,
@@ -99,6 +102,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
       const payload = {
         title: data.title,
         description: data.description,
+        type: data.type,
         pricing: {
             basePrice: data.basePrice,
             cleaningFee: data.cleaningFee || 0
@@ -199,7 +203,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                         </Button>
                     )}
                     <Button variant="outline" className="rounded-2xl h-12 border-slate-200 font-bold flex gap-2" asChild>
-                        <a href={`/rooms/${propertyId}`} target="_blank">
+                        <a href={`/properties/${propertyId}`} target="_blank">
                             <ViewIcon className="h-5 w-5" />
                             Preview Live
                         </a>
@@ -253,6 +257,19 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                                 placeholder="Tell guests what makes your place special..."
                             />
                             {errors.description && <p className="text-xs text-rausch font-semibold mt-1">{errors.description.message}</p>}
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Property Type</label>
+                            <select 
+                                {...register('type', { valueAsNumber: true })}
+                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all text-hof font-medium bg-white appearance-none"
+                            >
+                                {Object.entries(PropertyType).map(([key, value]) => (
+                                    <option key={value as number} value={value as number}>{key}</option>
+                                ))}
+                            </select>
+                            {errors.type && <p className="text-xs text-rausch font-semibold mt-1">{errors.type.message}</p>}
                         </div>
                     </div>
 

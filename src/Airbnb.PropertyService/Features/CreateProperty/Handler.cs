@@ -66,6 +66,7 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             pricing: pricing,
             capacity: capacity,
             houseRules: houseRules,
+            type: data.Type,
             admin1Code: admin1Code,
             admin2Code: admin2Code,
             bookingMode: data.BookingMode);

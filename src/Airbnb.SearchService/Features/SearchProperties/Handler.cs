@@ -26,15 +26,24 @@ public class Handler(ElasticsearchClient elasticClient) : IQueryHandler<Request,
             .From(from)
             .Size(pageSize)
             .Query(q => q
-                .Bool(b => b
-                    .Filter(f => f
+                .Bool(b => {
+                    b.Filter(f => f
                         .GeoDistance(g => g
                             .Field(p => p.Location)
                             .Distance($"{req.RadiusKm}km")
                             .Location(geoPoint)
                         )
-                    )
-                )
+                    );
+                    if (req.PropertyType.HasValue)
+                    {
+                        b.Must(m => m
+                            .Term(t => t
+                                .Field(p => p.PropertyType)
+                                .Value(req.PropertyType.Value)
+                            )
+                        );
+                    }
+                })
             )
             .Sort(so => so
                 .GeoDistance(gd => gd

@@ -7,6 +7,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { propertiesApi } from '@/features/properties/api/properties';
+import { PropertyType } from '@/features/properties/types';
 
 import { toCreatePropertyRequest } from '@/features/properties/utils/mappers';
 import { toast } from 'sonner';
@@ -41,6 +42,7 @@ import { PhotosSection } from '@/features/properties/components/new-property/Pho
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters'),
   description: z.string().min(30, 'Description must be at least 30 characters'),
+  type: z.number().min(1, 'Property type is required'),
   basePrice: z.number().min(1, 'Price must be greater than 0'),
   cleaningFee: z.number().default(0),
   serviceFee: z.number().default(0),
@@ -79,6 +81,7 @@ export default function NewProperty() {
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
+      type: PropertyType.Apartment,
       latitude: 21.0285,
       longitude: 105.8542,
       countryCode: 'VN',

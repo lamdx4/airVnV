@@ -81,6 +81,7 @@ public class CdcConsumer(
                 Title = after.GetProperty("Title").GetString()!,
                 Description = after.GetProperty("Description").GetString()!,
                 Slug = after.GetProperty("Slug").GetString()!,
+                PropertyType = after.GetProperty("Type").GetInt32(),
                 BasePrice = after.GetProperty("pricing_base_price").GetDecimal(),
                 AverageRating = after.GetProperty("AverageRating").GetDecimal(),
                 ReviewCount = after.GetProperty("ReviewCount").GetInt32(),

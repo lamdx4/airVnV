@@ -15,6 +15,17 @@ export const ImageType = {
 
 export type ImageType = typeof ImageType[keyof typeof ImageType];
 
+export const PropertyType = {
+  Apartment: 1,
+  House: 2,
+  Villa: 3,
+  Homestay: 4,
+  Hotel: 5,
+  Resort: 6
+} as const;
+
+export type PropertyType = typeof PropertyType[keyof typeof PropertyType];
+
 export interface PropertyImage {
   id: string;
   url: string;
@@ -44,6 +55,7 @@ export interface Property {
   title: string;
   description: string;
   slug: string;
+  type: PropertyType;
   status: PropertyStatus;
   
   // Location
@@ -91,6 +103,7 @@ export interface PropertySummary {
   id: string;
   title: string;
   displayAddress: string;
+  type: PropertyType;
   status: PropertyStatus;
   basePrice: number;
   coverImageUrl?: string;
@@ -111,6 +124,7 @@ export interface Amenity {
 export interface EditPropertyInput {
   title: string;
   description: string;
+  type: number;
   pricing: {
     basePrice: number;
     cleaningFee: number;
@@ -142,6 +156,7 @@ export interface UpdateLocationRequest {
 export interface CreatePropertyFormData {
   title: string;
   description: string;
+  type: number;
   
   // Pricing
   basePrice: number;
@@ -179,6 +194,7 @@ export interface CreatePropertyRequest {
   title: string;
   description: string;
   slug: string;
+  type: number;
   
   // Pricing (Flattened)
   basePrice: number;

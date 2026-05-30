@@ -5,6 +5,7 @@ export interface SearchQueryParams {
   latitude: number;
   longitude: number;
   radiusKm?: number;
+  propertyType?: number;
   page?: number;
   pageSize?: number;
 }
@@ -17,6 +18,10 @@ export const searchProperties = async (params: SearchQueryParams): Promise<Searc
     Page: (params.page || 1).toString(),
     PageSize: (params.pageSize || 20).toString()
   });
+
+  if (params.propertyType) {
+    query.append('PropertyType', params.propertyType.toString());
+  }
 
   // Note: Assuming SearchService is exposed via YARP at /api/search
   const response = await api.get<any>(`/api/search?${query.toString()}`);
