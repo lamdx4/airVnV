@@ -9,8 +9,11 @@ export const PropertyStatus = {
 export type PropertyStatus = typeof PropertyStatus[keyof typeof PropertyStatus];
 
 export const ImageType = {
-  Gallery: 0,
-  Cover: 1
+  Cover: 0,
+  Gallery: 1,
+  Room: 2,
+  Bathroom: 3,
+  View: 4
 } as const;
 
 export type ImageType = typeof ImageType[keyof typeof ImageType];

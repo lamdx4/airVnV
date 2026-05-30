@@ -27,6 +27,29 @@ import type { PropertyImage } from '../types';
 import { ImageType } from '../types';
 import { useAddImages, useRemoveImage, useReorderImages } from '../hooks/useProperties';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const getImageTypeText = (type: number): string => {
+  switch (type) {
+    case 0: return 'Cover';
+    case 1: return 'Gallery';
+    case 2: return 'Room';
+    case 3: return 'Bathroom';
+    case 4: return 'View';
+    default: return 'Gallery';
+  }
+};
+
+const getImageTypeColor = (type: number): string => {
+  switch (type) {
+    case 0: return 'bg-rose-50 text-rose-600 border border-rose-100'; // Cover red
+    case 1: return 'bg-slate-50/90 text-slate-600 border border-slate-200'; // Gallery gray
+    case 2: return 'bg-blue-50/90 text-blue-600 border border-blue-100'; // Room blue
+    case 3: return 'bg-emerald-50/90 text-emerald-600 border border-emerald-100'; // Bathroom green
+    case 4: return 'bg-purple-50/90 text-purple-600 border border-purple-100'; // View purple
+    default: return 'bg-slate-50/90 text-slate-600 border border-slate-200';
+  }
+};
 
 interface ImageManagerProps {
   propertyId: string;
@@ -81,12 +104,10 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, isRemovi
 
       {/* Badge & Actions */}
       <div className="absolute top-3 left-3 flex gap-2">
-        {image.type === ImageType.Cover && (
-          <div className="bg-white/95 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-rausch flex items-center gap-1 shadow-sm">
-            <StarIcon className="h-3 w-3 fill-rausch" />
-            Cover
-          </div>
-        )}
+        <div className={`backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm ${getImageTypeColor(image.type)}`}>
+          {image.type === 0 && <StarIcon className="h-3 w-3 fill-rose-600 text-rose-600" />}
+          {getImageTypeText(image.type)}
+        </div>
       </div>
 
       <button
@@ -110,10 +131,15 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
 
   // Local state for immediate UI feedback during drag
   const [items, setItems] = useState<PropertyImage[]>([]);
+  const [uploadType, setUploadType] = useState<number>(1);
 
-  // Sync local state when prop changes
+  // Sync local state and auto-configure upload category defaults
   useEffect(() => {
     setItems([...images].sort((a, b) => a.displayOrder - b.displayOrder));
+    
+    // Default to Cover (0) if there isn't one yet, otherwise Gallery (1)
+    const hasCover = images.some(i => i.type === 0);
+    setUploadType(hasCover ? 1 : 0);
   }, [images]);
 
   const sensors = useSensors(
@@ -157,8 +183,7 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
     if (files.length === 0) return;
 
     try {
-      const type = images.length === 0 ? ImageType.Cover : ImageType.Gallery;
-      await addImagesMutation.mutateAsync({ propertyId, files, type });
+      await addImagesMutation.mutateAsync({ propertyId, files, type: uploadType });
       toast.success('Images uploaded successfully');
     } catch (err) {
       toast.error('Upload failed');
@@ -176,28 +201,48 @@ export const ImageManager: React.FC<ImageManagerProps> = ({ propertyId, images }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-hof">Property Gallery</h3>
-          <p className="text-sm text-slate-500">Drag and drop to change the display order. First image is usually the cover.</p>
+          <p className="text-sm text-slate-500">Categorize your photos. Drag and drop to adjust display order.</p>
         </div>
         
-        <div className="relative">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            disabled={addImagesMutation.isPending}
-          />
-          <button 
-            disabled={addImagesMutation.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:bg-slate-300"
-          >
-            {addImagesMutation.isPending ? <Loading03Icon className="h-5 w-5 animate-spin" /> : <ImageAdd01Icon className="h-5 w-5" />}
-            <span>Upload Photos</span>
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="w-48">
+            <Select 
+              value={uploadType.toString()} 
+              onValueChange={(val) => setUploadType(parseInt(val))}
+            >
+              <SelectTrigger className="rounded-xl border-slate-200 bg-white">
+                <SelectValue placeholder="Upload Category" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="0">⭐ Cover Image</SelectItem>
+                <SelectItem value="1">🖼️ General Gallery</SelectItem>
+                <SelectItem value="2">🛏️ Rooms & Spaces</SelectItem>
+                <SelectItem value="3">🚿 Bathrooms</SelectItem>
+                <SelectItem value="4">🌅 Scenic Views</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="relative">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              disabled={addImagesMutation.isPending}
+            />
+            <button 
+              disabled={addImagesMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:bg-slate-300 font-medium text-sm"
+            >
+              {addImagesMutation.isPending ? <Loading03Icon className="h-5 w-5 animate-spin" /> : <ImageAdd01Icon className="h-5 w-5" />}
+              <span>Upload Photos</span>
+            </button>
+          </div>
         </div>
       </div>
 
