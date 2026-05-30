@@ -6,6 +6,8 @@ using Airbnb.PropertyService.Infrastructure;
 using Airbnb.PropertyService.Infrastructure.Messaging;
 using Airbnb.Infrastructure.Media;
 using Airbnb.ServiceDefaults.Infrastructure;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Airbnb.PropertyService.Domain.Enums;
 using Airbnb.PropertyService.Domain.Entities;
 
@@ -15,7 +17,11 @@ namespace Airbnb.PropertyService.Features.CreateProperty;
 /// Handler chứa toàn bộ business logic cho CreateProperty.
 /// Endpoint không biết gì về DB, Domain, hay Messaging.
 /// </summary>
-public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMediaProvider mediaProvider)
+public sealed class Handler(
+    AppDbContext db,
+    DomainEventPublisher publisher,
+    IMediaProvider mediaProvider,
+    ILogger<Handler> logger)
     : ICommandHandler<CreatePropertyCommand, Response>
 {
     public async ValueTask<Response> Handle(CreatePropertyCommand req, CancellationToken ct)
@@ -107,12 +113,15 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             await requestStream.DisposeAsync();
         }
 
+        var uploadedFiles = new ConcurrentBag<(string FileName, MediaUploadResult Result)>();
+
         // Upload to Cloudinary in parallel for blazing-fast performance (approx 5x speedup)
         var uploadTasks = filesToUpload.Select(async item =>
         {
             try
             {
                 var uploadResult = await mediaProvider.UploadAsync(item.Stream, item.FileName, "properties", ct);
+                uploadedFiles.Add((item.FileName, uploadResult));
                 return (FileName: item.FileName, Result: uploadResult);
             }
             finally
@@ -121,7 +130,27 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             }
         });
 
-        var uploadResults = (await Task.WhenAll(uploadTasks)).ToList();
+        List<(string FileName, MediaUploadResult Result)> uploadResults;
+        try
+        {
+            uploadResults = (await Task.WhenAll(uploadTasks)).ToList();
+        }
+        catch (Exception uploadEx)
+        {
+            logger.LogError(uploadEx, "Parallel image upload failed. Cleaning up successful uploads to avoid orphan Cloudinary files.");
+            foreach (var uploaded in uploadedFiles)
+            {
+                try
+                {
+                    await mediaProvider.DeleteAsync(uploaded.Result.PublicId, ct);
+                }
+                catch (Exception deleteEx)
+                {
+                    logger.LogError(deleteEx, "Failed to delete orphan file {PublicId} from Cloudinary during upload error cleanup.", uploaded.Result.PublicId);
+                }
+            }
+            throw;
+        }
 
         try
         {
@@ -194,12 +223,24 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             await db.SaveChangesAsync(ct);
             return new Response(property.Id, property.Slug);
         }
-        catch (Exception)
+        catch (Exception dbEx)
         {
-            // Cleanup Cloudinary if DB fails
-            var deleteTasks = uploadResults.Select(r => mediaProvider.DeleteAsync(r.Result.PublicId, ct));
-            await Task.WhenAll(deleteTasks);
-            throw;
+            logger.LogError(dbEx, "Database save failed for property creation. Initiating Cloudinary cleanup for successfully uploaded images.");
+            
+            // Clean up Cloudinary images if DB transaction fails
+            foreach (var r in uploadResults)
+            {
+                try
+                {
+                    await mediaProvider.DeleteAsync(r.Result.PublicId, ct);
+                }
+                catch (Exception deleteEx)
+                {
+                    // Log delete failure but do not throw, preserving original dbEx!
+                    logger.LogError(deleteEx, "Failed to delete file {PublicId} from Cloudinary during database failure cleanup.", r.Result.PublicId);
+                }
+            }
+            throw; // Re-throw the original dbEx
         }
     }
 }
