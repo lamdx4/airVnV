@@ -31,7 +31,6 @@ public class Worker(
 
                 // Cấu hình danh sách Connector cho từng Database
                 await ConfigureConnector(client, "property-connector", "propdb", "public.Properties", stoppingToken);
-                await ConfigureConnector(client, "payment-outbox-connector", "paydb", "public.OutboxEvents", stoppingToken);
                 
                 logger.LogInformation("Debezium Configurator completed successfully.");
                 break; // Exit loop on success
