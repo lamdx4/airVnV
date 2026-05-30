@@ -7,16 +7,35 @@ import { useChat } from '../context/ChatContext';
 import { useChatHub } from '../hooks/useChatHub';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
+import { useState, useCallback } from 'react';
+import { CallModal } from './CallModal';
+import { useInbox } from '../hooks/useInbox';
 
 export const ChatContainer: React.FC = () => {
   const { activeConversationId, isSidebarOpen } = useChat();
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [isVideoCall, setIsVideoCall] = useState(false);
+  const { data } = useInbox();
+
+  const conversation = data?.pages
+    .flatMap(page => page.items)
+    .find(c => c.id === activeConversationId);
   
   // Initialize SignalR
   const connection = useChatHub(activeConversationId);
 
+  const handleStartCall = (video: boolean) => {
+    setIsVideoCall(video);
+    setIsCallModalOpen(true);
+  };
+
+  const handleCloseCallModal = useCallback(() => {
+    setIsCallModalOpen(false);
+  }, []);
+
   return (
     <div className="h-[100dvh] bg-[#f7f7f7] p-0 md:p-3">
-      <div className="h-full md:rounded-[28px] border-x md:border border-[#ebebeb] bg-white overflow-hidden flex shadow-sm">
+      <div className="h-full md:rounded-[28px] border-x md:border border-[#ebebeb] bg-white overflow-hidden flex shadow-sm relative">
         {/* Sidebar - Desktop always visible, Mobile toggleable */}
         <div className={`
           ${isSidebarOpen ? 'flex' : 'hidden'} 
@@ -40,7 +59,7 @@ export const ChatContainer: React.FC = () => {
                 transition={{ duration: 0.18 }}
                 className="flex-1 flex flex-col h-full"
               >
-                <ChatHeader connection={connection} />
+                <ChatHeader connection={connection} onStartCall={handleStartCall} />
                 <MessageList connection={connection} activeConversationId={activeConversationId} />
                 <MessageInput 
                   conversationId={activeConversationId} 
@@ -66,6 +85,17 @@ export const ChatContainer: React.FC = () => {
             )}
           </AnimatePresence>
         </div>
+
+        {conversation && (
+          <CallModal 
+            isOpen={isCallModalOpen} 
+            onClose={handleCloseCallModal} 
+            otherParticipantName={conversation.otherParticipantName} 
+            otherParticipantAvatar={conversation.otherParticipantAvatar} 
+            isVideoCall={isVideoCall} 
+            connection={connection}
+          />
+        )}
       </div>
     </div>
   );

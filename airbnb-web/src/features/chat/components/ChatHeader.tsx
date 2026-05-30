@@ -9,7 +9,11 @@ import { ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icon } from '@iconify/react';
 
-export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }> = ({ connection }) => {
+
+export const ChatHeader: React.FC<{ 
+  connection?: signalR.HubConnection | null;
+  onStartCall?: (video: boolean) => void;
+}> = ({ connection, onStartCall }) => {
   const { activeConversationId, setActiveConversationId, toggleSidebar } = useChat();
   const { data, isLoading } = useInbox();
 
@@ -66,9 +70,21 @@ export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }>
             {conversation.otherParticipantName}
           </h2>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
-              {conversation.propertyTitle || 'Guest'}
-            </p>
+            {conversation.propertyId && conversation.propertyId !== '00000000-0000-0000-0000-000000000000' ? (
+              <a 
+                href={`/properties/${conversation.propertyId}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[13px] text-[#6a6a6a] hover:text-[#222222] hover:underline truncate font-normal transition-colors"
+                title="View property details"
+              >
+                {conversation.propertyTitle || 'Property details'}
+              </a>
+            ) : (
+              <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
+                {conversation.propertyTitle || 'Guest'}
+              </p>
+            )}
             <span className="text-[10px] text-[#dddddd]">•</span>
             <p className={`text-[13px] font-medium ${isOnline ? 'text-[#00a699]' : 'text-[#717171]'}`}>
               {isOnline ? 'Online' : 'Offline'}
@@ -78,10 +94,10 @@ export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Phone Call">
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Phone Call" onClick={() => onStartCall?.(false)}>
           <Icon icon="fluent:call-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Video Call">
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Video Call" onClick={() => onStartCall?.(true)}>
           <Icon icon="fluent:video-24-filled" className="size-6" />
         </Button>
         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Conversation info">
