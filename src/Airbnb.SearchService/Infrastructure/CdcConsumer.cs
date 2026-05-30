@@ -74,6 +74,11 @@ public class CdcConsumer(
                 }
             }
             catch (OperationCanceledException) { break; }
+            catch (ConsumeException ex) when (ex.Error.Reason.Contains("Unknown topic", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogWarning("CDC topic '{topic}' is not ready yet. Waiting for Debezium to create it...", topic);
+                await Task.Delay(5000, stoppingToken);
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error processing CDC message");
