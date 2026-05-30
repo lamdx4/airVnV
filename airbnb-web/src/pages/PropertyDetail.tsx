@@ -24,12 +24,89 @@ export default function PropertyDetail() {
     ? (reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsList.length).toFixed(2)
     : 'New';
 
-  const coverImage = property.images?.find(i => i.type === 1)?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200';
-  const galleryImages = property.images?.filter(i => i.type === 0).slice(0, 4) || [];
-  // Pad with placeholders if less than 4 gallery images
-  while (galleryImages.length < 4) {
-    galleryImages.push({ id: Math.random().toString(), url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600', type: 0, displayOrder: 0 });
-  }
+  const allImages = property.images || [];
+
+  const renderGallery = () => {
+    if (allImages.length === 0) {
+      return (
+        <div className="w-full h-[400px] mb-12 bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-slate-400 gap-3 border border-dashed border-slate-300">
+          <svg className="w-12 h-12 stroke-current text-slate-300" viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+          </svg>
+          <span className="font-semibold text-sm">No photos uploaded for this property yet</span>
+        </div>
+      );
+    }
+
+    if (allImages.length === 1) {
+      return (
+        <div className="w-full h-[500px] mb-12 rounded-2xl overflow-hidden cursor-pointer group">
+          <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+        </div>
+      );
+    }
+
+    if (allImages.length === 2) {
+      return (
+        <div className="grid grid-cols-2 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
+          {allImages.slice(0, 2).map((img, idx) => (
+            <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+              <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (allImages.length === 3) {
+      return (
+        <div className="grid grid-cols-3 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
+          <div className="col-span-2 relative group cursor-pointer overflow-hidden">
+            <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+          </div>
+          <div className="grid grid-rows-2 gap-2">
+            {allImages.slice(1, 3).map((img, idx) => (
+              <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+                <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (allImages.length === 4) {
+      return (
+        <div className="grid grid-cols-4 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
+          <div className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
+            <img src={allImages[0].url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+          </div>
+          <div className="col-span-2 grid grid-cols-2 gap-2">
+            {allImages.slice(1, 4).map((img, idx) => (
+              <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+                <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    const cover = allImages.find(i => i.type === 1) || allImages[0];
+    const gallery = allImages.filter(i => i.id !== cover.id).slice(0, 4);
+    return (
+      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[500px] mb-12 rounded-2xl overflow-hidden">
+        <div className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
+          <img src={cover.url} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+        </div>
+        {gallery.map((img, idx) => (
+          <div key={img.id} className="relative group cursor-pointer overflow-hidden">
+            <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition duration-300" />
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -62,17 +139,8 @@ export default function PropertyDetail() {
         <span className="flex items-center underline cursor-pointer"><MapPin className="w-4 h-4 mr-1" /> {property.displayAddress}</span>
       </div>
 
-      {/* Image Gallery */}
-      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[500px] mb-12 rounded-xl overflow-hidden">
-        <div className="col-span-2 row-span-2 relative group cursor-pointer">
-          <img src={coverImage} alt="Cover" className="w-full h-full object-cover group-hover:brightness-90 transition" />
-        </div>
-        {galleryImages.map((img, idx) => (
-          <div key={img.id} className="relative group cursor-pointer">
-            <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover group-hover:brightness-90 transition" />
-          </div>
-        ))}
-      </div>
+      {/* Dynamic Image Gallery */}
+      {renderGallery()}
 
       {/* Two Column Layout */}
       <div className="flex flex-col lg:flex-row gap-12">
