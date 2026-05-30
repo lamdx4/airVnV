@@ -131,7 +131,7 @@ export const HostPropertyDashboard: React.FC = () => {
                           <Edit02Icon className="h-4 w-4 text-blue-500" />
                           Edit Listing
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-xl gap-3 py-2 cursor-pointer">
+                        <DropdownMenuItem onClick={() => navigate(`/properties/${property.id}?isPreview=true`)} className="rounded-xl gap-3 py-2 cursor-pointer">
                           <ViewIcon className="h-4 w-4 text-slate-500" />
                           View Live
                         </DropdownMenuItem>
