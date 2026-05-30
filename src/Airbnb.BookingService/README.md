@@ -8,10 +8,105 @@
 * **Outbox Pattern:** When a booking is confirmed, it writes a `BookingConfirmedEvent` to a local Outbox table in the same transaction. A background worker then publishes this to RabbitMQ, ensuring 100% consistency.
 
 ## 🗄️ Database Schema (PostgreSQL)
+
+The primary tables in this microservice:
+
 | Table Name | Description |
 |------------|-------------|
-| `Bookings` | The core aggregate tracking GuestId, PropertyId, CheckIn, CheckOut, TotalPrice, and Status. |
-| `OutboxMessages` | Transactional outbox for RabbitMQ domain events. |
+| `BookingState` | Core metadata and storage for BookingState. |
+| `Bookings` | Core metadata and storage for Bookings. |
+| `InboxState` | Core metadata and storage for InboxState. |
+| `OutboxMessage` | Core metadata and storage for OutboxMessage. |
+| `OutboxState` | Core metadata and storage for OutboxState. |
+| `ProcessedEvents` | Core metadata and storage for ProcessedEvents. |
+
+### Entity Relationship Diagram (ERD)
+```mermaid
+erDiagram
+    BOOKINGSTATE {
+        uuid CorrelationId PK
+        varchar(64) CurrentState 
+        uuid BookingId 
+        uuid GuestId 
+        uuid PropertyId 
+        numeric TotalPrice 
+        varchar(3) CurrencyCode 
+        timestamptz CreatedAt 
+        timestamptz UpdatedAt 
+        uuid ExpirationTokenId 
+    }
+    BOOKINGS {
+        uuid Id PK
+        uuid PropertyId 
+        uuid HostId 
+        uuid GuestId 
+        date CheckIn 
+        date CheckOut 
+        integer GuestCount 
+        integer NightCount 
+        numeric BasePricePerNight 
+        numeric CleaningFee 
+        numeric ServiceFee 
+        numeric TotalPrice 
+        varchar(3) CurrencyCode 
+        text Status 
+        uuid CancelledBy 
+        timestamptz CreatedAt 
+        numeric TaxAmount 
+        varchar(2) CountryCode 
+        bigint Version 
+    }
+    INBOXSTATE {
+        bigint Id PK
+        uuid MessageId 
+        uuid ConsumerId 
+        uuid LockId 
+        bytea RowVersion 
+        timestamptz Received 
+        integer ReceiveCount 
+        timestamptz ExpirationTime 
+        timestamptz Consumed 
+        timestamptz Delivered 
+        bigint LastSequenceNumber 
+    }
+    OUTBOXMESSAGE {
+        bigint SequenceNumber PK
+        timestamptz EnqueueTime 
+        timestamptz SentTime 
+        text Headers 
+        text Properties 
+        uuid InboxMessageId 
+        uuid InboxConsumerId 
+        uuid OutboxId 
+        uuid MessageId 
+        varchar(256) ContentType 
+        text MessageType 
+        text Body 
+        uuid ConversationId 
+        uuid CorrelationId 
+        uuid InitiatorId 
+        uuid RequestId 
+        varchar(256) SourceAddress 
+        varchar(256) DestinationAddress 
+        varchar(256) ResponseAddress 
+        varchar(256) FaultAddress 
+        timestamptz ExpirationTime 
+    }
+    OUTBOXSTATE {
+        uuid OutboxId PK
+        uuid LockId 
+        bytea RowVersion 
+        timestamptz Created 
+        timestamptz Delivered 
+        bigint LastSequenceNumber 
+    }
+    PROCESSEDEVENTS {
+        uuid EventId PK
+        timestamptz ProcessedAt 
+        text EventType 
+    }
+
+```
 
 ## 🔌 API Endpoints (FastEndpoints)
 

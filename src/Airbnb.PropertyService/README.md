@@ -15,11 +15,139 @@ The primary tables in this microservice:
 
 | Table Name | Description |
 |------------|-------------|
-| `Properties` | Core property aggregate root (Title, Description, Status, Type, Location). |
-| `PropertyAmenities` | Many-to-many relationship linking a property to standardized Amenities. |
-| `PropertyImages` | Ordered gallery images for a property (includes IsCover flag). |
-| `PropertyAvailabilities` | Date ranges that are explicitly blocked or booked. |
-| `PropertyReviews` | Reviews left by guests for this specific property. |
+| `InboxState` | Core metadata and storage for InboxState. |
+| `OutboxMessage` | Core metadata and storage for OutboxMessage. |
+| `OutboxState` | Core metadata and storage for OutboxState. |
+| `amenities` | Core metadata and storage for Amenities. |
+| `properties` | Core metadata and storage for Properties. |
+| `property_amenities` | Core metadata and storage for Property Amenities. |
+| `property_availabilities` | Core metadata and storage for Property Availabilities. |
+| `property_images` | Core metadata and storage for Property Images. |
+| `reviews` | Core metadata and storage for Reviews. |
+
+### Entity Relationship Diagram (ERD)
+```mermaid
+erDiagram
+    INBOXSTATE {
+        bigint Id PK
+        uuid MessageId 
+        uuid ConsumerId 
+        uuid LockId 
+        bytea RowVersion 
+        timestamptz Received 
+        integer ReceiveCount 
+        timestamptz ExpirationTime 
+        timestamptz Consumed 
+        timestamptz Delivered 
+        bigint LastSequenceNumber 
+    }
+    OUTBOXMESSAGE {
+        bigint SequenceNumber PK
+        timestamptz EnqueueTime 
+        timestamptz SentTime 
+        text Headers 
+        text Properties 
+        uuid InboxMessageId 
+        uuid InboxConsumerId 
+        uuid OutboxId 
+        uuid MessageId 
+        varchar(256) ContentType 
+        text MessageType 
+        text Body 
+        uuid ConversationId 
+        uuid CorrelationId 
+        uuid InitiatorId 
+        uuid RequestId 
+        varchar(256) SourceAddress 
+        varchar(256) DestinationAddress 
+        varchar(256) ResponseAddress 
+        varchar(256) FaultAddress 
+        timestamptz ExpirationTime 
+    }
+    OUTBOXSTATE {
+        uuid OutboxId PK
+        uuid LockId 
+        bytea RowVersion 
+        timestamptz Created 
+        timestamptz Delivered 
+        bigint LastSequenceNumber 
+    }
+    AMENITIES {
+        uuid Id PK
+        varchar(100) Name 
+        varchar(50) Category 
+        varchar(50) IconCode 
+    }
+    PROPERTIES {
+        uuid Id PK
+        uuid HostId 
+        varchar(255) Title 
+        varchar(5000) Description 
+        varchar(2) CountryCode 
+        double_precision Latitude 
+        double_precision Longitude 
+        timestamptz CreatedAt 
+        jsonb AddressRaw 
+        varchar(100) Admin1Code 
+        varchar(100) Admin2Code 
+        varchar(500) DisplayAddress 
+        jsonb HouseRules 
+        varchar(300) Slug 
+        integer Status 
+        varchar(500) SuspensionReason 
+        timestamptz UpdatedAt 
+        bigint Version 
+        integer capacity_bathroom_count 
+        integer capacity_bed_count 
+        integer capacity_bedroom_count 
+        integer capacity_guest_count 
+        numeric pricing_base_price 
+        numeric pricing_cleaning_fee 
+        varchar(3) pricing_currency_code 
+        numeric pricing_service_fee 
+        numeric pricing_weekend_premium_percent 
+        numeric AverageRating 
+        text BookingMode 
+        integer ReviewCount 
+        integer Type 
+    }
+    PROPERTY_AMENITIES {
+        uuid PropertyId PK,FK
+        uuid AmenityId PK
+        varchar(200) AdditionalInfo 
+    }
+    PROPERTY_AVAILABILITIES {
+        uuid Id PK
+        uuid PropertyId FK
+        date StartDate 
+        date EndDate 
+        integer Type 
+        varchar(255) Note 
+    }
+    PROPERTY_IMAGES {
+        uuid Id PK
+        uuid PropertyId FK
+        uuid UploadedBy 
+        varchar(2048) Url 
+        text PublicId 
+        varchar(20) Type 
+        integer DisplayOrder 
+    }
+    REVIEWS {
+        uuid Id PK
+        uuid PropertyId FK
+        uuid BookingId 
+        uuid GuestId 
+        integer Rating 
+        varchar(1000) Comment 
+        timestamptz CreatedAt 
+    }
+
+    PROPERTIES ||--o{ PROPERTY_AMENITIES : "has"
+    PROPERTIES ||--o{ PROPERTY_IMAGES : "has"
+    PROPERTIES ||--o{ PROPERTY_AVAILABILITIES : "has"
+    PROPERTIES ||--o{ REVIEWS : "has"
+```
 
 ## 🔌 API Endpoints (FastEndpoints)
 
