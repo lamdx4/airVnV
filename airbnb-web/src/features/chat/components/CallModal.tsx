@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,90 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(!isVideoCall);
   const dragControls = useDragControls();
+
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Lấy Mic / Camera khi mở Modal
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+
+    if (isOpen) {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+          video: isVideoCall,
+        })
+        .then((s) => {
+          stream = s;
+          setLocalStream(s);
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = s;
+          }
+        })
+        .catch((err) => {
+          console.error("Lỗi lấy quyền truy cập Camera/Mic:", err);
+        });
+    }
+
+    return () => {
+      // Dọn dẹp stream khi đóng Modal
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      setLocalStream(null);
+    };
+  }, [isOpen, isVideoCall]);
+
+  // Xử lý Tắt/Mở Mic
+  const toggleMic = () => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (localStream) {
+        localStream.getAudioTracks().forEach((track) => {
+          track.enabled = !next;
+        });
+      }
+      return next;
+    });
+  };
+
+  // Xử lý Tắt/Mở Camera
+  const toggleVideo = async () => {
+    try {
+      if (isVideoOff) {
+        // Muốn BẬT camera
+        if (localStream && localStream.getVideoTracks().length === 0) {
+          // Nếu stream hiện tại chưa có track video (do ban đầu gọi audio), xin cấp quyền
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const videoTrack = videoStream.getVideoTracks()[0];
+          localStream.addTrack(videoTrack);
+          
+          // Gán lại srcObject để đảm bảo video element cập nhật
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = null;
+            localVideoRef.current.srcObject = localStream;
+          }
+        } else if (localStream) {
+          // Nếu đã có track video, chỉ cần bật lại
+          localStream.getVideoTracks().forEach((track) => {
+            track.enabled = true;
+          });
+        }
+        setIsVideoOff(false);
+      } else {
+        // Muốn TẮT camera
+        if (localStream) {
+          localStream.getVideoTracks().forEach((track) => {
+            track.enabled = false;
+          });
+        }
+        setIsVideoOff(true);
+      }
+    } catch (err) {
+      console.error("Lỗi khi bật Camera:", err);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -83,11 +167,31 @@ const CallModalComponent: React.FC<CallModalProps> = ({
                   </Avatar>
                 </div>
 
+                {/* Local Video Stream (PiP) */}
+                <div 
+                  className={`absolute bottom-28 right-6 w-[100px] h-[150px] bg-[#2c2c2e] rounded-xl overflow-hidden shadow-xl border border-white/10 z-20 transition-all duration-300 ${
+                    !isVideoOff && localStream ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'
+                  }`}
+                >
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted // Local video must be muted to prevent echo
+                    className="w-full h-full object-cover transform -scale-x-100" // Mirror local video
+                  />
+                  {isMuted && (
+                    <div className="absolute bottom-2 right-2 bg-black/60 p-1.5 rounded-full backdrop-blur-md">
+                      <Icon icon="fluent:mic-off-16-filled" className="text-white text-xs" />
+                    </div>
+                  )}
+                </div>
+
                 {/* Action Buttons (Bottom) */}
                 <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-6 z-10">
                   {/* Camera Toggle */}
                   <button
-                    onClick={() => setIsVideoOff(!isVideoOff)}
+                    onClick={toggleVideo}
                     className={`w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200 ${
                       isVideoOff
                         ? "bg-white text-[#1c1c1e] scale-100"
@@ -117,7 +221,7 @@ const CallModalComponent: React.FC<CallModalProps> = ({
 
                   {/* Mic Toggle */}
                   <button
-                    onClick={() => setIsMuted(!isMuted)}
+                    onClick={toggleMic}
                     className={`w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200 ${
                       isMuted
                         ? "bg-white text-[#1c1c1e] scale-100"
