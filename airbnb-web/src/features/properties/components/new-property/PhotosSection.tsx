@@ -2,12 +2,42 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ImagePlus, X, AlertCircle } from 'lucide-react';
+import { ImagePlus, X, AlertCircle, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const getImageTypeText = (type: number): string => {
+  switch (type) {
+    case 0: return 'Cover';
+    case 1: return 'Gallery';
+    case 2: return 'Room';
+    case 3: return 'Bathroom';
+    case 4: return 'View';
+    default: return 'Gallery';
+  }
+};
+
+const getImageTypeColor = (type: number): string => {
+  switch (type) {
+    case 0: return 'bg-rose-50 text-rose-600 border border-rose-100'; // Cover red
+    case 1: return 'bg-slate-50/90 text-slate-600 border border-slate-200'; // Gallery gray
+    case 2: return 'bg-blue-50/90 text-blue-600 border border-blue-100'; // Room blue
+    case 3: return 'bg-emerald-50/90 text-emerald-600 border border-emerald-100'; // Bathroom green
+    case 4: return 'bg-purple-50/90 text-purple-600 border border-purple-100'; // View purple
+    default: return 'bg-slate-50/90 text-slate-600 border border-slate-200';
+  }
+};
+
+const getImageTypeBorder = (type: number): string => {
+  switch (type) {
+    case 0: return 'border-rose-300 ring-2 ring-rose-500/20'; // Cover highlighted border
+    default: return 'border-slate-200';
+  }
+};
 
 interface PhotosSectionProps {
-  selectedFiles: File[];
-  setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  selectedFiles: { file: File; type: number; id: string; }[];
+  setSelectedFiles: React.Dispatch<React.SetStateAction<{ file: File; type: number; id: string; }[]>>;
   onContinue: () => void;
 }
 
@@ -32,13 +62,52 @@ export function PhotosSection({
         return isImage && isUnder5MB;
       });
 
-      setSelectedFiles(prev => [...prev, ...validFiles]);
+      setSelectedFiles(prev => {
+        const hasCover = prev.some(f => f.type === 0);
+        
+        const mapped = validFiles.map((file, i) => {
+          // If no cover exists, the very first file becomes Cover (0), others Gallery (1)
+          const isCover = !hasCover && prev.length === 0 && i === 0;
+          return {
+            file,
+            type: isCover ? 0 : 1,
+            id: Math.random().toString(36).substring(2, 9)
+          };
+        });
+        
+        return [...prev, ...mapped];
+      });
+
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFile = (id: string) => {
+    setSelectedFiles(prev => {
+      const remaining = prev.filter(f => f.id !== id);
+      
+      // If we removed the cover image, automatically promote the next remaining image to Cover
+      const hasCover = remaining.some(f => f.type === 0);
+      if (!hasCover && remaining.length > 0) {
+        remaining[0].type = 0;
+      }
+      return remaining;
+    });
+  };
+
+  const handleTypeChange = (id: string, newType: number) => {
+    setSelectedFiles(prev => {
+      return prev.map(item => {
+        if (item.id === id) {
+          return { ...item, type: newType };
+        }
+        // If the new type is Cover (0), change all other old covers to Gallery (1)
+        if (newType === 0 && item.type === 0) {
+          return { ...item, type: 1 };
+        }
+        return item;
+      });
+    });
   };
 
   return (
@@ -46,8 +115,7 @@ export function PhotosSection({
       <CardHeader className="px-6 pt-6 pb-2 space-y-2">
         <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Thêm hình ảnh cho nơi ở của bạn</h2>
         <p className="text-base font-normal text-slate-600 leading-relaxed">
-          Bạn cần ít nhất 5 bức ảnh để bắt đầu. Hình ảnh đầu tiên sẽ được dùng làm ảnh bìa.
-          <span className="block mt-1 text-xs text-rose-500 font-semibold">💡 Mẹo: Sau khi tạo xong tin đăng nháp, bạn có thể vào mục "Chỉnh sửa phòng" để tự do phân loại chi tiết từng bức ảnh cho phòng ngủ, phòng tắm, hoặc cảnh quan!</span>
+          Bạn cần ít nhất 5 bức ảnh để bắt đầu. Vui lòng phân loại ảnh để khách hàng dễ dàng hình dung không gian của bạn.
         </p>
       </CardHeader>
       <CardContent className="px-6 py-6 space-y-6">
@@ -72,34 +140,62 @@ export function PhotosSection({
 
         {selectedFiles.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
-            {selectedFiles.map((file, index) => (
-              <div key={`${file.name}-${index}`} className="relative aspect-[4/3] rounded-lg overflow-hidden group border border-slate-200 shadow-sm">
-                <img 
-                  src={URL.createObjectURL(file)} 
-                  alt="preview" 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            {selectedFiles.map((item) => {
+              const previewUrl = URL.createObjectURL(item.file);
+              return (
+                <div 
+                  key={item.id} 
+                  className={`relative aspect-[4/3] rounded-2xl overflow-hidden group border shadow-sm transition-all duration-300 ${getImageTypeBorder(item.type)}`}
+                >
+                  <img 
+                    src={previewUrl} 
+                    alt="preview" 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Category Selector overlay at bottom */}
+                  <div className="absolute inset-x-0 bottom-0 bg-slate-950/85 backdrop-blur-xs p-1.5 flex items-center justify-between opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <Select 
+                      value={item.type.toString()} 
+                      onValueChange={(val) => handleTypeChange(item.id, parseInt(val))}
+                    >
+                      <SelectTrigger className="h-7 w-full rounded-lg text-[10px] font-semibold bg-white border-none text-slate-900 shadow-sm py-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="0">⭐ Cover Image</SelectItem>
+                        <SelectItem value="1">🖼️ General Gallery</SelectItem>
+                        <SelectItem value="2">🛏️ Rooms & Spaces</SelectItem>
+                        <SelectItem value="3">🚿 Bathrooms</SelectItem>
+                        <SelectItem value="4">🌅 Scenic Views</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Badge displaying type */}
+                  <div className="absolute top-2 left-2 flex gap-1">
+                    <div className={`backdrop-blur px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-0.5 shadow-sm ${getImageTypeColor(item.type)}`}>
+                      {item.type === 0 && <Star className="h-2.5 w-2.5 fill-rose-600 text-rose-600 animate-pulse" />}
+                      {getImageTypeText(item.type)}
+                    </div>
+                  </div>
+
+                  {/* Remove Button overlay */}
                   <Button
                     type="button"
                     variant="destructive"
                     size="icon"
-                    className="h-8 w-8 rounded-full"
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeFile(index);
+                      removeFile(item.id);
                     }}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow-sm">
-                    ẢNH BÌA
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

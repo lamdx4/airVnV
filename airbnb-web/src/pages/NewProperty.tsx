@@ -76,7 +76,7 @@ export default function NewProperty() {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [dynamicAddressValues, setDynamicAddressValues] = useState<Record<string, string>>({});
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<{ file: File; type: number; id: string; }[]>([]);
 
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema) as any,
@@ -132,8 +132,14 @@ export default function NewProperty() {
          amenityIds: selectedAmenities
       });
 
+      payload.imageMetadata = selectedFiles.map(sf => ({
+        fileName: sf.file.name,
+        type: sf.type
+      }));
+
       // Step 1: Atomic creation of property + amenities + images
-      const propertyResponse = await propertiesApi.createProperty(payload, selectedFiles);
+      const rawFiles = selectedFiles.map(sf => sf.file);
+      const propertyResponse = await propertiesApi.createProperty(payload, rawFiles);
       
       return propertyResponse;
     },

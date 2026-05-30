@@ -87,7 +87,7 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
         }
 
         // Upload images to Cloudinary sequentially to avoid IFormFile concurrent stream read issues & SSL errors
-        var uploadResults = new List<Airbnb.Infrastructure.Media.MediaUploadResult>();
+        var uploadResults = new List<(string FileName, Airbnb.Infrastructure.Media.MediaUploadResult Result)>();
         foreach (var file in req.Images)
         {
             using var requestStream = file.OpenReadStream();
@@ -96,16 +96,17 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
             memoryStream.Position = 0;
             
             var uploadResult = await mediaProvider.UploadAsync(memoryStream, file.FileName, "properties", ct);
-            uploadResults.Add(uploadResult);
+            uploadResults.Add((file.FileName, uploadResult));
         }
 
         try
         {
             int nextOrder = 0;
-            foreach (var uploadResult in uploadResults)
+            foreach (var (fileName, uploadResult) in uploadResults)
             {
-                // First image is Cover, the rest are Gallery
-                var imageType = nextOrder == 0 ? ImageType.Cover : ImageType.Gallery;
+                // Match image type by looking up the filename in ImageMetadata, falling back to default logic
+                var imageType = data.ImageMetadata?.FirstOrDefault(m => m.FileName == fileName)?.Type 
+                    ?? (nextOrder == 0 ? ImageType.Cover : ImageType.Gallery);
                 
                 var image = PropertyImage.Create(
                     property.Id,
@@ -128,7 +129,7 @@ public sealed class Handler(AppDbContext db, DomainEventPublisher publisher, IMe
         catch (Exception)
         {
             // Cleanup Cloudinary if DB fails
-            var deleteTasks = uploadResults.Select(r => mediaProvider.DeleteAsync(r.PublicId, ct));
+            var deleteTasks = uploadResults.Select(r => mediaProvider.DeleteAsync(r.Result.PublicId, ct));
             await Task.WhenAll(deleteTasks);
             throw;
         }

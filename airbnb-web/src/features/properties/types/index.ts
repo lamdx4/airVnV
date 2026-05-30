@@ -232,6 +232,7 @@ export interface CreatePropertyRequest {
   unit?: string;
   subDivisions?: Record<string, string>;
   amenityIds?: string[];
+  imageMetadata?: { fileName: string; type: number }[];
 }
 
 export interface AddressFieldConfig {
