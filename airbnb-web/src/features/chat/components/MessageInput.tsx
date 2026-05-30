@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSendMessage } from '../hooks/useSendMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Smile, SendHorizontal, Image, Paperclip, Mic } from 'lucide-react';
 import { Loading03Icon } from '@/components/common/Icons';
+import { Icon } from '@iconify/react';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingPublisher } from '../hooks/useTypingStatus';
 import EmojiPicker from 'emoji-picker-react';
@@ -83,9 +83,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             size="icon" 
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             aria-label="Add emoji"
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors shrink-0"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors shrink-0"
           >
-            <Smile className="h-5 w-5" />
+            <Icon icon="fluent:emoji-24-filled" className="size-5" />
           </Button>
 
           {showEmojiPicker && (
@@ -115,16 +115,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
         <div className="flex items-center gap-1 shrink-0">
           <Button
             onClick={handleSend}
-            disabled={!content.trim() || isPending}
+            disabled={!content.trim() || isPending || isUploadingImage}
             variant="ghost"
             size="icon"
             aria-label="Send message"
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors disabled:opacity-50"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50"
           >
             {isPending ? (
-              <Loading03Icon className="h-5 w-5 animate-spin" />
+              <Loading03Icon className="h-6 w-6 animate-spin" />
             ) : (
-              <SendHorizontal className="h-5 w-5" />
+              <Icon icon="fluent:send-24-filled" className="size-5" />
             )}
           </Button>
 
@@ -141,12 +141,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             aria-label="Add image"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingImage}
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors disabled:opacity-50"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50"
           >
             {isUploadingImage ? (
-              <Loading03Icon className="h-5 w-5 animate-spin" />
+              <Loading03Icon className="h-6 w-6 animate-spin" />
             ) : (
-              <Image className="h-5 w-5" />
+              <Icon icon="fluent:image-24-filled" className="size-5" />
             )}
           </Button>
 
@@ -154,18 +154,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             variant="ghost" 
             size="icon" 
             aria-label="Add attachment"
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
           >
-            <Paperclip className="h-5 w-5" />
+            <Icon icon="fluent:attach-24-filled" className="size-5" />
           </Button>
 
           <Button 
             variant="ghost" 
             size="icon" 
             aria-label="Voice message"
-            className="h-10 w-10 rounded-full text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7] transition-colors"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
           >
-            <Mic className="h-5 w-5" />
+            <Icon icon="fluent:mic-24-filled" className="size-5" />
           </Button>
         </div>
       </div>

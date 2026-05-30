@@ -5,8 +5,9 @@ import { useInbox } from '../hooks/useInbox';
 import { usePresence } from '../hooks/usePresence';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronLeft, Info, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Icon } from '@iconify/react';
 
 export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }> = ({ connection }) => {
   const { activeConversationId, setActiveConversationId, toggleSidebar } = useChat();
@@ -77,11 +78,14 @@ export const ChatHeader: React.FC<{ connection?: signalR.HubConnection | null }>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#222222] hover:bg-[#f7f7f7]" aria-label="Conversation info">
-          <Info className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Phone Call">
+          <Icon icon="fluent:call-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#222222] hover:bg-[#f7f7f7]" aria-label="More options">
-          <MoreHorizontal className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Video Call">
+          <Icon icon="fluent:video-24-filled" className="size-6" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Conversation info">
+          <Icon icon="fluent:info-24-filled" className="size-6" />
         </Button>
       </div>
     </header>
