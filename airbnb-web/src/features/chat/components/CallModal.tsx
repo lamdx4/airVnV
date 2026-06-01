@@ -21,7 +21,6 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   otherParticipantName,
   otherParticipantAvatar,
   isVideoCall,
-  connection,
   onStreamReady,
   remoteStream,
 }) => {

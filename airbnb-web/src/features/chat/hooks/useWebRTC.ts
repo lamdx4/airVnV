@@ -17,7 +17,6 @@ const rtcConfig: RTCConfiguration = {
 
 export const useWebRTC = (
   connection: signalR.HubConnection | null | undefined,
-  currentUserId?: string
 ) => {
   const [callState, setCallState] = useState<CallState>('idle');
   const [incomingCall, setIncomingCall] = useState<IncomingCallInfo | null>(null);
@@ -25,6 +24,7 @@ export const useWebRTC = (
   
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const currentTargetId = useRef<string | null>(null);
+  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
 
   // Khởi tạo PeerConnection
   const createPeerConnection = useCallback((targetUserId: string) => {
@@ -66,15 +66,30 @@ export const useWebRTC = (
       if (peerConnection.current) {
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
         setCallState('connected');
+
+        // Thêm các candidate đã xếp hàng (nếu có)
+        for (const candidate of pendingCandidates.current) {
+          try {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {
+            console.error('Error adding queued ice candidate', e);
+          }
+        }
+        pendingCandidates.current = [];
       }
     };
 
     const handleReceiveIceCandidate = async (data: { senderId: string; candidate: RTCIceCandidateInit }) => {
-      if (peerConnection.current && data.candidate) {
-        try {
-          await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (e) {
-          console.error('Error adding received ice candidate', e);
+      if (data.candidate) {
+        if (peerConnection.current && peerConnection.current.remoteDescription) {
+          try {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } catch (e) {
+            console.error('Error adding received ice candidate', e);
+          }
+        } else {
+          // Xếp hàng các candidate đến sớm khi chưa set remoteDescription
+          pendingCandidates.current.push(data.candidate);
         }
       }
     };
@@ -114,6 +129,7 @@ export const useWebRTC = (
     setIncomingCall(null);
     setRemoteStream(null);
     currentTargetId.current = null;
+    pendingCandidates.current = [];
   };
 
   // Gọi đi
@@ -150,6 +166,17 @@ export const useWebRTC = (
     });
 
     await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+    
+    // Thêm các candidate đã xếp hàng (nếu Caller gửi quá nhanh)
+    for (const candidate of pendingCandidates.current) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error('Error adding queued ice candidate', e);
+      }
+    }
+    pendingCandidates.current = [];
+
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
