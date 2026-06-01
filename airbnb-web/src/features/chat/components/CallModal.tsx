@@ -28,12 +28,21 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   const [isVideoOff, setIsVideoOff] = useState(!isVideoCall);
   const dragControls = useDragControls();
 
+  // Đảm bảo reset trạng thái nút bấm (Mic/Cam) mỗi khi có cuộc gọi mới
+  useEffect(() => {
+    if (isOpen) {
+      setIsMuted(false);
+      setIsVideoOff(!isVideoCall);
+    }
+  }, [isOpen, isVideoCall]);
+
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   // Lấy Mic / Camera khi mở Modal
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let isCancelled = false;
 
     if (isOpen) {
       navigator.mediaDevices
@@ -42,12 +51,19 @@ const CallModalComponent: React.FC<CallModalProps> = ({
           video: true, // Luôn yêu cầu quyền video trước để add track vào PeerConnection
         })
         .catch((err) => {
+          if (isCancelled) return null;
           console.warn("Không lấy được video, fallback sang audio only:", err);
           // Nếu user không có cam, hoặc từ chối cam, fallback sang audio only
           return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         })
         .then((s) => {
           if (!s) return;
+          if (isCancelled) {
+            // Modal đã đóng trước khi promise resolve, phải tắt thiết bị ngay lập tức
+            s.getTracks().forEach(track => track.stop());
+            return;
+          }
+          
           stream = s;
           
           // Nếu ban đầu là gọi Audio, tự động disable video track
@@ -66,11 +82,12 @@ const CallModalComponent: React.FC<CallModalProps> = ({
           }
         })
         .catch((err) => {
-          console.error("Lỗi lấy quyền truy cập Mic:", err);
+          if (!isCancelled) console.error("Lỗi lấy quyền truy cập Mic:", err);
         });
     }
 
     return () => {
+      isCancelled = true;
       // Dọn dẹp stream khi đóng Modal
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
@@ -94,6 +111,11 @@ const CallModalComponent: React.FC<CallModalProps> = ({
 
   // Xử lý Tắt/Mở Camera
   const toggleVideo = () => {
+    if (localStream && localStream.getVideoTracks().length === 0) {
+      alert("Không tìm thấy Camera trên thiết bị của bạn!");
+      return;
+    }
+    
     setIsVideoOff((prev) => {
       const next = !prev;
       if (localStream) {
@@ -260,7 +282,9 @@ export const CallModal = React.memo(
       prevProps.onClose === nextProps.onClose &&
       prevProps.isVideoCall === nextProps.isVideoCall &&
       prevProps.connection === nextProps.connection &&
-      prevProps.remoteStream === nextProps.remoteStream
+      prevProps.remoteStream === nextProps.remoteStream &&
+      prevProps.otherParticipantName === nextProps.otherParticipantName &&
+      prevProps.otherParticipantAvatar === nextProps.otherParticipantAvatar
     );
   },
 );

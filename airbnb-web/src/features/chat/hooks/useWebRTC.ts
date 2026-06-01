@@ -39,7 +39,9 @@ export const useWebRTC = (
 
     pc.ontrack = (event) => {
       if (event.streams && event.streams[0]) {
-        setRemoteStream(event.streams[0]);
+        // Ép React re-render bằng cách tạo MediaStream mới (đổi reference) 
+        // để video element cập nhật cả audio lẫn video track khi chúng được thêm vào tuần tự.
+        setRemoteStream(new MediaStream(event.streams[0].getTracks()));
       }
     };
 
