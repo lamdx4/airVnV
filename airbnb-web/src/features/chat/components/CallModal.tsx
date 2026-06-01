@@ -39,10 +39,24 @@ const CallModalComponent: React.FC<CallModalProps> = ({
       navigator.mediaDevices
         .getUserMedia({
           audio: true,
-          video: isVideoCall,
+          video: true, // Luôn yêu cầu quyền video trước để add track vào PeerConnection
+        })
+        .catch((err) => {
+          console.warn("Không lấy được video, fallback sang audio only:", err);
+          // Nếu user không có cam, hoặc từ chối cam, fallback sang audio only
+          return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         })
         .then((s) => {
+          if (!s) return;
           stream = s;
+          
+          // Nếu ban đầu là gọi Audio, tự động disable video track
+          if (!isVideoCall) {
+            s.getVideoTracks().forEach((track) => {
+              track.enabled = false;
+            });
+          }
+
           setLocalStream(s);
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = s;
@@ -52,7 +66,7 @@ const CallModalComponent: React.FC<CallModalProps> = ({
           }
         })
         .catch((err) => {
-          console.error("Lỗi lấy quyền truy cập Camera/Mic:", err);
+          console.error("Lỗi lấy quyền truy cập Mic:", err);
         });
     }
 
@@ -79,40 +93,16 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   };
 
   // Xử lý Tắt/Mở Camera
-  const toggleVideo = async () => {
-    try {
-      if (isVideoOff) {
-        // Muốn BẬT camera
-        if (localStream && localStream.getVideoTracks().length === 0) {
-          // Nếu stream hiện tại chưa có track video (do ban đầu gọi audio), xin cấp quyền
-          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          const videoTrack = videoStream.getVideoTracks()[0];
-          localStream.addTrack(videoTrack);
-          
-          // Gán lại srcObject để đảm bảo video element cập nhật
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = null;
-            localVideoRef.current.srcObject = localStream;
-          }
-        } else if (localStream) {
-          // Nếu đã có track video, chỉ cần bật lại
-          localStream.getVideoTracks().forEach((track) => {
-            track.enabled = true;
-          });
-        }
-        setIsVideoOff(false);
-      } else {
-        // Muốn TẮT camera
-        if (localStream) {
-          localStream.getVideoTracks().forEach((track) => {
-            track.enabled = false;
-          });
-        }
-        setIsVideoOff(true);
+  const toggleVideo = () => {
+    setIsVideoOff((prev) => {
+      const next = !prev;
+      if (localStream) {
+        localStream.getVideoTracks().forEach((track) => {
+          track.enabled = !next;
+        });
       }
-    } catch (err) {
-      console.error("Lỗi khi bật Camera:", err);
-    }
+      return next;
+    });
   };
 
   return (

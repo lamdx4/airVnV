@@ -49,7 +49,7 @@ export const ChatContainer: React.FC = () => {
   }, [endCall]);
 
   const handleAcceptCall = () => {
-    setIsVideoCall(true); // Default to video call layout for now
+    setIsVideoCall(incomingCall?.isVideoCall || false); // Tự động thiết lập video dựa trên loại cuộc gọi đến
     setIsAnswering(true);
     setIsCallModalOpen(true);
   };
@@ -168,7 +168,7 @@ export const ChatContainer: React.FC = () => {
               if (isAnswering) {
                 acceptCall(stream);
               } else if (conversation) {
-                startCall(conversation.otherParticipantId, stream);
+                startCall(conversation.otherParticipantId, stream, isVideoCall);
               }
             }}
           />

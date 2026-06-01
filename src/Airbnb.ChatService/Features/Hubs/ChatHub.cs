@@ -101,14 +101,15 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     }
 
     // WebRTC Signaling Methods
-    public async Task InitCall(Guid targetUserId, object offer)
+    public async Task InitCall(Guid targetUserId, object offer, bool isVideoCall)
     {
         if (Context.Items.TryGetValue(UserIdKey, out var callerIdObj) && callerIdObj is Guid callerId)
         {
             await Clients.Group($"user_{targetUserId}").SendAsync("IncomingCall", new 
             { 
                 CallerId = callerId, 
-                Offer = offer 
+                Offer = offer,
+                IsVideoCall = isVideoCall
             });
         }
     }

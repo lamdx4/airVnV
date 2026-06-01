@@ -6,6 +6,7 @@ export type CallState = 'idle' | 'calling' | 'ringing' | 'connected';
 export interface IncomingCallInfo {
   callerId: string;
   offer: RTCSessionDescriptionInit;
+  isVideoCall: boolean;
 }
 
 const rtcConfig: RTCConfiguration = {
@@ -55,8 +56,8 @@ export const useWebRTC = (
   useEffect(() => {
     if (!connection) return;
 
-    const handleIncomingCall = (data: { callerId: string; offer: RTCSessionDescriptionInit }) => {
-      console.log('Incoming call from:', data.callerId);
+    const handleIncomingCall = (data: { callerId: string; offer: RTCSessionDescriptionInit; isVideoCall: boolean }) => {
+      console.log('Incoming call from:', data.callerId, 'Video:', data.isVideoCall);
       setIncomingCall(data);
       setCallState('ringing');
     };
@@ -133,7 +134,7 @@ export const useWebRTC = (
   };
 
   // Gọi đi
-  const startCall = async (targetUserId: string, localStream: MediaStream) => {
+  const startCall = async (targetUserId: string, localStream: MediaStream, isVideoCall: boolean) => {
     if (!connection) return;
     
     currentTargetId.current = targetUserId;
@@ -147,7 +148,7 @@ export const useWebRTC = (
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
-    await connection.invoke('InitCall', targetUserId, offer);
+    await connection.invoke('InitCall', targetUserId, offer, isVideoCall);
     setCallState('calling');
   };
 
