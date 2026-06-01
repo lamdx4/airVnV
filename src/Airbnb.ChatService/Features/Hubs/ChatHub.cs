@@ -100,6 +100,65 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
         }
     }
 
+    // WebRTC Signaling Methods
+    public async Task InitCall(Guid targetUserId, object offer)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var callerIdObj) && callerIdObj is Guid callerId)
+        {
+            await Clients.Group($"user_{targetUserId}").SendAsync("IncomingCall", new 
+            { 
+                CallerId = callerId, 
+                Offer = offer 
+            });
+        }
+    }
+
+    public async Task AnswerCall(Guid targetUserId, object answer)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var answererIdObj) && answererIdObj is Guid answererId)
+        {
+            await Clients.Group($"user_{targetUserId}").SendAsync("CallAnswered", new 
+            { 
+                AnswererId = answererId, 
+                Answer = answer 
+            });
+        }
+    }
+
+    public async Task SendIceCandidate(Guid targetUserId, object candidate)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var senderIdObj) && senderIdObj is Guid senderId)
+        {
+            await Clients.Group($"user_{targetUserId}").SendAsync("ReceiveIceCandidate", new 
+            { 
+                SenderId = senderId, 
+                Candidate = candidate 
+            });
+        }
+    }
+
+    public async Task RejectCall(Guid targetUserId)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var rejecterIdObj) && rejecterIdObj is Guid rejecterId)
+        {
+            await Clients.Group($"user_{targetUserId}").SendAsync("CallRejected", new 
+            { 
+                RejecterId = rejecterId 
+            });
+        }
+    }
+
+    public async Task EndCall(Guid targetUserId)
+    {
+        if (Context.Items.TryGetValue(UserIdKey, out var enderIdObj) && enderIdObj is Guid enderId)
+        {
+            await Clients.Group($"user_{targetUserId}").SendAsync("CallEnded", new 
+            { 
+                EnderId = enderId 
+            });
+        }
+    }
+
     private async Task NotifyStatusChanged(Guid userId, string status)
     {
         var relatedUserIds = await db.ConversationParticipants

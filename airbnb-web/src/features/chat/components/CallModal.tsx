@@ -11,6 +11,8 @@ interface CallModalProps {
   otherParticipantAvatar?: string;
   isVideoCall: boolean;
   connection?: signalR.HubConnection | null;
+  onStreamReady?: (stream: MediaStream) => void;
+  remoteStream?: MediaStream | null;
 }
 
 const CallModalComponent: React.FC<CallModalProps> = ({
@@ -20,6 +22,8 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   otherParticipantAvatar,
   isVideoCall,
   connection,
+  onStreamReady,
+  remoteStream,
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(!isVideoCall);
@@ -43,6 +47,9 @@ const CallModalComponent: React.FC<CallModalProps> = ({
           setLocalStream(s);
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = s;
+          }
+          if (onStreamReady) {
+            onStreamReady(s);
           }
         })
         .catch((err) => {
@@ -148,23 +155,34 @@ const CallModalComponent: React.FC<CallModalProps> = ({
                 </div>
 
                 {/* Center Avatar / Video Area */}
-                <div className="flex-1 flex items-center justify-center relative">
-                  {/* Thêm hiệu ứng pulse vòng tròn tỏa ra xung quanh avatar để diễn tả trạng thái đang gọi */}
-                  <div className="absolute w-[140px] h-[140px] bg-white/5 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]" />
-                  <div
-                    className="absolute w-[180px] h-[180px] bg-white/5 rounded-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]"
-                    style={{ animationDelay: "0.5s" }}
-                  />
-
-                  <Avatar className="w-24 h-24 border-[3px] border-[#2c2c2e] z-10 shadow-2xl">
-                    <AvatarImage
-                      src={otherParticipantAvatar || ""}
-                      className="object-cover"
+                <div className="flex-1 flex items-center justify-center relative overflow-hidden rounded-[32px]">
+                  {remoteStream ? (
+                    <video
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover"
+                      ref={(ref) => { if (ref) ref.srcObject = remoteStream; }}
                     />
-                    <AvatarFallback className="bg-[#3c3c3e] text-white text-3xl font-semibold">
-                      {otherParticipantName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  ) : (
+                    <>
+                      {/* Thêm hiệu ứng pulse vòng tròn tỏa ra xung quanh avatar để diễn tả trạng thái đang gọi */}
+                      <div className="absolute w-[140px] h-[140px] bg-white/5 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]" />
+                      <div
+                        className="absolute w-[180px] h-[180px] bg-white/5 rounded-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]"
+                        style={{ animationDelay: "0.5s" }}
+                      />
+
+                      <Avatar className="w-24 h-24 border-[3px] border-[#2c2c2e] z-10 shadow-2xl">
+                        <AvatarImage
+                          src={otherParticipantAvatar || ""}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-[#3c3c3e] text-white text-3xl font-semibold">
+                          {otherParticipantName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </>
+                  )}
                 </div>
 
                 {/* Local Video Stream (PiP) */}
@@ -252,7 +270,8 @@ export const CallModal = React.memo(
       prevProps.isOpen === nextProps.isOpen &&
       prevProps.onClose === nextProps.onClose &&
       prevProps.isVideoCall === nextProps.isVideoCall &&
-      prevProps.connection === nextProps.connection
+      prevProps.connection === nextProps.connection &&
+      prevProps.remoteStream === nextProps.remoteStream
     );
   },
 );
