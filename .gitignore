@@ -18,6 +18,9 @@ dist-ssr/
 # IDEs
 .idea/
 .agent/
+.gitnexus
+AGENTS.md
+specs
 
 # Logs
 *.txt
