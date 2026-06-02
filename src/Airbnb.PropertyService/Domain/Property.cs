@@ -37,6 +37,7 @@ public class Property : AggregateRoot
     public BookingMode BookingMode { get; private set; }
     public PropertyType Type { get; private set; }
     public string? SuspensionReason { get; private set; }
+    public string? RejectionReason { get; private set; }
     
     // Review Stats
     public int ReviewCount { get; private set; }
@@ -127,6 +128,24 @@ public class Property : AggregateRoot
             
         Version++;
         Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude, Version));
+    }
+
+    public void Reject(string reason)
+    {
+        if (Status != PropertyStatus.PendingReview)
+            throw new BusinessException("Only properties pending review can be rejected.", "PROPERTY_NOT_IN_REVIEW");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessException("Rejection reason is required.", "PROPERTY_REJECTION_REASON_REQUIRED");
+
+        if (reason.Length < 10)
+            throw new BusinessException("Rejection reason must be at least 10 characters.", "PROPERTY_REJECTION_REASON_TOO_SHORT");
+
+        Status = PropertyStatus.Rejected;
+        RejectionReason = reason;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        Version++;
+        Raise(new PropertyRejectedEvent(Id, HostId, reason, Version));
     }
 
     public void Publish()

@@ -1,17 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, User } from "lucide-react";
+import { toast } from "sonner";
 
 import { sidebarNav } from "@/config/navigation";
+import { authApi } from "@/lib/auth";
 import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, clearAuth } = useAuthStore();
+
+  async function handleLogout() {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore logout API errors — clear local state regardless
+    }
+    clearAuth();
+    toast.success("Logged out successfully");
+    router.replace("/login");
+  }
 
   return (
     <aside className="flex h-full w-64 flex-col border-r bg-card">
@@ -56,7 +70,7 @@ export function AdminSidebar() {
             <p className="text-sm font-medium truncate">{user?.fullName ?? "Admin"}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={clearAuth} title="Logout">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>

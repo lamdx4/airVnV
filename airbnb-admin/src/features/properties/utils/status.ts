@@ -7,8 +7,9 @@ const statusConfig: Record<
 > = {
   [PropertyStatus.DRAFT]: { label: "Draft", variant: "outline" },
   [PropertyStatus.PENDING_REVIEW]: { label: "Pending Review", variant: "secondary" },
-  [PropertyStatus.ACTIVE]: { label: "Active", variant: "default" },
-  [PropertyStatus.INACTIVE]: { label: "Inactive", variant: "outline" },
+  [PropertyStatus.PUBLISHED]: { label: "Published", variant: "default" },
+  [PropertyStatus.SUSPENDED]: { label: "Suspended", variant: "outline" },
+  [PropertyStatus.ARCHIVED]: { label: "Archived", variant: "outline" },
   [PropertyStatus.REJECTED]: { label: "Rejected", variant: "destructive" },
 };
 
