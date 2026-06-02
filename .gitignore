@@ -21,6 +21,7 @@ dist-ssr/
 .gitnexus
 AGENTS.md
 specs
+.factory/
 
 # Logs
 *.txt
@@ -28,3 +29,4 @@ specs
 log.txt
 # Secrets
 firebase-service-account.json
+
