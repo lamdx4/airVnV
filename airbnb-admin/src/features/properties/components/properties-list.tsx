@@ -26,7 +26,8 @@ import {
 } from "../hooks";
 import {
   PropertyStatus,
-  PropertyStatusEnum,
+  PropertyStatusLabel,
+  PropertyTypeEnum,
   type Property,
   type PropertyListParams,
   type PropertyStatusValue,
@@ -36,12 +37,12 @@ import { RejectPropertyDialog } from "./reject-property-dialog";
 
 const statusFilterOptions: { value: string; label: string }[] = [
   { value: "all", label: "All Statuses" },
-  { value: String(PropertyStatusEnum.PendingReview), label: "Pending Review" },
-  { value: String(PropertyStatusEnum.Published), label: "Published" },
-  { value: String(PropertyStatusEnum.Suspended), label: "Suspended" },
-  { value: String(PropertyStatusEnum.Rejected), label: "Rejected" },
-  { value: String(PropertyStatusEnum.Draft), label: "Draft" },
-  { value: String(PropertyStatusEnum.Archived), label: "Archived" },
+  { value: String(PropertyStatus.PENDING_REVIEW), label: "Pending Review" },
+  { value: String(PropertyStatus.PUBLISHED), label: "Published" },
+  { value: String(PropertyStatus.SUSPENDED), label: "Suspended" },
+  { value: String(PropertyStatus.REJECTED), label: "Rejected" },
+  { value: String(PropertyStatus.DRAFT), label: "Draft" },
+  { value: String(PropertyStatus.ARCHIVED), label: "Archived" },
 ];
 
 function StatusBadge({ status }: { status: PropertyStatusValue }) {
@@ -54,9 +55,9 @@ export function PropertiesList() {
   const [params, setParams] = useState<PropertyListParams>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    status: PropertyStatusEnum.PendingReview,
+    status: PropertyStatus.PENDING_REVIEW,
   });
-  const [statusFilter, setStatusFilter] = useState(String(PropertyStatusEnum.PendingReview));
+  const [statusFilter, setStatusFilter] = useState(String(PropertyStatus.PENDING_REVIEW));
   const [searchInput, setSearchInput] = useState("");
   const [rejectTarget, setRejectTarget] = useState<Property | null>(null);
 
@@ -109,7 +110,11 @@ export function PropertiesList() {
       ),
     },
     { accessorKey: "displayAddress", header: "Location" },
-    { accessorKey: "type", header: "Type" },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => PropertyTypeEnum[row.original.type] ?? "Unknown",
+    },
     {
       accessorKey: "status",
       header: "Status",

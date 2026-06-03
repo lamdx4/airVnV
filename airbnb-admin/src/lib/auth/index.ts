@@ -4,4 +4,5 @@ export type {
   LoginResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
+  AdminProfile,
 } from "./api";

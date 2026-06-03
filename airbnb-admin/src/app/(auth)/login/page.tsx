@@ -45,10 +45,18 @@ function LoginForm() {
     setIsLoading(true);
     try {
       const response = await authApi.login(data);
-      const { user, accessToken, refreshToken } = response.data as unknown as {
-        user: { id: string; email: string; fullName: string; role: string; avatarUrl?: string };
+      const { accessToken, refreshToken, fullName, email, role } = response.data as unknown as {
         accessToken: string;
         refreshToken: string;
+        fullName: string;
+        email: string;
+        role: string;
+      };
+      const user = {
+        id: email,
+        email,
+        fullName,
+        role,
       };
       setAuth(user, accessToken, refreshToken);
       toast.success("Welcome back!");

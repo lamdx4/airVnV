@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/reject");
+        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Admin reject property (PendingReview → Rejected)";

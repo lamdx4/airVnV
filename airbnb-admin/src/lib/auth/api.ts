@@ -9,13 +9,9 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    fullName: string;
-    role: string;
-    avatarUrl?: string;
-  };
+  fullName: string;
+  email: string;
+  role: string;
 }
 
 export interface RefreshTokenRequest {
@@ -27,14 +23,22 @@ export interface RefreshTokenResponse {
   refreshToken: string;
 }
 
+export interface AdminProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+  avatarUrl?: string;
+}
+
 export const authApi = {
   login: (data: LoginRequest) =>
-    api.post<ApiResponse<LoginResponse>>("/admin/login", data),
+    api.post<ApiResponse<LoginResponse>>("/users/admin/login", data),
 
-  logout: () => api.post<ApiResponse<null>>("/admin/logout"),
+  logout: () => api.post<ApiResponse<null>>("/users/logout"),
 
   refreshToken: (data: RefreshTokenRequest) =>
-    api.post<ApiResponse<RefreshTokenResponse>>("/admin/refresh-token", data),
+    api.post<ApiResponse<RefreshTokenResponse>>("/users/refresh-token", data),
 
-  getProfile: () => api.get<ApiResponse<LoginResponse["user"]>>("/admin/profile"),
+  getProfile: () => api.get<ApiResponse<AdminProfile>>("/users/profile"),
 };

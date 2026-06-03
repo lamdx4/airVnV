@@ -1,10 +1,10 @@
 export const PropertyStatus = {
-  DRAFT: "Draft",
-  PENDING_REVIEW: "PendingReview",
-  PUBLISHED: "Published",
-  SUSPENDED: "Suspended",
-  ARCHIVED: "Archived",
-  REJECTED: "Rejected",
+  DRAFT: 0,
+  PENDING_REVIEW: 1,
+  PUBLISHED: 2,
+  SUSPENDED: 3,
+  ARCHIVED: 4,
+  REJECTED: 5,
 } as const;
 
 export type PropertyStatusValue = (typeof PropertyStatus)[keyof typeof PropertyStatus];
@@ -14,7 +14,7 @@ export interface Property {
   hostId: string;
   title: string;
   displayAddress: string;
-  type: string;
+  type: number;
   status: PropertyStatusValue;
   basePrice: number;
   coverImageUrl: string | null;
@@ -38,11 +38,20 @@ export interface PropertyListParams {
   sortOrder?: string;
 }
 
-export const PropertyStatusEnum: Record<PropertyStatusValue, number> = {
-  Draft: 0,
-  PendingReview: 1,
-  Published: 2,
-  Suspended: 3,
-  Archived: 4,
-  Rejected: 5,
+export const PropertyStatusLabel: Record<PropertyStatusValue, string> = {
+  [PropertyStatus.DRAFT]: "Draft",
+  [PropertyStatus.PENDING_REVIEW]: "Pending Review",
+  [PropertyStatus.PUBLISHED]: "Published",
+  [PropertyStatus.SUSPENDED]: "Suspended",
+  [PropertyStatus.ARCHIVED]: "Archived",
+  [PropertyStatus.REJECTED]: "Rejected",
+};
+
+export const PropertyTypeEnum: Record<number, string> = {
+  1: "Apartment",
+  2: "House",
+  3: "Villa",
+  4: "Homestay",
+  5: "Hotel",
+  6: "Resort",
 };

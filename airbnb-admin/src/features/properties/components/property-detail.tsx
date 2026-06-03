@@ -47,7 +47,7 @@ import {
   useReinstateProperty,
   useAdminDeleteProperty,
 } from "../hooks";
-import { PropertyStatus } from "../types";
+import { PropertyStatus, PropertyTypeEnum } from "../types";
 import { getPropertyStatusConfig } from "../utils/status";
 import { RejectPropertyDialog } from "./reject-property-dialog";
 
@@ -175,7 +175,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <DetailRow icon={MapPin} label="Location" value={property.displayAddress} />
-            <DetailRow label="Type" value={property.type} />
+            <DetailRow label="Type" value={PropertyTypeEnum[property.type] ?? "Unknown"} />
             <DetailRow icon={DollarSign} label="Price per Night" value={formatCurrency(property.basePrice)} />
             <DetailRow icon={Users} label="Max Guests" value={String(property.guestCount)} />
             <DetailRow icon={BedDouble} label="Bedrooms" value={String(property.bedroomCount)} />

@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/api/properties/admin");
+        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Admin: list all properties with pagination and filters";

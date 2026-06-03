@@ -1,5 +1,6 @@
 export { propertiesApi } from "./api/properties";
-export type { PropertyStatus, PropertyStatusValue, Property, PropertyListParams, PropertyStatusEnum } from "./types";
+export type { PropertyStatusValue, Property, PropertyListParams } from "./types";
+export { PropertyStatus, PropertyStatusLabel, PropertyTypeEnum } from "./types";
 export {
   useProperties,
   useProperty,

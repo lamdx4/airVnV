@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/api/properties/{PropertyId}/admin-delete");
+        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Admin: emergency delete property (any status)";
