@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Conversation } from "../types/model";
 import { mapMessageDtoToModel } from "../utils/mapper";
 import { useAuthStore } from "../../../store/authStore";
+import { jwtDecode } from "jwt-decode";
 
 const HUB_URL =
   import.meta.env.VITE_CHAT_HUB_URL || "http://localhost:5136/hubs/chat";
@@ -32,9 +33,43 @@ export const useChatHub = (activeConversationId: string | null) => {
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => {
-          // Lấy token động từ Zustand store, tự động cập nhật nếu có thao tác refresh_token xảy ra
-          return useAuthStore.getState().accessToken || "";
+        accessTokenFactory: async () => {
+          let token = useAuthStore.getState().accessToken;
+          if (!token) return "";
+
+          try {
+            const decoded = jwtDecode<{ exp: number }>(token);
+            const expTime = decoded.exp * 1000;
+            const now = Date.now();
+
+            // Nếu token sắp hết hạn (dưới 1 phút), chủ động đi lấy token mới
+            if (expTime - now < 1 * 60 * 1000) {
+              const refreshToken = useAuthStore.getState().refreshToken;
+              if (refreshToken) {
+                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                const response = await fetch(`${API_URL}/api/users/refresh-token`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ refreshToken }),
+                });
+
+                if (response.ok) {
+                  const result = await response.json();
+                  if (result.success && result.data?.accessToken) {
+                    token = result.data.accessToken;
+                    // Hàm login của store sẽ cập nhật cả localStorage và state
+                    useAuthStore
+                      .getState()
+                      .login(result.data.accessToken, result.data.refreshToken);
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Lỗi khi kiểm tra token cho SignalR:", e);
+          }
+
+          return token;
         },
       })
       .withAutomaticReconnect()

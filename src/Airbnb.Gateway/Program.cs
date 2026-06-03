@@ -20,6 +20,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretKeyThatIsAtLeast32CharsLong!!"))
         };
+
+        // Hướng dẫn Middleware lấy token từ Query String (Cho WebSockets / SignalR)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // Nếu có token trong URL, giao cho Middleware để Validate (Xác thực)
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -76,24 +92,6 @@ builder.Services.AddReverseProxy()
                 }
             }
 
-            // 3. Giải mã thủ công nếu token được gửi qua Query (ví dụ kết nối WebSockets / SignalR)
-            if (string.IsNullOrEmpty(userId) && httpContext.Request.Query.TryGetValue("access_token", out var tokenQuery))
-            {
-                var token = tokenQuery.ToString();
-                try
-                {
-                    var handler = new JwtSecurityTokenHandler();
-                    if (handler.CanReadToken(token))
-                    {
-                        var jwtToken = handler.ReadJwtToken(token);
-                        userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "UserId" || c.Type == "sub")?.Value;
-                    }
-                }
-                catch
-                {
-                    // Bỏ qua lỗi
-                }
-            }
 
             if (!string.IsNullOrEmpty(userId))
             {
