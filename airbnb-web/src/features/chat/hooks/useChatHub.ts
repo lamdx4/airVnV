@@ -85,6 +85,10 @@ export const useChatHub = (activeConversationId: string | null) => {
         await connection.start();
         console.log("SignalR Connected.");
         setIsConnected(true);
+        // Ép React Query gọi API lấy dữ liệu mới nhất để bù đắp các tin nhắn/trạng thái bị lỡ trong lúc ngắt kết nối
+        queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
+        queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["presence"] });
       } catch (e) {
         console.error("SignalR Connection Error: ", e);
       }
@@ -97,6 +101,7 @@ export const useChatHub = (activeConversationId: string | null) => {
       console.log("SignalR Reconnected. Invalidating all chat caches...");
       queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
       queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["presence"] });
     });
     // Lắng nghe sự kiện Read realtime từ SignalR
     connection.on("MessageRead", (data: any) => {

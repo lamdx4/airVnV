@@ -7,7 +7,7 @@ import { Icon } from '@iconify/react';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingPublisher } from '../hooks/useTypingStatus';
 import EmojiPicker from 'emoji-picker-react';
-import { getUploadSignature, uploadToCloudinary } from '../../media/api/media';
+
 
 interface MessageInputProps {
   conversationId: string;
