@@ -92,6 +92,12 @@ export const useChatHub = (activeConversationId: string | null) => {
 
     // ReceiveMessage listener is moved to useMessages hook
 
+    // Bắt sự kiện khi tự động kết nối lại thành công sau khi rớt mạng
+    connection.onreconnected(() => {
+      console.log("SignalR Reconnected. Invalidating all chat caches...");
+      queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
+      queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+    });
     // Lắng nghe sự kiện Read realtime từ SignalR
     connection.on("MessageRead", (data: any) => {
       const conversationId = data?.conversationId || data?.ConversationId;
