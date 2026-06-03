@@ -7,8 +7,10 @@ import { Icon } from '@iconify/react';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingPublisher } from '../hooks/useTypingStatus';
 import EmojiPicker from 'emoji-picker-react';
+import { toast } from 'sonner';
 
-
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 interface MessageInputProps {
   conversationId: string;
   connection: signalR.HubConnection | null;
@@ -52,6 +54,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error('Image size exceeds 5MB limit.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     // Create a local blob URL for optimistic UI
     const blobUrl = URL.createObjectURL(file);
     
@@ -70,6 +78,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('File size exceeds 20MB limit.');
+      if (documentInputRef.current) documentInputRef.current.value = '';
+      return;
+    }
 
     const blobUrl = URL.createObjectURL(file);
     

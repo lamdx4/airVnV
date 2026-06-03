@@ -3,6 +3,7 @@ import { ConversationList } from "./ConversationList";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
+import { ChatInfoSidebar } from "./ChatInfoSidebar";
 import { useChat } from "../context/ChatContext";
 import { useChatHub } from "../hooks/useChatHub";
 import { motion, AnimatePresence } from "framer-motion";
@@ -167,6 +168,9 @@ export const ChatContainer: React.FC = () => {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Info Sidebar (Right) */}
+        <ChatInfoSidebar />
 
         {/* Incoming Call Notification */}
         <AnimatePresence>

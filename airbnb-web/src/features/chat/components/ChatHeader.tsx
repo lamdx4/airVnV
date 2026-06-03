@@ -14,7 +14,7 @@ export const ChatHeader: React.FC<{
   connection?: signalR.HubConnection | null;
   onStartCall?: (video: boolean) => void;
 }> = ({ connection, onStartCall }) => {
-  const { activeConversationId, setActiveConversationId, toggleSidebar } = useChat();
+  const { activeConversationId, setActiveConversationId, toggleSidebar, toggleInfoSidebar } = useChat();
   const { data, isLoading } = useInbox();
 
   const conversation = data?.pages
@@ -100,7 +100,7 @@ export const ChatHeader: React.FC<{
         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Video Call" onClick={() => onStartCall?.(true)}>
           <Icon icon="fluent:video-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Conversation info">
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Conversation info" onClick={toggleInfoSidebar}>
           <Icon icon="fluent:info-24-filled" className="size-6" />
         </Button>
       </div>
