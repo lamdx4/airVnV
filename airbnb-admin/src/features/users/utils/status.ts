@@ -12,15 +12,15 @@ const statusConfig: Record<
 };
 
 const roleConfig: Record<UserRoleValue, { label: string }> = {
-  [UserRole.GUEST]: { label: "Guest" },
-  [UserRole.HOST]: { label: "Host" },
+  [UserRole.USER]: { label: "User" },
+  [UserRole.MODERATOR]: { label: "Moderator" },
   [UserRole.ADMIN]: { label: "Admin" },
 };
 
 export function getUserStatusConfig(status: UserStatusValue) {
-  return statusConfig[status];
+  return statusConfig[status] ?? { label: status, variant: "outline" as const };
 }
 
 export function getUserRoleConfig(role: UserRoleValue) {
-  return roleConfig[role];
+  return roleConfig[role] ?? { label: role };
 }

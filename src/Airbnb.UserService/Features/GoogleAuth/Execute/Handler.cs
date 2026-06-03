@@ -53,7 +53,7 @@ public sealed class Handler(UserDbContext _db, IConfiguration _config) : IComman
                 o.SigningKey = key;
                 o.ExpireAt = DateTime.UtcNow.AddMinutes(15);
                 o.User.Claims.Add(new Claim("UserId", user.Id.ToString()));
-                o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+                o.User.Claims.Add(new Claim("role", user.Role.ToString()));
             });
 
             var refreshToken = Guid.CreateVersion7().ToString("N");

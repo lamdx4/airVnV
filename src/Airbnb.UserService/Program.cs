@@ -41,7 +41,10 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 
 builder.Services.AddMediaServices(builder.Configuration);
 
-builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration."));
+builder.Services.AddAuthenticationJwtBearer(s =>
+{
+    s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
+});
 builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
 

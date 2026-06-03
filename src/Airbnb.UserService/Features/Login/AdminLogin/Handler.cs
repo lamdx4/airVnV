@@ -33,7 +33,7 @@ public class Handler(UserDbContext db, IConfiguration config) : ICommandHandler<
             o.SigningKey = key;
             o.ExpireAt = DateTime.UtcNow.AddMinutes(15);
             o.User.Claims.Add(new Claim("UserId", user.Id.ToString()));
-            o.User.Claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+            o.User.Claims.Add(new Claim("role", user.Role.ToString()));
         });
 
         var refreshToken = Guid.NewGuid().ToString("N");

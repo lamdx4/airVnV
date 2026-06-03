@@ -7,19 +7,39 @@ const QUERY_KEYS = {
   ALL: ["admin", "users"] as const,
   LIST: (params?: UserListParams) => ["admin", "users", "list", params] as const,
   DETAIL: (id: string) => ["admin", "users", "detail", id] as const,
+  KYC: (id: string) => ["admin", "users", id, "kyc"] as const,
 } as const;
 
 export function useUsers(params?: UserListParams) {
   return useQuery({
     queryKey: QUERY_KEYS.LIST(params),
-    queryFn: () => usersApi.getAll(params),
+    queryFn: async () => {
+      const response = await usersApi.getAll(params);
+      const raw = response.data as unknown as {
+        items: unknown[];
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+        totalPages: number;
+      };
+      return {
+        items: raw.items as import("../types").User[],
+        totalItems: raw.totalCount,
+        page: raw.pageNumber,
+        pageSize: raw.pageSize,
+        totalPages: raw.totalPages,
+      };
+    },
   });
 }
 
 export function useUser(id: string) {
   return useQuery({
     queryKey: QUERY_KEYS.DETAIL(id),
-    queryFn: () => usersApi.getById(id),
+    queryFn: async () => {
+      const response = await usersApi.getById(id);
+      return response.data as unknown as import("../types").UserDetail;
+    },
     enabled: !!id,
   });
 }
@@ -71,6 +91,38 @@ export function useDeleteUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => usersApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL });
+    },
+  });
+}
+
+export function useKycDocuments(userId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.KYC(userId),
+    queryFn: async () => {
+      const response = await usersApi.getKycDocuments(userId);
+      return response.data as unknown as import("../types").KycDocument[];
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useApproveVerification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => usersApi.approveVerification(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL });
+    },
+  });
+}
+
+export function useRejectVerification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      usersApi.rejectVerification(id, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL });
     },

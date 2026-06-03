@@ -37,6 +37,46 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(Features.Media.GetSignature.Request), TypeInfoPropertyName = "GetSignatureRequest")]
 [JsonSerializable(typeof(Airbnb.Infrastructure.Media.SignatureResponse))]
 
+// --- Admin: GetUsers ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.GetUsers.PaginatedUserListResponse>), TypeInfoPropertyName = "AdminGetUsersApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetUsers.PaginatedUserListResponse), TypeInfoPropertyName = "AdminGetUsersResponseData")]
+[JsonSerializable(typeof(Features.Admin.GetUsers.UserSummaryResponse), TypeInfoPropertyName = "AdminUserSummaryResponse")]
+[JsonSerializable(typeof(Features.Admin.GetUsers.Request), TypeInfoPropertyName = "AdminGetUsersRequest")]
+
+// --- Admin: GetUserDetail ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.GetUserDetail.UserDetailResponse>), TypeInfoPropertyName = "AdminGetUserDetailApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetUserDetail.UserDetailResponse), TypeInfoPropertyName = "AdminUserDetailResponseData")]
+[JsonSerializable(typeof(Features.Admin.GetUserDetail.KycDocumentSummary), TypeInfoPropertyName = "AdminKycDocumentSummary")]
+[JsonSerializable(typeof(Features.Admin.GetUserDetail.KycImageSummary), TypeInfoPropertyName = "AdminKycImageSummary")]
+
+// --- Admin: SuspendUser ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.SuspendUser.UserActionResponse>), TypeInfoPropertyName = "AdminSuspendUserApiResponse")]
+[JsonSerializable(typeof(Features.Admin.SuspendUser.UserActionResponse), TypeInfoPropertyName = "AdminSuspendUserResponseData")]
+[JsonSerializable(typeof(Features.Admin.SuspendUser.Request), TypeInfoPropertyName = "AdminSuspendUserRequest")]
+
+// --- Admin: BanUser ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.BanUser.BanUserResponse>), TypeInfoPropertyName = "AdminBanUserApiResponse")]
+[JsonSerializable(typeof(Features.Admin.BanUser.BanUserResponse), TypeInfoPropertyName = "AdminBanUserResponseData")]
+[JsonSerializable(typeof(Features.Admin.BanUser.Request), TypeInfoPropertyName = "AdminBanUserRequest")]
+
+// --- Admin: ActivateUser ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.ActivateUser.ActivateUserResponse>), TypeInfoPropertyName = "AdminActivateUserApiResponse")]
+[JsonSerializable(typeof(Features.Admin.ActivateUser.ActivateUserResponse), TypeInfoPropertyName = "AdminActivateUserResponseData")]
+
+// --- Admin: GetKycDocuments ---
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetKycDocuments.KycDocumentDetailResponse>>), TypeInfoPropertyName = "AdminGetKycDocumentsApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetKycDocuments.KycDocumentDetailResponse), TypeInfoPropertyName = "AdminKycDocumentDetailResponse")]
+[JsonSerializable(typeof(Features.Admin.GetKycDocuments.KycImageDetailResponse), TypeInfoPropertyName = "AdminKycImageDetailResponse")]
+
+// --- Admin: ApproveVerification ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.ApproveVerification.VerificationResponse>), TypeInfoPropertyName = "AdminApproveVerificationApiResponse")]
+[JsonSerializable(typeof(Features.Admin.ApproveVerification.VerificationResponse), TypeInfoPropertyName = "AdminApproveVerificationResponseData")]
+
+// --- Admin: RejectVerification ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.RejectVerification.RejectVerificationResponse>), TypeInfoPropertyName = "AdminRejectVerificationApiResponse")]
+[JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationResponse), TypeInfoPropertyName = "AdminRejectVerificationResponseData")]
+[JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationRequest), TypeInfoPropertyName = "AdminRejectVerificationRequest")]
+
 // --- Shared ---
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class UserJsonContext : JsonSerializerContext { }

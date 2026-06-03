@@ -1,9 +1,11 @@
 import { api } from "@/lib/api";
 import type { ApiResponse, PaginatedResponse } from "@/types/api";
 
+import type { User, UserDetail, UserListParams, KycDocument } from "../types";
+
 export const UserRole = {
-  GUEST: "Guest",
-  HOST: "Host",
+  USER: "User",
+  MODERATOR: "Moderator",
   ADMIN: "Admin",
 } as const;
 
@@ -18,47 +20,34 @@ export const UserStatus = {
 
 export type UserStatusValue = (typeof UserStatus)[keyof typeof UserStatus];
 
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: UserRoleValue;
-  status: UserStatusValue;
-  avatarUrl?: string;
-  phone?: string;
-  createdAt: string;
-  lastLoginAt?: string;
-}
-
-export interface UserListParams {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  role?: UserRoleValue;
-  status?: UserStatusValue;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
-
 export const usersApi = {
   getAll: (params?: UserListParams) =>
     api.get<ApiResponse<PaginatedResponse<User>>>("/admin/users", { params }),
 
   getById: (id: string) =>
-    api.get<ApiResponse<User>>(`/admin/users/${id}`),
+    api.get<ApiResponse<UserDetail>>(`/admin/users/${id}`),
 
   suspend: (id: string, reason: string) =>
-    api.patch<ApiResponse<User>>(`/admin/users/${id}/suspend`, { reason }),
+    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/suspend`, { reason }),
 
   ban: (id: string, reason: string) =>
-    api.patch<ApiResponse<User>>(`/admin/users/${id}/ban`, { reason }),
+    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/ban`, { reason }),
 
   activate: (id: string) =>
-    api.patch<ApiResponse<User>>(`/admin/users/${id}/activate`),
+    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/activate`),
 
   updateRole: (id: string, role: UserRoleValue) =>
     api.patch<ApiResponse<User>>(`/admin/users/${id}/role`, { role }),
 
   delete: (id: string) =>
     api.delete<ApiResponse<null>>(`/admin/users/${id}`),
+
+  getKycDocuments: (id: string) =>
+    api.get<ApiResponse<KycDocument[]>>(`/admin/users/${id}/kyc-documents`),
+
+  approveVerification: (id: string) =>
+    api.patch<ApiResponse<{ id: string; isVerified: boolean; status: string }>>(`/admin/users/${id}/verify`),
+
+  rejectVerification: (id: string, reason: string) =>
+    api.patch<ApiResponse<{ id: string; isVerified: boolean }>>(`/admin/users/${id}/reject-verification`, { reason }),
 };

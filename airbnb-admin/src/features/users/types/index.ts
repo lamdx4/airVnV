@@ -1,6 +1,6 @@
 export const UserRole = {
-  GUEST: "Guest",
-  HOST: "Host",
+  USER: "User",
+  MODERATOR: "Moderator",
   ADMIN: "Admin",
 } as const;
 
@@ -21,6 +21,7 @@ export interface User {
   fullName: string;
   role: UserRoleValue;
   status: UserStatusValue;
+  isVerified: boolean;
   avatarUrl?: string;
   phone?: string;
   createdAt: string;
@@ -35,4 +36,27 @@ export interface UserListParams {
   status?: UserStatusValue;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+}
+
+export interface KycDocument {
+  id: string;
+  status: "Submitted" | "Approved" | "Rejected" | "Expired";
+  documentType?: string;
+  rejectionReason?: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  images: KycDocumentImage[];
+}
+
+export interface KycDocumentImage {
+  id: string;
+  imageUrl: string;
+  label?: string;
+}
+
+export interface UserDetail extends User {
+  bio?: string;
+  suspensionReason?: string;
+  banReason?: string;
+  kycDocuments?: KycDocument[];
 }
