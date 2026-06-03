@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "../../../lib/api";
 import type {
   ConversationDto,
@@ -88,5 +89,20 @@ export const chatApi = {
    */
   getUserStatus: async (userId: string): Promise<{ isOnline: boolean }> => {
     return api.get<any, { isOnline: boolean }>(`/api/conversations/users/${userId}/status`);
+  },
+
+  /**
+   * Chủ động lấy token mới (dành riêng cho SignalR)
+   */
+  refreshSignalRToken: async (
+    refreshToken: string,
+  ): Promise<{ success: boolean; data?: { accessToken: string; refreshToken: string } }> => {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    const response = await axios.post(`${API_URL}/api/users/refresh-token`, {
+      refreshToken,
+    });
+    
+    return response.data;
   },
 };
