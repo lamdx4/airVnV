@@ -36,9 +36,16 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
   const otherParticipantAvatar = conversation?.otherParticipantAvatar;
   const otherParticipantName = conversation?.otherParticipantName;
 
+  // Dùng Ref để nhớ lại tin nhắn cuối cùng đã báo cáo, tránh gọi API trùng lặp
+  const lastMarkedMessageIdRef = useRef<string | null>(null);
+
   // Tự động gọi API đánh dấu đã đọc (Mark as read) khi mở chat hoặc có tin nhắn mới
   useEffect(() => {
     if (!activeConversationId || !lastMessageId || lastMessageId.startsWith('temp-')) return;
+    
+    // Nếu tin nhắn này đã được gọi API markAsRead rồi thì bỏ qua
+    if (lastMarkedMessageIdRef.current === lastMessageId) return;
+    lastMarkedMessageIdRef.current = lastMessageId;
 
     chatApi.markAsRead(activeConversationId, lastMessageId)
       .then(() => {
