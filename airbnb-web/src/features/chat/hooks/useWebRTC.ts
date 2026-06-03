@@ -27,6 +27,31 @@ export const useWebRTC = (
   const currentTargetId = useRef<string | null>(null);
   const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
 
+  // Hàm nội bộ để reset state
+  const cleanupCallState = useCallback(() => {
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    setCallState('idle');
+    setIncomingCall(null);
+    setRemoteStream(null);
+    currentTargetId.current = null;
+    pendingCandidates.current = [];
+  }, []);
+
+  // Cúp máy (Đang trong cuộc gọi hoặc đang gọi đi)
+  const endCall = useCallback(async () => {
+    if (connection && currentTargetId.current) {
+      try {
+        await connection.invoke('EndCall', currentTargetId.current);
+      } catch (e) {
+        console.error('Error ending call', e);
+      }
+    }
+    cleanupCallState();
+  }, [connection, cleanupCallState]);
+
   // Khởi tạo PeerConnection
   const createPeerConnection = useCallback((targetUserId: string) => {
     const pc = new RTCPeerConnection(rtcConfig);
@@ -52,7 +77,7 @@ export const useWebRTC = (
     };
 
     return pc;
-  }, [connection]);
+  }, [connection, endCall]);
 
   // Lắng nghe sự kiện từ SignalR
   useEffect(() => {
@@ -120,23 +145,10 @@ export const useWebRTC = (
       connection.off('CallRejected', handleCallRejected);
       connection.off('CallEnded', handleCallEnded);
     };
-  }, [connection]);
-
-  // Hàm nội bộ để reset state
-  const cleanupCallState = () => {
-    if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null;
-    }
-    setCallState('idle');
-    setIncomingCall(null);
-    setRemoteStream(null);
-    currentTargetId.current = null;
-    pendingCandidates.current = [];
-  };
+  }, [connection, cleanupCallState]);
 
   // Gọi đi
-  const startCall = async (targetUserId: string, localStream: MediaStream, isVideoCall: boolean) => {
+  const startCall = useCallback(async (targetUserId: string, localStream: MediaStream, isVideoCall: boolean) => {
     if (!connection) return;
     
     currentTargetId.current = targetUserId;
@@ -152,10 +164,10 @@ export const useWebRTC = (
 
     await connection.invoke('InitCall', targetUserId, offer, isVideoCall);
     setCallState('calling');
-  };
+  }, [connection, createPeerConnection]);
 
   // Nghe máy
-  const acceptCall = async (localStream: MediaStream) => {
+  const acceptCall = useCallback(async (localStream: MediaStream) => {
     if (!connection || !incomingCall) return;
 
     const targetUserId = incomingCall.callerId;
@@ -187,10 +199,10 @@ export const useWebRTC = (
     
     setIncomingCall(null);
     setCallState('connected');
-  };
+  }, [connection, incomingCall, createPeerConnection]);
 
   // Từ chối cuộc gọi đến
-  const rejectCall = async () => {
+  const rejectCall = useCallback(async () => {
     if (!connection || !incomingCall) return;
     try {
       await connection.invoke('RejectCall', incomingCall.callerId);
@@ -198,19 +210,10 @@ export const useWebRTC = (
       console.error('Error rejecting call', e);
     }
     cleanupCallState();
-  };
+  }, [connection, incomingCall, cleanupCallState]);
 
-  // Cúp máy (Đang trong cuộc gọi hoặc đang gọi đi)
-  const endCall = async () => {
-    if (connection && currentTargetId.current) {
-      try {
-        await connection.invoke('EndCall', currentTargetId.current);
-      } catch (e) {
-        console.error('Error ending call', e);
-      }
-    }
-    cleanupCallState();
-  };
+
+
 
   return {
     callState,
