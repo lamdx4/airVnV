@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Airbnb.ChatService.Infrastructure.HttpClients;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
+using Airbnb.ChatService.Features.Hubs;
 
 namespace Airbnb.ChatService.Features.Consumers;
 
@@ -13,6 +15,7 @@ public class BookingConfirmedEventConsumer(
     AppDbContext db,
     PropertyServiceClient propertyClient,
     UserServiceClient userClient,
+    IHubContext<ChatHub> hubContext,
     ILogger<BookingConfirmedEventConsumer> logger) : IConsumer<BookingConfirmedEvent>
 {
     public async Task Consume(ConsumeContext<BookingConfirmedEvent> context)
@@ -111,7 +114,7 @@ public class BookingConfirmedEventConsumer(
             ConversationId = conversation.Id,
             SenderId = null, // System Message
             MessageType = MessageType.System,
-            Content = $"Booking confirmed! Check-in: {message.CheckIn:d}. Total: ${message.TotalPrice}",
+            Content = $" Booking confirmed! {message.CheckIn:MMM dd} - {message.CheckOut:MMM dd, yyyy} • ${message.TotalPrice} 🎉",
         };
 
         db.Messages.Add(systemMsg);
@@ -120,6 +123,27 @@ public class BookingConfirmedEventConsumer(
 
         await db.SaveChangesAsync(context.CancellationToken);
 
-        // TODO: Push SignalR update to Participants
+        // 4. Push SignalR tới những người trong Group conversation
+        var messagePayload = new 
+        {
+            systemMsg.Id,
+            systemMsg.ConversationId,
+            systemMsg.SenderId,
+            systemMsg.Content,
+            systemMsg.CreatedAt,
+            MessageType = systemMsg.MessageType.ToString()
+        };
+
+        await hubContext.Clients.Group($"conv_{conversation.Id}").SendAsync("ReceiveMessage", messagePayload, context.CancellationToken);
+
+        // 5. Push SignalR tới user id group của tất cả những người tham gia
+        var allUserGroups = conversation.Participants
+            .Select(p => $"user_{p.UserId}")
+            .ToList();
+
+        if (allUserGroups.Count > 0)
+        {
+            await hubContext.Clients.Groups(allUserGroups).SendAsync("NewMessage", messagePayload, context.CancellationToken);
+        }
     }
 }

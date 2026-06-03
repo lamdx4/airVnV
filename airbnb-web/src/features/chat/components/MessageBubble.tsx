@@ -4,6 +4,7 @@ import { formatMessageTime } from '../utils/date';
 import { useAuthStore } from '@/store/authStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loading03Icon } from '@/components/common/Icons';
+import { Icon } from '@iconify/react';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -26,6 +27,17 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
 }) => {
   const { userId } = useAuthStore();
   const isOwnMessage = message.senderId?.toLowerCase() === userId?.toLowerCase();
+
+  if (message.messageType === 'System') {
+    return (
+      <div className="flex w-full flex-col items-center my-3">
+        <div className="bg-[#f7f7f7] text-[#6a6a6a] text-[12px] px-4 py-1.5 rounded-full font-medium border border-[#ebebeb] flex items-center gap-2">
+          <Icon icon="logos:airbnb-icon" className="w-4 h-4 shrink-0" />
+          <span>{message.content}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex w-full flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>

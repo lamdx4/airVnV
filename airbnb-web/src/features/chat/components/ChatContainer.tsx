@@ -58,7 +58,7 @@ export const ChatContainer: React.FC = () => {
   const handleStartCall = (video: boolean) => {
     if (conversation) {
       setActiveCallParticipant({
-        id: conversation.otherParticipantId,
+        id: conversation.otherParticipantId || "",
         name: conversation.otherParticipantName,
         avatar: conversation.otherParticipantAvatar
       });
@@ -77,7 +77,7 @@ export const ChatContainer: React.FC = () => {
   const handleAcceptCall = () => {
     if (incomingConversation) {
       setActiveCallParticipant({
-        id: incomingConversation.otherParticipantId,
+        id: incomingConversation.otherParticipantId || incomingCall?.callerId || "",
         name: incomingConversation.otherParticipantName,
         avatar: incomingConversation.otherParticipantAvatar
       });
