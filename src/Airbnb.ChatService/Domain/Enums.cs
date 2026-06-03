@@ -11,5 +11,6 @@ public enum MessageType
 {
     Text,
     System,
-    Image
+    Image,
+    File
 }

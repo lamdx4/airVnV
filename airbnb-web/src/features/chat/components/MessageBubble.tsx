@@ -70,6 +70,42 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
               </div>
             )}
           </div>
+        ) : message.messageType === 'File' ? (
+          (() => {
+            let fileData = { url: '', name: 'Attachment', size: 0 };
+            try { fileData = JSON.parse(message.content); } catch (e) {}
+            return (
+              <a 
+                href={fileData.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`relative flex items-center gap-3 p-3 rounded-[16px] border shadow-sm transition-all max-w-[260px] sm:max-w-xs ${
+                  isOwnMessage 
+                    ? 'bg-[#25D366] border-[#20ba59] text-white hover:bg-[#20ba59] rounded-tr-sm' 
+                    : 'bg-white border-[#ebebeb] text-[#222222] hover:bg-gray-50 rounded-tl-sm'
+                } ${message.id?.startsWith('temp-') ? 'opacity-70 pointer-events-none' : ''}`}
+              >
+                <div className={`p-2 rounded-full shrink-0 ${isOwnMessage ? 'bg-white/20 text-white' : 'bg-[#f2f2f2] text-[#222222]'}`}>
+                  <Icon icon="fluent:document-24-filled" className="size-6" />
+                </div>
+                <div className="flex flex-col overflow-hidden min-w-0 flex-1">
+                  <span className="font-medium text-[14px] truncate" title={fileData.name}>{fileData.name}</span>
+                  {fileData.size > 0 && (
+                    <span className={`text-[11px] uppercase tracking-wide mt-0.5 ${isOwnMessage ? 'text-white/80' : 'text-[#6a6a6a]'}`}>
+                      {(fileData.size / 1024 / 1024) >= 1 
+                        ? `${(fileData.size / 1024 / 1024).toFixed(1)} MB` 
+                        : `${(fileData.size / 1024).toFixed(0)} KB`}
+                    </span>
+                  )}
+                </div>
+                {message.id?.startsWith('temp-') && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-[16px]">
+                    <Loading03Icon className="h-5 w-5 animate-spin" />
+                  </div>
+                )}
+              </a>
+            );
+          })()
         ) : (
           <div 
             className={`px-4 py-3 rounded-[20px] text-[15px] leading-[1.4] transition-all ${

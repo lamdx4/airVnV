@@ -22,7 +22,7 @@ export const uploadToCloudinary = async (
   }
 
   const res = await axios.post<CloudinaryUploadResponse>(
-    `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`,
     formData
   );
 

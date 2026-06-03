@@ -30,8 +30,8 @@ export const useMessages = (
               (m: ChatMessage) =>
                 m.id.startsWith("temp-") &&
                 (m.content === newMsg.content ||
-                  (m.messageType === "Image" &&
-                    newMsg.messageType === "Image")),
+                  (m.messageType === "Image" && newMsg.messageType === "Image") ||
+                  (m.messageType === "File" && newMsg.messageType === "File")),
             );
 
             if (tempIdx !== -1) {

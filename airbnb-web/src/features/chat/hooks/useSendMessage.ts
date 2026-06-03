@@ -13,10 +13,19 @@ export const useSendMessage = (conversationId: string | null) => {
       if (!conversationId) throw new Error('No conversation selected');
       
       let finalContent = content;
-      if (file && messageType === 'Image') {
-        const sig = await getUploadSignature('chat_images');
+      if (file && (messageType === 'Image' || messageType === 'File')) {
+        const sig = await getUploadSignature(messageType === 'Image' ? 'chat_images' : 'chat_files');
         const res = await uploadToCloudinary(file, sig);
-        finalContent = res.secure_url;
+        
+        if (messageType === 'File') {
+          finalContent = JSON.stringify({
+            url: res.secure_url,
+            name: file.name,
+            size: file.size
+          });
+        } else {
+          finalContent = res.secure_url;
+        }
       }
       
       return await chatApi.sendMessage(conversationId, finalContent, messageType);

@@ -21,6 +21,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 
   useEffect(() => {
@@ -65,6 +66,31 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
       fileInputRef.current.value = ''; // Reset input
     }
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const blobUrl = URL.createObjectURL(file);
+    
+    // Lưu tạm dưới dạng JSON cho phần hiển thị optimistic UI
+    const optimisticData = JSON.stringify({
+      url: blobUrl,
+      name: file.name,
+      size: file.size
+    });
+
+    sendMessage({ 
+      content: optimisticData, 
+      messageType: 'File',
+      file 
+    });
+
+    if (documentInputRef.current) {
+      documentInputRef.current.value = ''; // Reset input
+    }
+  };
+
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -135,6 +161,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             accept="image/*" 
             className="hidden" 
           />
+          <input 
+            type="file" 
+            ref={documentInputRef} 
+            onChange={handleFileUpload} 
+            className="hidden" 
+          />
           <Button 
             variant="ghost" 
             size="icon" 
@@ -154,6 +186,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             variant="ghost" 
             size="icon" 
             aria-label="Add attachment"
+            onClick={() => documentInputRef.current?.click()}
             className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
           >
             <Icon icon="fluent:attach-24-filled" className="size-5" />
