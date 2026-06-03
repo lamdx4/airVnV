@@ -1,3 +1,3 @@
-export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function UserDetailPage() {
   return <div>User detail page placeholder</div>;
 }

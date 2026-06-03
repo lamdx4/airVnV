@@ -1,3 +1,3 @@
-export default function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BookingDetailPage() {
   return <div>Booking detail page placeholder</div>;
 }

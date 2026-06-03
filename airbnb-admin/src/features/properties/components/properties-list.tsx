@@ -26,7 +26,6 @@ import {
 } from "../hooks";
 import {
   PropertyStatus,
-  PropertyStatusLabel,
   PropertyTypeEnum,
   type Property,
   type PropertyListParams,
