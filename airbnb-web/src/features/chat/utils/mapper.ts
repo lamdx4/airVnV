@@ -32,6 +32,7 @@ export const mapConversationDtoToModel = (dto: any, currentUserId: string | null
     otherLastReadMessageId: dto.otherLastReadMessageId || dto.OtherLastReadMessageId,
     latestMessageContent: dto.latestMessageContent || dto.LatestMessageContent,
     latestMessageId: dto.latestMessageId || dto.LatestMessageId,
+    latestMessageType: dto.latestMessageType || dto.LatestMessageType,
     otherParticipantId: otherParticipantId,
   };
 };

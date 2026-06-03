@@ -17,5 +17,6 @@ public record InboxItem(
     DateTimeOffset LastMessageAt,
     Guid? OtherLastReadMessageId,
     string? LatestMessageContent,
-    Guid? LatestMessageId
+    Guid? LatestMessageId,
+    string? LatestMessageType
 );

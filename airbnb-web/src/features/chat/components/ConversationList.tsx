@@ -150,10 +150,16 @@ export const ConversationList: React.FC = () => {
                     {conv.propertyTitle.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
                   </p>
                   
-                  <p className={`text-[13px] truncate ${
+                  <p className={`text-[13px] truncate flex items-center gap-1.5 ${
                       conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#8a8a8a] font-medium'
                   }`}>
-                    {conv.latestMessageContent || 'Tap to view message history'}
+                    {conv.latestMessageType === 'Image' ? (
+                      <><Icon icon="fluent:image-24-regular" className="size-4 shrink-0" /> <span className="truncate">Sent an image</span></>
+                    ) : conv.latestMessageType === 'File' ? (
+                      <><Icon icon="fluent:document-24-regular" className="size-4 shrink-0" /> <span className="truncate">Sent a file</span></>
+                    ) : (
+                      <span className="truncate">{conv.latestMessageContent || 'Tap to view message history'}</span>
+                    )}
                   </p>
                 </div>
 

@@ -21,6 +21,7 @@ export interface Conversation {
   otherLastReadMessageId?: string;
   latestMessageContent?: string;
   latestMessageId?: string;
+  latestMessageType?: string;
   otherParticipantId?: string;
 }
 
