@@ -1,9 +1,11 @@
 export interface AdminProfile {
-  id: string;
+  userId: string;
   email: string;
   fullName: string;
   avatarUrl?: string;
-  phone?: string;
+  phoneNumber?: string;
+  bio?: string;
+  role: string;
 }
 
 export interface UpdateProfileRequest {

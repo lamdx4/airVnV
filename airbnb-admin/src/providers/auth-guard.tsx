@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useAuthStore } from "@/store";
@@ -14,26 +14,28 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated, hydrate } = useAuthStore();
   const hasHydrated = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     hydrate();
     hasHydrated.current = true;
+    setHydrated(true);
   }, [hydrate]);
 
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
   useEffect(() => {
-    if (!hasHydrated.current) return;
+    if (!hydrated) return;
 
     if (!isAuthenticated && !isAuthRoute) {
       router.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(pathname)}`);
     } else if (isAuthenticated && isAuthRoute) {
       router.replace(ROUTES.DASHBOARD);
     }
-  }, [isAuthenticated, isAuthRoute, pathname, router]);
+  }, [isAuthenticated, isAuthRoute, pathname, router, hydrated]);
 
-  if (!isAuthenticated && !isAuthRoute) {
-    return <PageLoader text="Redirecting..." />;
+  if (!hydrated) {
+    return <PageLoader text="Loading..." />;
   }
 
   return <>{children}</>;

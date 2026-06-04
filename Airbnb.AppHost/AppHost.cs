@@ -9,6 +9,7 @@ var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms256m -Xmx256m";
 
 // 1. Hạ tầng Dữ liệu (Infrastructure)
 var postgres = builder.AddPostgres("postgres")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_pg_data")
     .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical")
     .WithEndpoint("tcp", e => {
@@ -23,24 +24,29 @@ var payDb = postgres.AddDatabase("paydb");
 var chatDb = postgres.AddDatabase("chatdb");
 
 var kafka = builder.AddKafka("kafka")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_kafka_data")
     .WithKafkaUI()
     .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
 
 // RabbitMQ – Domain Events + MassTransit Saga (PropertyService, BookingService, v.v.)
 var rabbit = builder.AddRabbitMQ("rabbit")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_rabbit_data")
     .WithManagementPlugin(); // UI: http://localhost:15672
 
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_es_data")
     .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
 
 var redis = builder.AddRedis("redis")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_redis_data");
 
 // 2. Debezium (CDC)
 var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
+    .WithLifetime(ContainerLifetime.Persistent)
     .WithHttpEndpoint(8083, 8083, "http")
     .WithEnvironment("BOOTSTRAP_SERVERS", "kafka:9092")
     .WithEnvironment("GROUP_ID", "1")

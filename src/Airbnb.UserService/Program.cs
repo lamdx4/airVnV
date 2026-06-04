@@ -48,6 +48,18 @@ builder.Services.AddAuthenticationJwtBearer(s =>
 builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
 
+// HTTP Clients for inter-service calls
+builder.Services.AddHttpClient<Airbnb.UserService.Infrastructure.HttpClients.PropertyServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://propertyservice");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+builder.Services.AddHttpClient<Airbnb.UserService.Infrastructure.HttpClients.BookingServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://bookingservice");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+
 // Thêm Mediator
 builder.Services.AddMediator();
 

@@ -46,4 +46,13 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetReviews.GetReviewsResponse>))]
 
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))] // Quan trọng for validation errors
+
+// GetAdminStats
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetAdminStats.PropertyStatsResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetAdminStats.PropertyStatsResponse>))]
+
+// GetRecentActivity
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetRecentActivity.ActivityItem))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.PropertyService.Features.GetRecentActivity.ActivityItem>>))]
+
 internal partial class PropertyJsonContext : JsonSerializerContext { }

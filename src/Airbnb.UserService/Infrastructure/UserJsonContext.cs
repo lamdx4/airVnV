@@ -77,6 +77,20 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationResponse), TypeInfoPropertyName = "AdminRejectVerificationResponseData")]
 [JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationRequest), TypeInfoPropertyName = "AdminRejectVerificationRequest")]
 
+// --- Admin: GetDashboardStats ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.GetDashboardStats.DashboardStatsResponse>), TypeInfoPropertyName = "AdminDashboardStatsApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetDashboardStats.DashboardStatsResponse), TypeInfoPropertyName = "AdminDashboardStatsResponseData")]
+
+// --- Admin: GetRevenueChart ---
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRevenueChart.RevenueChartPoint>>), TypeInfoPropertyName = "AdminRevenueChartApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetRevenueChart.RevenueChartPoint), TypeInfoPropertyName = "AdminRevenueChartPoint")]
+[JsonSerializable(typeof(Features.Admin.GetRevenueChart.Request), TypeInfoPropertyName = "AdminRevenueChartRequest")]
+
+// --- Admin: GetRecentActivity ---
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRecentActivity.ActivityItem>>), TypeInfoPropertyName = "AdminRecentActivityApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetRecentActivity.ActivityItem), TypeInfoPropertyName = "AdminActivityItem")]
+[JsonSerializable(typeof(Features.Admin.GetRecentActivity.Request), TypeInfoPropertyName = "AdminRecentActivityRequest")]
+
 // --- Shared ---
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class UserJsonContext : JsonSerializerContext { }
