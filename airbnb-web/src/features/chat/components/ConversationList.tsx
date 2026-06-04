@@ -88,19 +88,20 @@ export const ConversationList: React.FC = () => {
         ) : (
           <div className="space-y-1 pb-4">
             {conversations.map((conv: Conversation) => (
-              <button 
+              <Button 
                 key={conv.id}
+                variant="ghost"
                 aria-label={`Chat with ${conv.otherParticipantName} about ${conv.propertyTitle}`}
                 onClick={() => {
                   setActiveConversationId(conv.id);
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
-                  group mx-3 my-1 rounded-2xl px-4 py-4
-                  transition-all duration-200 text-left flex items-start gap-4
+                  w-[calc(100%-1.5rem)] h-auto group mx-3 my-1 rounded-2xl px-4 py-4
+                  transition-all duration-200 text-left flex items-start gap-4 justify-start whitespace-normal hover:bg-white hover:shadow-xs border border-transparent
                   ${activeConversationId === conv.id 
-                    ? 'bg-white shadow-sm border border-[#efefef]' 
-                    : 'hover:bg-white hover:shadow-xs border border-transparent'
+                    ? 'bg-white shadow-sm border border-[#efefef] hover:border-[#efefef]' 
+                    : ''
                   }
                 `}
               >
@@ -122,7 +123,7 @@ export const ConversationList: React.FC = () => {
                   <div className="flex justify-between items-baseline mb-1">
                     <h3 className={`text-[15px] truncate transition-colors ${
                         conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
-                    }`}>
+                     }`}>
                       {conv.otherParticipantName}
                     </h3>
                     <span className="text-[12px] text-[#b0b0b0] font-normal">
@@ -140,7 +141,7 @@ export const ConversationList: React.FC = () => {
                     Tap to view message history
                   </p>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         )}

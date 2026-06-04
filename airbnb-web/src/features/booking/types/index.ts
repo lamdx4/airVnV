@@ -1,4 +1,12 @@
-export type BookingStatus = 'Pending' | 'AwaitingApproval' | 'Confirmed' | 'Cancelled' | 'Completed';
+export const BookingStatus = {
+  Pending: 'Pending',
+  AwaitingApproval: 'AwaitingApproval',
+  Confirmed: 'Confirmed',
+  Cancelled: 'Cancelled',
+  Completed: 'Completed',
+} as const;
+
+export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
 // Represents the payload sent to the API
 export interface CreateBookingRequest {

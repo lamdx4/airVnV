@@ -6,6 +6,16 @@ import type { ReviewFormData, ReviewModel } from '../types';
 import { useAddReview, useUpdateReview } from '../hooks/useReviews';
 import { toast } from 'sonner';
 import { Star } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useTranslation } from 'react-i18next';
 
 interface ReviewFormModalProps {
   propertyId: string;
@@ -18,6 +28,7 @@ interface ReviewFormModalProps {
 }
 
 export function ReviewFormModal({ propertyId, isOpen, onClose, existingReview, bookingId }: ReviewFormModalProps) {
+  const { t } = useTranslation();
   const [hoverRating, setHoverRating] = useState(0);
   
   const addMutation = useAddReview(propertyId);
@@ -44,38 +55,33 @@ export function ReviewFormModal({ propertyId, isOpen, onClose, existingReview, b
     }
   }, [isOpen, existingReview, setValue, reset]);
 
-  if (!isOpen) return null;
-
   const onSubmit = async (data: ReviewFormData) => {
     try {
       if (existingReview) {
         await updateMutation.mutateAsync({ reviewId: existingReview.id, formData: data });
-        toast.success("Review updated successfully!");
+        toast.success(t('reviews.successUpdate'));
       } else {
         await addMutation.mutateAsync({ bookingId: bookingId || '00000000-0000-0000-0000-000000000000', formData: data });
-        toast.success("Review submitted successfully!");
+        toast.success(t('reviews.successAdd'));
       }
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to submit review");
+      toast.error(error?.message || t('reviews.failedSubmit'));
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {existingReview ? "Edit your review" : "Write a review"}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent showCloseButton={true} className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {existingReview ? t('reviews.editTitle') : t('reviews.writeTitle')}
+          </DialogTitle>
+        </DialogHeader>
         
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">{t('reviews.rating')}</Label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -99,35 +105,35 @@ export function ReviewFormModal({ propertyId, isOpen, onClose, existingReview, b
             {errors.rating && <p className="text-red-500 text-xs mt-1">{errors.rating.message}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Share your experience</label>
-            <textarea
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">{t('reviews.shareExperience')}</Label>
+            <Textarea
               {...register('comment')}
               rows={4}
-              placeholder="What was it like staying here?"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none resize-none"
+              placeholder={t('reviews.commentPlaceholder')}
+              className="w-full resize-none border-gray-300 focus:border-slate-900 focus:ring-slate-900 rounded-lg"
             />
             {errors.comment && <p className="text-red-500 text-xs mt-1">{errors.comment.message}</p>}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button 
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button 
               type="button" 
+              variant="ghost"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              Cancel
-            </button>
-            <button 
+              {t('reviews.cancel')}
+            </Button>
+            <Button 
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-lg font-semibold bg-[#E51D53] text-white hover:bg-[#D70466] transition-colors disabled:opacity-50"
+              className="bg-[#E51D53] hover:bg-[#D70466] text-white"
             >
-              {isSubmitting ? "Submitting..." : (existingReview ? "Save Changes" : "Submit Review")}
-            </button>
+              {isSubmitting ? t('reviews.submitting') : (existingReview ? t('reviews.saveChanges') : t('reviews.submitReview'))}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

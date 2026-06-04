@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useTranslation } from 'react-i18next'
 
 export function ForgotPasswordForm() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -17,15 +19,15 @@ export function ForgotPasswordForm() {
     // Mock API Forgot Password
     setTimeout(() => {
       setIsLoading(false)
-      setSuccess('Liên kết khôi phục đã được gửi tới Email của bạn!')
+      setSuccess(t('auth.resetLinkSent'))
     }, 1000)
   }
 
   return (
     <form onSubmit={handleForgotPassword} className="space-y-4">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Quên mật khẩu?</h1>
-        <p className="text-slate-500 text-sm mt-1">Nhập email để lấy lại quyền truy cập</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('auth.forgotPasswordTitle')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('auth.enterEmailInstructions')}</p>
       </div>
 
       {success && (
@@ -37,7 +39,7 @@ export function ForgotPasswordForm() {
       <div className="space-y-3">
         <Input
           type="email"
-          placeholder="Email của bạn"
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -50,17 +52,18 @@ export function ForgotPasswordForm() {
         disabled={isLoading}
         className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
       >
-        {isLoading ? 'Đang gửi...' : 'Gửi liên kết khôi phục'}
+        {isLoading ? t('auth.sending') : t('auth.sendResetLink')}
       </Button>
 
       <div className="text-center pt-2">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => navigate('/login')}
-          className="text-sm text-rausch font-semibold hover:underline flex items-center justify-center gap-1 mx-auto"
+          className="text-sm text-rausch font-semibold hover:underline flex items-center justify-center gap-1 mx-auto h-auto p-0"
         >
-          Quay lại Đăng nhập
-        </button>
+          {t('auth.backToLogin')}
+        </Button>
       </div>
     </form>
   )

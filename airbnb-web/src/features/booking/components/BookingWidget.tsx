@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useCreateBooking } from '../hooks';
 import { useInitiatePayment } from '@/features/payment/hooks';
 import { useNavigate } from 'react-router-dom';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface BookingWidgetProps {
   propertyId: string;
@@ -118,16 +125,22 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
         </div>
         
         <div className="p-3 border-t border-gray-300 hover:bg-gray-50 transition">
-          <div className="text-[10px] font-bold uppercase text-gray-800">Guests</div>
-          <select 
-            className="w-full bg-transparent outline-none text-sm text-gray-600 cursor-pointer"
-            value={guestCount}
-            onChange={(e) => setGuestCount(Number(e.target.value))}
+          <div className="text-[10px] font-bold uppercase text-gray-800 mb-1">Guests</div>
+          <Select 
+            value={String(guestCount)} 
+            onValueChange={(val) => setGuestCount(Number(val))}
           >
-            {[1,2,3,4,5,6].map(num => (
-              <option key={num} value={num}>{num} guest{num > 1 ? 's' : ''}</option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-transparent border-0 shadow-none h-6 p-0 focus:ring-0 focus:ring-offset-0 text-sm text-gray-600 cursor-pointer focus-visible:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {[1, 2, 3, 4, 5, 6].map(num => (
+                <SelectItem key={num} value={String(num)}>
+                  {num} guest{num > 1 ? 's' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

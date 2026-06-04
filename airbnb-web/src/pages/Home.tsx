@@ -4,10 +4,13 @@ import { Icon } from '@iconify/react'
 import { useSearchProperties } from '../features/search/hooks/useSearchProperties'
 import { MapView } from '../features/search/components/MapView'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 export default function Home() {
   const [likedPlaces, setLikedPlaces] = useState<string[]>([])
   const [showMap, setShowMap] = useState(false)
+  const { t } = useTranslation()
   
   // Default coordinates (HCMC, Vietnam)
   const [location, setLocation] = useState({ latitude: 10.762622, longitude: 106.660172 })
@@ -46,13 +49,13 @@ export default function Home() {
       {/* Category Bar */}
       <div className="flex items-center gap-8 overflow-x-auto no-scrollbar py-4 px-2 border-b border-slate-100">
         {[
-          { id: null, label: 'All', icon: 'hugeicons:earth' },
-          { id: 1, label: 'Apartment', icon: 'hugeicons:building-04' },
-          { id: 2, label: 'House', icon: 'hugeicons:home-03' },
-          { id: 3, label: 'Villa', icon: 'hugeicons:castle-02' },
-          { id: 4, label: 'Homestay', icon: 'hugeicons:house-02' },
-          { id: 5, label: 'Hotel', icon: 'hugeicons:hotel-01' },
-          { id: 6, label: 'Resort', icon: 'hugeicons:swimming-pool' },
+          { id: null, key: 'all', icon: 'hugeicons:earth' },
+          { id: 1, key: 'apartment', icon: 'hugeicons:building-04' },
+          { id: 2, key: 'house', icon: 'hugeicons:home-03' },
+          { id: 3, key: 'villa', icon: 'hugeicons:castle-02' },
+          { id: 4, key: 'homestay', icon: 'hugeicons:house-02' },
+          { id: 5, key: 'hotel', icon: 'hugeicons:hotel-01' },
+          { id: 6, key: 'resort', icon: 'hugeicons:swimming-pool' },
         ].map((category) => (
           <button
             key={category.id || 'all'}
@@ -64,7 +67,7 @@ export default function Home() {
             }`}
           >
             <Icon icon={category.icon} className="text-2xl" />
-            <span className="text-sm font-semibold">{category.label}</span>
+            <span className="text-sm font-semibold">{t(`home.categories.${category.key}`)}</span>
           </button>
         ))}
       </div>
@@ -81,7 +84,7 @@ export default function Home() {
         </div>
       ) : isError ? (
         <div className="text-center py-20 text-red-500 font-medium">
-          Failed to load properties. Make sure backend is running.
+          {t('home.failedToLoad')}
         </div>
       ) : showMap ? (
         <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden mt-4">
@@ -136,19 +139,19 @@ export default function Home() {
                     <span className="font-normal text-slate-900">{place.rating.toFixed(2)}</span>
                   </div>
                 </div>
-                <p className="text-[15px] text-slate-500 font-normal leading-tight">Within 50 km</p>
+                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{place.displayAddress || t('home.within50km')}</p>
                 <div className="pt-1.5">
                   <span className="text-[15px] text-slate-900 font-semibold">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: place.currency }).format(place.price)}
                   </span>
-                  <span className="text-[15px] text-slate-900 font-normal"> night</span>
+                  <span className="text-[15px] text-slate-900 font-normal"> / {t('home.night')}</span>
                 </div>
               </div>
             </div>
           ))}
           {searchData?.items.length === 0 && (
             <div className="col-span-full text-center py-20 text-slate-500">
-              No properties found in this area.
+              {t('home.noProperties')}
             </div>
           )}
         </div>
@@ -156,20 +159,20 @@ export default function Home() {
 
       {/* Floating Map Toggle Button */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40">
-        <button
+        <Button
           onClick={() => setShowMap(!showMap)}
-          className="bg-slate-900 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+          className="bg-slate-950 hover:bg-slate-800 text-white px-6 py-6 rounded-full font-semibold shadow-lg hover:scale-105 transition-all flex items-center gap-2 h-auto"
         >
           {showMap ? (
             <>
-              Show list <ListIcon className="w-5 h-5" />
+              {t('home.showList')} <ListIcon className="w-5 h-5" />
             </>
           ) : (
             <>
-              Show map <MapIcon className="w-5 h-5" />
+              {t('home.showMap')} <MapIcon className="w-5 h-5" />
             </>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   )

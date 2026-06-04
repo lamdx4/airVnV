@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import { SecuritySettings } from '@/features/account/components/SecuritySettings';
 import { User, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-slate-50/30 py-12">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Cài đặt tài khoản</h1>
-            <p className="text-slate-500 mt-2 font-medium">Quản lý thông tin cá nhân và các thiết lập bảo mật</p>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">{t('profile.settingsTitle')}</h1>
+            <p className="text-slate-500 mt-2 font-medium">{t('profile.settingsSubtitle')}</p>
           </div>
 
           <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
@@ -25,7 +27,7 @@ export default function Profile() {
               }`}
             >
               <User size={18} />
-              Hồ sơ
+              {t('profile.profileTab')}
             </button>
             <button
               onClick={() => setActiveTab('security')}
@@ -36,7 +38,7 @@ export default function Profile() {
               }`}
             >
               <ShieldCheck size={18} />
-              Bảo mật
+              {t('profile.securityTab')}
             </button>
           </div>
         </div>

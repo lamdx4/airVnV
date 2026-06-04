@@ -359,7 +359,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
             {isReverseGeocoding && (
               <p className="text-[10px] text-slate-400 flex items-center gap-1">
                 <Loading03Icon className="h-3 w-3 animate-spin" />
-                Đang nhận diện địa chỉ...
+                {t('location.detectingAddress')}
               </p>
             )}
           </div>

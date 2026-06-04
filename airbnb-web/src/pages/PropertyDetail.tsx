@@ -7,8 +7,12 @@ import { MapPin, Star, Medal, Wifi, Car, Coffee, Tv, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react';
+import { useTranslation } from 'react-i18next';
 
 export default function PropertyDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get('isPreview') === 'true';
@@ -22,7 +26,7 @@ export default function PropertyDetail() {
   const { data: reviewsData } = useReviews(id || '', 1, 50);
 
   if (isLoading) return <PropertyDetailSkeleton />;
-  if (isError || !property) return <div className="p-12 text-center text-red-500 text-xl font-semibold">Failed to load property details.</div>;
+  if (isError || !property) return <div className="p-12 text-center text-red-500 text-xl font-semibold">{t('propertyDetail.failedToLoad')}</div>;
 
   const reviewCount = reviewsData?.totalCount || 0;
   const reviewsList = reviewsData?.items || [];
@@ -130,11 +134,11 @@ export default function PropertyDetail() {
               <Eye className="w-5 h-5 text-rausch" />
             </div>
             <div>
-              <p className="font-bold text-sm">Host Preview Mode</p>
-              <p className="text-xs text-slate-300 mt-0.5">This listing is currently in draft preview. Non-essential UI components (reviews, booking widget) are hidden or simulated.</p>
+              <p className="font-bold text-sm">{t('propertyDetail.previewBannerTitle')}</p>
+              <p className="text-xs text-slate-300 mt-0.5">{t('propertyDetail.previewBannerDesc')}</p>
             </div>
           </div>
-          <span className="text-[10px] uppercase font-bold tracking-widest bg-rausch px-3 py-1 rounded-full text-white">Draft</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest bg-rausch px-3 py-1 rounded-full text-white">{t('propertyDetail.previewBannerBadge')}</span>
         </div>
       )}
 
@@ -144,10 +148,12 @@ export default function PropertyDetail() {
         <span className="flex items-center font-medium text-gray-900">
           <Star className="w-4 h-4 mr-1 fill-current text-yellow-500" /> {averageRating}
         </span>
-        {!isPreview && reviewCount > 0 && <span className="underline cursor-pointer">{reviewCount} reviews</span>}
-        {!isPreview && reviewCount === 0 && <span className="text-slate-400">No reviews yet</span>}
-        {isPreview && <span className="text-slate-400">0 reviews (Preview)</span>}
-        <span className="flex items-center"><Medal className="w-4 h-4 mr-1" /> Superhost</span>
+        {!isPreview && reviewCount > 0 && <span className="underline cursor-pointer">{reviewCount} {t('propertyDetail.reviews')}</span>}
+        {!isPreview && reviewCount === 0 && <span className="text-slate-400">{t('propertyDetail.noReviews')}</span>}
+        {isPreview && <span className="text-slate-400">0 {t('propertyDetail.reviewsPreview')}</span>}
+        {(property as any).isSuperhost && (
+          <span className="flex items-center"><Medal className="w-4 h-4 mr-1" /> {t('propertyDetail.superhost')}</span>
+        )}
         <span className="flex items-center underline cursor-pointer"><MapPin className="w-4 h-4 mr-1" /> {property.displayAddress}</span>
       </div>
 
@@ -160,15 +166,15 @@ export default function PropertyDetail() {
         <div className="flex-1">
           <div className="flex justify-between items-center pb-6 border-b border-gray-200">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-1">Entire home hosted by {property.hostId.substring(0, 6)}</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-1">{t('propertyDetail.entireHome', { host: property.hostId.substring(0, 6) })}</h2>
               <div className="text-gray-600 flex space-x-2">
-                <span>{property.capacity?.guestCount || 4} guests</span>
+                <span>{property.capacity?.guestCount || 4} {t('propertyDetail.guests')}</span>
                 <span>•</span>
-                <span>{property.capacity?.bedroomCount || 2} bedrooms</span>
+                <span>{property.capacity?.bedroomCount || 2} {t('propertyDetail.bedrooms')}</span>
                 <span>•</span>
-                <span>{property.capacity?.bedCount || 2} beds</span>
+                <span>{property.capacity?.bedCount || 2} {t('propertyDetail.beds')}</span>
                 <span>•</span>
-                <span>{property.capacity?.bathroomCount || 1} baths</span>
+                <span>{property.capacity?.bathroomCount || 1} {t('propertyDetail.baths')}</span>
               </div>
             </div>
             <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-xl uppercase">
@@ -177,45 +183,46 @@ export default function PropertyDetail() {
           </div>
 
           <div className="py-8 border-b border-gray-200">
-            <div className="flex items-start mb-6">
-              <Medal className="w-6 h-6 mr-4 text-gray-700" />
-              <div>
-                <h3 className="font-semibold text-gray-900 text-lg">Superhost</h3>
-                <p className="text-gray-500">Superhosts are experienced, highly rated hosts who are committed to providing great stays for guests.</p>
+            {(property as any).isSuperhost && (
+              <div className="flex items-start mb-6">
+                <Medal className="w-6 h-6 mr-4 text-gray-700" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">{t('propertyDetail.superhost')}</h3>
+                  <p className="text-gray-500">{t('propertyDetail.superhostDesc')}</p>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex items-start">
               <MapPin className="w-6 h-6 mr-4 text-gray-700" />
               <div>
-                <h3 className="font-semibold text-gray-900 text-lg">Great location</h3>
-                <p className="text-gray-500">100% of recent guests gave the location a 5-star rating.</p>
+                <h3 className="font-semibold text-gray-900 text-lg">{t('propertyDetail.greatLocation')}</h3>
+                <p className="text-gray-500">{t('propertyDetail.greatLocationDesc')}</p>
               </div>
             </div>
           </div>
 
           <div className="py-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">About this space</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('propertyDetail.aboutSpace')}</h2>
             <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {property.description}
             </div>
           </div>
 
           <div className="py-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">What this place offers</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('propertyDetail.offers')}</h2>
             <div className="grid grid-cols-2 gap-y-4 gap-x-8">
               {property.propertyAmenities?.slice(0, 10).map((amenity, i) => (
                 <div key={amenity.amenityId || i} className="flex items-center text-gray-700 text-lg">
-                  {/* Real implementation would map iconCode to Lucide icon dynamically */}
-                  <Wifi className="w-6 h-6 mr-4 text-gray-500" />
+                  <Icon icon={amenity.iconCode || "hugeicons:wifi"} className="w-6 h-6 mr-4 text-gray-500" />
                   {amenity.name}
                 </div>
               ))}
               {(!property.propertyAmenities || property.propertyAmenities.length === 0) && (
                 <>
-                  <div className="flex items-center text-gray-700 text-lg"><Wifi className="w-6 h-6 mr-4 text-gray-500" /> Fast Wifi</div>
-                  <div className="flex items-center text-gray-700 text-lg"><Car className="w-6 h-6 mr-4 text-gray-500" /> Free parking on premises</div>
-                  <div className="flex items-center text-gray-700 text-lg"><Coffee className="w-6 h-6 mr-4 text-gray-500" /> Coffee maker</div>
-                  <div className="flex items-center text-gray-700 text-lg"><Tv className="w-6 h-6 mr-4 text-gray-500" /> 55" HDTV</div>
+                  <div className="flex items-center text-gray-700 text-lg"><Icon icon="hugeicons:wifi" className="w-6 h-6 mr-4 text-gray-500" /> Fast Wifi</div>
+                  <div className="flex items-center text-gray-700 text-lg"><Icon icon="hugeicons:car" className="w-6 h-6 mr-4 text-gray-500" /> Free parking on premises</div>
+                  <div className="flex items-center text-gray-700 text-lg"><Icon icon="hugeicons:coffee-cup" className="w-6 h-6 mr-4 text-gray-500" /> Coffee maker</div>
+                  <div className="flex items-center text-gray-700 text-lg"><Icon icon="hugeicons:tv-01" className="w-6 h-6 mr-4 text-gray-500" /> 55" HDTV</div>
                 </>
               )}
             </div>
@@ -243,9 +250,9 @@ export default function PropertyDetail() {
               <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl text-xs leading-relaxed mb-6 font-medium">
                 ⚠️ Guest bookings and interactive reservation calendar inputs are disabled in draft preview mode.
               </div>
-              <button disabled className="w-full bg-slate-200 text-slate-400 py-4 rounded-2xl font-bold cursor-not-allowed text-sm">
-                Reserve Disabled
-              </button>
+              <Button disabled className="w-full bg-slate-200 text-slate-400 py-4 rounded-2xl font-bold cursor-not-allowed text-sm">
+                {t('propertyDetail.reserveDisabled')}
+              </Button>
             </div>
           ) : (
             <BookingWidget

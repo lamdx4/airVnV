@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import { Toaster, toast } from 'sonner'
-import './lib/i18n'
+import i18n from './lib/i18n'
 import './index.css'
 // @ts-ignore
 import '@fontsource-variable/outfit';
@@ -17,12 +17,14 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error: any) => {
-      toast.error(`Lỗi tải dữ liệu: ${error.response?.data?.message || error.message || 'Đã có lỗi xảy ra!'}`);
+      const errMsg = error.response?.data?.message || error.message || i18n.t('common.errorOccurred');
+      toast.error(i18n.t('common.loadError', { message: errMsg }));
     },
   }),
   mutationCache: new MutationCache({
     onError: (error: any) => {
-      toast.error(`Thao tác thất bại: ${error.response?.data?.message || error.message || 'Đã có lỗi xảy ra!'}`);
+      const errMsg = error.response?.data?.message || error.message || i18n.t('common.errorOccurred');
+      toast.error(i18n.t('common.actionFailed', { message: errMsg }));
     },
   }),
 })

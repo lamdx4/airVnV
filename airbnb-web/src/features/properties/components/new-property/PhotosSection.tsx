@@ -113,9 +113,9 @@ export function PhotosSection({
   return (
     <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
       <CardHeader className="px-6 pt-6 pb-2 space-y-2">
-        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Thêm hình ảnh cho nơi ở của bạn</h2>
+        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">{t('properties.photos.title')}</h2>
         <p className="text-base font-normal text-slate-600 leading-relaxed">
-          Bạn cần ít nhất 5 bức ảnh để bắt đầu. Vui lòng phân loại ảnh để khách hàng dễ dàng hình dung không gian của bạn.
+          {t('properties.photos.description')}
         </p>
       </CardHeader>
       <CardContent className="px-6 py-6 space-y-6">
@@ -126,8 +126,8 @@ export function PhotosSection({
           <div className="h-14 w-14 rounded-full bg-pink-50 flex items-center justify-center mb-4 text-[#FF5A5F]">
             <ImagePlus className="h-7 w-7" />
           </div>
-          <span className="text-slate-900 font-semibold mb-1">Click để thêm ảnh</span>
-          <span className="text-slate-500 text-sm">PNG, JPG hoặc WEBP (Tối đa 5MB)</span>
+          <span className="text-slate-900 font-semibold mb-1">{t('properties.photos.clickToAdd')}</span>
+          <span className="text-slate-500 text-sm">{t('properties.photos.fileTypes')}</span>
           <input
             type="file"
             ref={fileInputRef}
@@ -202,7 +202,7 @@ export function PhotosSection({
         {selectedFiles.length > 0 && selectedFiles.length < 5 && (
           <div className="flex items-center gap-2 text-amber-600 text-sm font-medium mt-4 p-3 bg-amber-50 rounded-lg">
             <AlertCircle className="h-5 w-5" />
-            Vui lòng chọn thêm {5 - selectedFiles.length} ảnh nữa để có thể đăng.
+            {t('properties.photos.morePhotosRequired', { count: 5 - selectedFiles.length })}
           </div>
         )}
 
