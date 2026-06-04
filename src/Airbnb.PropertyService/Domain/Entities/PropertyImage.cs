@@ -1,4 +1,5 @@
 using Airbnb.PropertyService.Domain.Enums;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Domain.Entities;
 
@@ -17,7 +18,7 @@ public class PropertyImage
     public static PropertyImage Create(Guid propertyId, Guid uploadedBy, Uri url, string publicId, ImageType type, int order)
     {
         ArgumentNullException.ThrowIfNull(url);
-        if (string.IsNullOrWhiteSpace(publicId)) throw new ArgumentException("PublicId is required.");
+        if (string.IsNullOrWhiteSpace(publicId)) throw new BusinessException("PublicId is required.", "PROPERTY_IMAGE_PUBLIC_ID_REQUIRED");
 
         return new PropertyImage
         {

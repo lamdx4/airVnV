@@ -9,17 +9,17 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Login.Login;
 
-public class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
+public class Handler(UserDbContext _db, IConfiguration _config) : Mediator.ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
+    public async ValueTask<ApiResponse<Response>> Handle(Request req, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Email == req.Email, ct);
 
-        if (user == null || user.HashedPassword != req.Password)
+        if (user == null || user.HashedPassword == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.HashedPassword))
         {
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw new BusinessException("Invalid email or password", "AUTH_INVALID_CREDENTIALS");
         }
 
         var key = _config["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing.");

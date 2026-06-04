@@ -4,7 +4,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Login.Login;
 
-public class Endpoint : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(Mediator.IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -14,14 +14,6 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        try 
-        {
-            // Rule 2: Chỉ gọi ExecuteAsync()
-            Response = await req.ExecuteAsync(ct);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await Send.ResponseAsync(ApiResponse<Response>.FailureResult("AUTH_INVALID_CREDENTIALS", "Email hoặc mật khẩu không chính xác"), 401, ct);
-        }
+        Response = await mediator.Send(req, ct);
     }
 }
