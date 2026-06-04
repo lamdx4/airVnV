@@ -4,11 +4,11 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { Toaster, toast } from 'sonner'
 import i18n from './lib/i18n'
 import './index.css'
-// @ts-ignore
+// @ts-expect-error - no types available for font packages
 import '@fontsource-variable/outfit';
-// @ts-ignore
+// @ts-expect-error - no types available for font packages
 import '@fontsource-variable/inter';
-// @ts-ignore
+// @ts-expect-error - no types available for font packages
 import '@fontsource-variable/geist';
 import App from './App.tsx'
 

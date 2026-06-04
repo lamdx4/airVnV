@@ -21,7 +21,7 @@ import {
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
+const DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
     iconSize: [25, 41],
@@ -221,7 +221,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
         }
         // Không set gì cả nếu không có thông tin hữu ích – giữ nguyên input của user
       }
-    } catch (err) {
+    } catch {
       console.error('Failed to reverse geocode');
     } finally {
       setIsReverseGeocoding(false);
@@ -261,7 +261,7 @@ export const LocationManager: React.FC<LocationManagerProps> = ({
         }
       });
       toast.success(t('location.updateSuccess'));
-    } catch (err) {
+    } catch {
       toast.error(t('location.updateFailed'));
     }
   };

@@ -36,6 +36,42 @@ interface LocationSectionProps {
   onContinue: () => void;
 }
 
+function LocationMarker({ lat, lng, setValue }: { lat: number, lng: number, setValue: UseFormSetValue<any> }) {
+  const markerRef = useRef<any>(null);
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const latLng = marker.getLatLng();
+          setValue('latitude', latLng.lat);
+          setValue('longitude', latLng.lng);
+        }
+      },
+    }),
+    [setValue]
+  );
+
+  useMapEvents({
+    click(e) {
+      setValue('latitude', e.latlng.lat);
+      setValue('longitude', e.latlng.lng);
+    },
+  });
+
+  return (
+    <Marker draggable={true} eventHandlers={eventHandlers} position={[lat, lng]} ref={markerRef} />
+  );
+}
+
+function MapPluginControls({ lat, lng }: { lat: number, lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], 14, { duration: 1.5 });
+  }, [lat, lng, map]);
+  return null;
+}
+
 export function LocationSection({
   setValue,
   watch,
@@ -136,41 +172,7 @@ export function LocationSection({
     );
   };
 
-  function LocationMarker() {
-    const markerRef = useRef<any>(null);
-    const eventHandlers = useMemo(
-      () => ({
-        dragend() {
-          const marker = markerRef.current;
-          if (marker != null) {
-            const latLng = marker.getLatLng();
-            setValue('latitude', latLng.lat);
-            setValue('longitude', latLng.lng);
-          }
-        },
-      }),
-      []
-    );
 
-    useMapEvents({
-      click(e) {
-        setValue('latitude', e.latlng.lat);
-        setValue('longitude', e.latlng.lng);
-      },
-    });
-
-    return (
-      <Marker draggable={true} eventHandlers={eventHandlers} position={[lat, lng]} ref={markerRef} />
-    );
-  }
-
-  function MapPluginControls() {
-    const map = useMap();
-    useEffect(() => {
-      map.flyTo([lat, lng], 14, { duration: 1.5 });
-    }, [lat, lng, map]);
-    return null;
-  }
 
   return (
     <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
@@ -231,8 +233,8 @@ export function LocationSection({
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <LocationMarker />
-              <MapPluginControls />
+              <LocationMarker lat={lat} lng={lng} setValue={setValue} />
+              <MapPluginControls lat={lat} lng={lng} />
             </MapContainer>
             
             <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
