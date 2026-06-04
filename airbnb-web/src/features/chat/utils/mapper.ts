@@ -52,3 +52,14 @@ export const mapMessageDtoToModel = (dto: any): ChatMessage => {
     messageType: typeof dto.messageType === 'string' ? dto.messageType : (dto.messageType === 1 || dto.isSystemMessage ? 'System' : (dto.messageType === 2 ? 'Image' : 'Text')),
   };
 };
+
+export const mapAttachmentDtoToModel = (dto: any) => {
+  const createdAt = dto.createdAt || dto.sentAt;
+  return {
+    messageId: dto.messageId || dto.id,
+    senderId: dto.senderId,
+    content: dto.content,
+    messageType: dto.messageType || 'Image',
+    createdAt: createdAt ? new Date(createdAt) : new Date(),
+  };
+};

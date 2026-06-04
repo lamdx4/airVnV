@@ -6,6 +6,7 @@ import type {
   MessageDto,
   PaginatedCursorResponseDto,
   SendMessageRequestDto,
+  AttachmentDto,
 } from "../types/dto";
 
 export const chatApi = {
@@ -36,6 +37,22 @@ export const chatApi = {
 
     return api.get<any, PaginatedCursorResponseDto<MessageDto>>(
       `/api/conversations/${conversationId}/messages?${params.toString()}`,
+    );
+  },
+
+  /**
+   * Lấy danh sách file/ảnh đính kèm của một Conversation
+   */
+  getAttachments: async (
+    conversationId: string,
+    type: 'Image' | 'File',
+    before?: string,
+  ): Promise<PaginatedCursorResponseDto<AttachmentDto>> => {
+    const params = new URLSearchParams({ type });
+    if (before) params.append("before", before);
+
+    return api.get<any, PaginatedCursorResponseDto<AttachmentDto>>(
+      `/api/conversations/${conversationId}/attachments?${params.toString()}`,
     );
   },
 

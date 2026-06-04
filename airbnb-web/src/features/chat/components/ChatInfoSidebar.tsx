@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icon } from '@iconify/react';
+import { useAttachments } from '../hooks/useAttachments';
+import { PhotoProvider, PhotoView } from 'react-photo-view';
+import { Loading03Icon } from '@/components/common/Icons';
 
 type SidebarView = 'main' | 'media';
 
@@ -19,6 +22,33 @@ export const ChatInfoSidebar: React.FC = () => {
       setActiveMediaTab('images');
     }
   }, [isInfoSidebarOpen]);
+
+  const typeParam = activeMediaTab === 'images' ? 'Image' : 'File';
+  const { 
+    data: attachmentsData, 
+    isLoading: isLoadingAttachments,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage
+  } = useAttachments(isInfoSidebarOpen ? activeConversationId : null, typeParam);
+
+  const attachments = attachmentsData?.pages.flatMap(p => p.items) || [];
+
+  const groupedAttachments = useMemo(() => {
+    const groups: { monthYear: string; items: typeof attachments }[] = [];
+    attachments.forEach(att => {
+      const date = new Date(att.createdAt);
+      const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // e.g. "June 2026"
+      
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.monthYear === monthYear) {
+        lastGroup.items.push(att);
+      } else {
+        groups.push({ monthYear, items: [att] });
+      }
+    });
+    return groups;
+  }, [attachments]);
 
   if (!isInfoSidebarOpen || !activeConversationId) return null;
 
@@ -147,27 +177,75 @@ export const ChatInfoSidebar: React.FC = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-            {activeMediaTab === 'images' ? (
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
-                  <div key={i} className="aspect-square bg-[#f7f7f7] rounded-lg border border-[#ebebeb] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <Icon icon="fluent:image-24-regular" className="size-6 text-[#dddddd]" />
+            {isLoadingAttachments ? (
+              <div className="flex justify-center mt-10">
+                <Loading03Icon className="h-6 w-6 animate-spin text-[#b0b0b0]" />
+              </div>
+            ) : attachments.length === 0 ? (
+              <div className="text-center mt-10">
+                <p className="text-[14px] text-[#6a6a6a]">No {activeMediaTab} shared yet.</p>
+              </div>
+            ) : activeMediaTab === 'images' ? (
+              <PhotoProvider>
+                <div className="space-y-6">
+                  {groupedAttachments.map(group => (
+                    <div key={group.monthYear}>
+                      <h3 className="text-[14px] font-semibold text-[#222222] mb-3">{group.monthYear}</h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {group.items.map(att => (
+                          <PhotoView key={att.messageId} src={att.content}>
+                            <div className="aspect-square bg-[#f7f7f7] rounded-lg border border-[#ebebeb] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity overflow-hidden relative">
+                              <img src={att.content} alt="Shared Image" className="w-full h-full object-cover" />
+                            </div>
+                          </PhotoView>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PhotoProvider>
+            ) : (
+              <div className="space-y-6">
+                {groupedAttachments.map(group => (
+                  <div key={group.monthYear}>
+                    <h3 className="text-[14px] font-semibold text-[#222222] mb-3">{group.monthYear}</h3>
+                    <div className="space-y-3">
+                      {group.items.map(att => {
+                        let fileData = { url: '', name: 'Attachment', size: 0 };
+                        try { fileData = JSON.parse(att.content); } catch (e) {}
+                        return (
+                          <a key={att.messageId} href={fileData.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-[#ebebeb] cursor-pointer hover:bg-[#f7f7f7] transition-colors">
+                            <div className="h-10 w-10 bg-[#f2f2f2] rounded-lg shrink-0 flex items-center justify-center">
+                              <Icon icon="fluent:document-24-regular" className="size-5 text-[#222222]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[14px] font-medium text-[#222222] truncate">{fileData.name}</p>
+                              {fileData.size > 0 && (
+                                <p className="text-[12px] text-[#6a6a6a] mt-0.5">
+                                  {(fileData.size / 1024 / 1024) >= 1 
+                                    ? `${(fileData.size / 1024 / 1024).toFixed(1)} MB` 
+                                    : `${(fileData.size / 1024).toFixed(0)} KB`}
+                                </p>
+                              )}
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-[#ebebeb] cursor-pointer hover:bg-[#f7f7f7] transition-colors">
-                    <div className="h-10 w-10 bg-[#f2f2f2] rounded-lg shrink-0 flex items-center justify-center">
-                      <Icon icon="fluent:document-24-regular" className="size-5 text-[#222222]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-medium text-[#222222] truncate">Document_{i}.pdf</p>
-                      <p className="text-[12px] text-[#6a6a6a] mt-0.5">1.2 MB</p>
-                    </div>
-                  </div>
-                ))}
+            )}
+
+            {hasNextPage && (
+              <div className="flex justify-center mt-6 mb-2">
+                <button 
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="text-[12px] font-semibold text-[#6a6a6a] hover:text-[#222222] transition-colors underline cursor-pointer"
+                >
+                  {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                </button>
               </div>
             )}
           </div>

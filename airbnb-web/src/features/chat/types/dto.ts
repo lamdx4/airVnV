@@ -43,3 +43,11 @@ export interface SendMessageRequestDto {
   content: string;
   messageType?: string;
 }
+
+export interface AttachmentDto {
+  messageId: string;
+  senderId?: string;
+  content: string;
+  messageType: string;
+  createdAt: string;
+}

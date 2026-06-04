@@ -33,3 +33,11 @@ export interface ChatMessage {
   sentAt: Date;
   messageType: string;
 }
+
+export interface AttachmentItem {
+  messageId: string;
+  senderId?: string;
+  content: string;
+  messageType: string;
+  createdAt: Date;
+}
