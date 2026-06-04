@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Conversation } from "../types/model";
-import { mapMessageDtoToModel } from "../utils/mapper";
+import { mapMessageDtoToModel, mapAttachmentDtoToModel } from "../utils/mapper";
 import { useAuthStore } from "../../../store/authStore";
 import { jwtDecode } from "jwt-decode";
 import { chatApi } from "../api/chatApi";
@@ -205,6 +205,29 @@ export const useChatHub = (activeConversationId: string | null) => {
 
         return { ...old, pages: newPages };
       });
+
+      // Bất kể user có đang mở conversation hay không, cập nhật luôn cache của Attachments Sidebar (nếu type là Image hoặc File)
+      if (newMsg.messageType === "Image" || newMsg.messageType === "File") {
+        const newAtt = mapAttachmentDtoToModel(messageDto);
+        queryClient.setQueryData(
+          ["chat", "attachments", newMsg.conversationId, newAtt.messageType],
+          (oldAtts: any) => {
+            if (!oldAtts) return oldAtts; // Nếu chưa từng fetch (cache rỗng) thì ko làm gì cả
+            const newAttPages = [...oldAtts.pages];
+            if (newAttPages.length > 0) {
+              const attItems = [...newAttPages[0].items];
+              const attExists = attItems.some((a: any) => a.messageId === newAtt.messageId);
+              if (!attExists) {
+                newAttPages[0] = {
+                  ...newAttPages[0],
+                  items: [newAtt, ...attItems],
+                };
+              }
+            }
+            return { ...oldAtts, pages: newAttPages };
+          }
+        );
+      }
     });
 
     // UserStatusChanged event listener is moved to usePresence hook

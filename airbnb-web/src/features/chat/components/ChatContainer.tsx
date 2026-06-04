@@ -61,7 +61,7 @@ export const ChatContainer: React.FC = () => {
       setActiveCallParticipant({
         id: conversation.otherParticipantId || "",
         name: conversation.otherParticipantName,
-        avatar: conversation.otherParticipantAvatar
+        avatar: conversation.otherParticipantAvatar,
       });
       setIsVideoCall(video);
       setIsAnswering(false);
@@ -78,9 +78,12 @@ export const ChatContainer: React.FC = () => {
   const handleAcceptCall = () => {
     if (incomingConversation) {
       setActiveCallParticipant({
-        id: incomingConversation.otherParticipantId || incomingCall?.callerId || "",
+        id:
+          incomingConversation.otherParticipantId ||
+          incomingCall?.callerId ||
+          "",
         name: incomingConversation.otherParticipantName,
-        avatar: incomingConversation.otherParticipantAvatar
+        avatar: incomingConversation.otherParticipantAvatar,
       });
       setIsVideoCall(incomingCall?.isVideoCall || false);
       setIsAnswering(true);

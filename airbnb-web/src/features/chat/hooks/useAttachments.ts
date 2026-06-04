@@ -4,7 +4,7 @@ import { mapAttachmentDtoToModel } from "../utils/mapper";
 
 export const useAttachments = (
   conversationId: string | null,
-  type: 'Image' | 'File'
+  type: "Image" | "File",
 ) => {
   return useInfiniteQuery({
     queryKey: ["chat", "attachments", conversationId, type],
