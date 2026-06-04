@@ -11,6 +11,8 @@ import { chatApi } from '../api/chatApi';
 import { Icon } from '@iconify/react';
 import type * as signalR from '@microsoft/signalr';
 import { useTypingSubscriber } from '../hooks/useTypingStatus';
+import { PhotoProvider } from 'react-photo-view';
+import 'react-photo-view/dist/react-photo-view.css';
 
 interface MessageListProps {
   connection: signalR.HubConnection | null;
@@ -132,8 +134,9 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
         </div>
       )}
 
-      {groupedMessages.map((group) => (
-        <div key={group.date} className="flex flex-col-reverse mb-8">
+      <PhotoProvider>
+        {groupedMessages.map((group) => (
+          <div key={group.date} className="flex flex-col-reverse mb-8">
           <div className="flex flex-col-reverse gap-1.5">
             <AnimatePresence initial={false}>
               {group.items.map((msg) => {
@@ -174,6 +177,7 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
           </div>
         </div>
       ))}
+      </PhotoProvider>
       
       {/* Nút Load More nằm ở visual top (DOM cuối cùng) */}
       {hasNextPage && (

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loading03Icon } from '@/components/common/Icons';
 import { Icon } from '@iconify/react';
+import { PhotoView } from 'react-photo-view';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -59,13 +60,15 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
         {/* Bong bóng tin nhắn */}
         {message.messageType === 'Image' ? (
           <div className="relative rounded-[16px] overflow-hidden max-w-[240px] sm:max-w-xs border border-[#ebebeb] shadow-sm bg-gray-100">
-            <img 
-              src={message.content} 
-              alt="Image message" 
-              className={`w-full h-auto object-cover block transition-all ${message.id?.startsWith('temp-') ? 'opacity-50 blur-[2px]' : ''}`} 
-            />
+            <PhotoView src={message.content}>
+              <img 
+                src={message.content} 
+                alt="Image message" 
+                className={`w-full h-auto object-cover block cursor-pointer transition-all ${message.id?.startsWith('temp-') ? 'opacity-50 blur-[2px]' : ''}`} 
+              />
+            </PhotoView>
             {message.id?.startsWith('temp-') && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <Loading03Icon className="h-6 w-6 animate-spin text-[#222222]" />
               </div>
             )}
