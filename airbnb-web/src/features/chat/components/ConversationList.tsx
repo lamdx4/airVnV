@@ -151,7 +151,7 @@ export const ConversationList: React.FC = () => {
                   <p className={`text-[14px] truncate leading-snug mb-1 ${
                       conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#6a6a6a] font-medium'
                   }`}>
-                    {conv.propertyTitle.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
+                    {conv.propertyTitle?.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
                   </p>
                   
                   <p className={`text-[13px] truncate flex items-center gap-1.5 ${

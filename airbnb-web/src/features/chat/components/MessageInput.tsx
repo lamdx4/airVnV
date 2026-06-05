@@ -55,7 +55,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
     if (!file) return;
 
     if (file.size > MAX_IMAGE_SIZE) {
-      toast.error('Image size exceeds 5MB limit.');
+      toast.error('Image size exceeds 10MB limit.');
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }

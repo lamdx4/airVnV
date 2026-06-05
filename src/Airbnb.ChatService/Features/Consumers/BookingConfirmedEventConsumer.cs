@@ -105,7 +105,14 @@ public class BookingConfirmedEventConsumer(
             db.Conversations.Add(conversation);
         }
 
-        // Cập nhật ReservationId cho Conversation này
+        // Kiểm tra tránh trùng lặp event (Idempotency)
+        if (conversation.ReservationId == message.BookingId)
+        {
+            logger.LogInformation("Booking {BookingId} already confirmed for conversation {ConversationId}. Skipping duplicate event.", message.BookingId, conversation.Id);
+            return;
+        }
+
+        // Cập nhật hoặc ghi đè ReservationId cho Conversation này
         conversation.ReservationId = message.BookingId;
 
         // Tạo system message

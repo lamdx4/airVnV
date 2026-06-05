@@ -51,7 +51,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
         )).ToList();
 
         // Cursor để fetch trang tiếp theo là thời điểm của tin nhắn cũ nhất trong cục vừa lấy (kết quả đang sort desc, nên last là cũ nhất)
-        DateTimeOffset? nextCursor = hasMore ? items.Last().CreatedAt : null;
+        DateTimeOffset? nextCursor = (hasMore && items.Count > 0) ? items.Last().CreatedAt : null;
 
         return new Response(items, nextCursor);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 import type * as signalR from "@microsoft/signalr";
 
 interface CallModalProps {
@@ -112,7 +113,7 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   // Xử lý Tắt/Mở Camera
   const toggleVideo = () => {
     if (localStream && localStream.getVideoTracks().length === 0) {
-      alert("Không tìm thấy Camera trên thiết bị của bạn!");
+      toast.error("Không tìm thấy Camera trên thiết bị của bạn!");
       return;
     }
     
