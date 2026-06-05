@@ -1,5 +1,3 @@
-import { PlatformFeeSection } from "@/features/settings";
-
 export default function SystemSettingsPage() {
   return (
     <div className="space-y-6">
@@ -9,7 +7,7 @@ export default function SystemSettingsPage() {
           Configure platform-wide settings
         </p>
       </div>
-      <PlatformFeeSection />
+      <p className="text-[#6a6a6a]">Coming soon</p>
     </div>
   );
 }

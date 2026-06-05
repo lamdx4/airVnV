@@ -1,5 +1,3 @@
-import { PayoutsList } from "@/features/payouts";
-
 export default function PayoutsPage() {
   return (
     <div className="space-y-6">
@@ -9,7 +7,7 @@ export default function PayoutsPage() {
           Manage host payouts and disbursements
         </p>
       </div>
-      <PayoutsList />
+      <p className="text-[#6a6a6a]">Coming soon</p>
     </div>
   );
 }

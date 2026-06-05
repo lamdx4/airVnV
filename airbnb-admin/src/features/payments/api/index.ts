@@ -1,1 +1,0 @@
-export { paymentsApi } from "./payments";

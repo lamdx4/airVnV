@@ -1,5 +1,3 @@
-import { PaymentsList } from "@/features/payments";
-
 export default function PaymentsPage() {
   return (
     <div className="space-y-6">
@@ -9,7 +7,7 @@ export default function PaymentsPage() {
           View and manage payment transactions
         </p>
       </div>
-      <PaymentsList />
+      <p className="text-[#6a6a6a]">Coming soon</p>
     </div>
   );
 }
