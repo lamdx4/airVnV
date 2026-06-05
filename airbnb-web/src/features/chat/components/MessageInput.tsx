@@ -123,7 +123,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             size="icon" 
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             aria-label="Add emoji"
-            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors shrink-0"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors shrink-0 cursor-pointer"
           >
             <Icon icon="fluent:emoji-24-filled" className="size-5" />
           </Button>
@@ -159,7 +159,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             variant="ghost"
             size="icon"
             aria-label="Send message"
-            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isPending ? (
               <Loading03Icon className="h-6 w-6 animate-spin" />
@@ -187,7 +187,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             aria-label="Add image"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingImage}
-            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isUploadingImage ? (
               <Loading03Icon className="h-6 w-6 animate-spin" />
@@ -201,7 +201,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             size="icon" 
             aria-label="Add attachment"
             onClick={() => documentInputRef.current?.click()}
-            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer"
           >
             <Icon icon="fluent:attach-24-filled" className="size-5" />
           </Button>

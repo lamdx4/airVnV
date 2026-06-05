@@ -78,7 +78,7 @@ export const ConversationList: React.FC = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => navigate('/')}
-            className="h-8 w-8 rounded-full hover:bg-[#ebebeb] -ml-2"
+            className="h-8 w-8 rounded-full hover:bg-[#ebebeb] -ml-2 cursor-pointer"
           >
             <ChevronLeft className="h-5 w-5 text-[#222222]" />
           </Button>
@@ -120,7 +120,7 @@ export const ConversationList: React.FC = () => {
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
-                  relative group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150
+                  relative group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150 cursor-pointer
                   ${activeConversationId === conv.id 
                     ? 'bg-[#f0f4ff]' 
                     : 'bg-transparent hover:bg-[#f5f5f5]'

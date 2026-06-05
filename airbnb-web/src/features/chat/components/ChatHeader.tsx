@@ -48,7 +48,7 @@ export const ChatHeader: React.FC<{
           size="icon" 
           aria-label="Back to conversations"
           onClick={() => setActiveConversationId(null)}
-          className="md:hidden h-10 w-10 rounded-full hover:bg-[#f7f7f7]"
+          className="md:hidden h-10 w-10 rounded-full hover:bg-[#f7f7f7] cursor-pointer"
         >
           <ChevronLeft className="h-5 w-5 text-[#222222]" />
         </Button>
@@ -94,13 +94,13 @@ export const ChatHeader: React.FC<{
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Phone Call" onClick={() => onStartCall?.(false)}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Phone Call" onClick={() => onStartCall?.(false)}>
           <Icon icon="fluent:call-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Video Call" onClick={() => onStartCall?.(true)}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Video Call" onClick={() => onStartCall?.(true)}>
           <Icon icon="fluent:video-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors" aria-label="Conversation info" onClick={toggleInfoSidebar}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Conversation info" onClick={toggleInfoSidebar}>
           <Icon icon="fluent:info-24-filled" className="size-6" />
         </Button>
       </div>

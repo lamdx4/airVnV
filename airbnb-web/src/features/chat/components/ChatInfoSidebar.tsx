@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { useAttachments } from "../hooks/useAttachments";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import { Loading03Icon } from "@/components/common/Icons";
+import { toast } from "sonner";
 
 type SidebarView = "main" | "media";
 
@@ -19,6 +20,13 @@ export const ChatInfoSidebar: React.FC = () => {
   const [activeMediaTab, setActiveMediaTab] = useState<"images" | "files">(
     "images",
   );
+
+  const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    if (!url || url === '#' || (!url.startsWith('http') && !url.startsWith('blob:'))) {
+      e.preventDefault();
+      toast.error('This file link is corrupted or unavailable.');
+    }
+  };
 
   // Reset view when sidebar is closed
   React.useEffect(() => {
@@ -271,7 +279,8 @@ export const ChatInfoSidebar: React.FC = () => {
                         return (
                           <a
                             key={att.messageId}
-                            href={fileData.url}
+                            href={fileData.url || '#'}
+                            onClick={(e) => handleFileClick(e, fileData.url)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-3 p-3 rounded-xl border border-[#ebebeb] cursor-pointer hover:bg-[#f7f7f7] transition-colors"
