@@ -13,6 +13,7 @@ import type * as signalR from '@microsoft/signalr';
 import { useTypingSubscriber } from '../hooks/useTypingStatus';
 import { PhotoProvider } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
+import { Button } from '@/components/ui/button';
 
 interface MessageListProps {
   connection: signalR.HubConnection | null;
@@ -225,13 +226,14 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
       {/* Nút Load More nằm ở visual top (DOM cuối cùng) */}
       {hasNextPage && (
         <div className="flex justify-center pt-4 pb-8">
-          <button 
+          <Button 
+            variant="ghost"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="text-[12px] font-semibold text-[#6a6a6a] hover:text-[#222222] transition-colors underline"
+            className="text-[12px] font-semibold text-[#6a6a6a] hover:text-[#222222] transition-colors underline h-auto p-0"
           >
             {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
-          </button>
+          </Button>
         </div>
       )}
       </div>

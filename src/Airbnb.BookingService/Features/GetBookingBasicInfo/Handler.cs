@@ -14,7 +14,7 @@ public sealed class Handler(BookingDbContext db)
             .FirstOrDefaultAsync(b => b.Id == req.Id, ct);
 
         if (booking == null)
-            throw new Airbnb.ServiceDefaults.Infrastructure.BusinessException("Booking not found", "BOOKING_NOT_FOUND");
+            throw new Airbnb.ServiceDefaults.Infrastructure.NotFoundException("Booking not found");
 
         return new Response(
             booking.Id, 

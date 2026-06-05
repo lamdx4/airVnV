@@ -11,7 +11,7 @@ public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<PagedR
     {
         Get("/api/search");
         AllowAnonymous();
-        ResponseCache(60); // Cache 60 giây (Tích hợp Output Caching)
+        Options(x => x.CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)))); // Dùng Output Caching (Redis) thay vì ResponseCache cổ điển
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

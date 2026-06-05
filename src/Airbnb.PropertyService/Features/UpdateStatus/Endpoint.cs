@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/api/properties/{PropertyId}/status");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Update property status (Publish/Unpublish/Archive)";
             s.Description = 

@@ -4,27 +4,17 @@ import { Icon } from '@iconify/react'
 import { useSearchProperties } from '../features/search/hooks/useSearchProperties'
 import { MapView } from '../features/search/components/MapView'
 import { Skeleton } from '@/components/ui/skeleton'
-
-const categories = [
-  { id: 'beach', label: 'Beachfront', icon: 'hugeicons:beach-02' },
-  { id: 'mountain', label: 'Amazing pools', icon: 'hugeicons:swimming-pool' },
-  { id: 'lake', label: 'Islands', icon: 'hugeicons:island-01' },
-  { id: 'cabin', label: 'Cabins', icon: 'hugeicons:home-01' },
-  { id: 'mansion', label: 'Mansions', icon: 'hugeicons:castle-01' },
-  { id: 'farm', label: 'Farms', icon: 'hugeicons:farm-01' },
-  { id: 'camping', label: 'Camping', icon: 'hugeicons:tent-01' },
-  { id: 'arctic', label: 'Arctic', icon: 'hugeicons:snow-02' },
-  { id: 'desert', label: 'Desert', icon: 'hugeicons:desert-01' },
-  { id: 'trending', label: 'Trending', icon: 'hugeicons:zap' },
-]
+import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState('beach')
   const [likedPlaces, setLikedPlaces] = useState<string[]>([])
   const [showMap, setShowMap] = useState(false)
+  const { t } = useTranslation()
   
   // Default coordinates (HCMC, Vietnam)
   const [location, setLocation] = useState({ latitude: 10.762622, longitude: 106.660172 })
+  const [propertyType, setPropertyType] = useState<number | null>(null)
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -43,6 +33,7 @@ export default function Home() {
     latitude: location.latitude,
     longitude: location.longitude,
     radiusKm: 50,
+    propertyType: propertyType !== null ? propertyType : undefined,
     page: 1,
     pageSize: 20
   })
@@ -56,30 +47,29 @@ export default function Home() {
   return (
     <div className="space-y-6 pb-24 relative">
       {/* Category Bar */}
-      <div className="sticky top-[80px] z-30 bg-white/95 backdrop-blur-sm -mx-12 px-12 pt-4">
-        <div className="flex items-center gap-8 overflow-x-auto pb-3 scrollbar-none border-b border-slate-100">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex flex-col items-center gap-2 min-w-[70px] pb-3 border-b-2 transition-all duration-200 group relative ${
-                activeCategory === cat.id
-                  ? 'border-slate-900 text-slate-900'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-200'
-              }`}
-            >
-              <Icon 
-                icon={cat.icon} 
-                className={`text-[24px] ${
-                  activeCategory === cat.id ? 'opacity-100' : 'opacity-60'
-                }`} 
-              />
-              <span className={`text-xs whitespace-nowrap font-semibold tracking-tight ${activeCategory === cat.id ? 'text-slate-900' : 'text-slate-500'}`}>
-                {cat.label}
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center gap-8 overflow-x-auto no-scrollbar py-4 px-2 border-b border-slate-100">
+        {[
+          { id: null, key: 'all', icon: 'hugeicons:earth' },
+          { id: 1, key: 'apartment', icon: 'hugeicons:building-04' },
+          { id: 2, key: 'house', icon: 'hugeicons:home-03' },
+          { id: 3, key: 'villa', icon: 'hugeicons:castle-02' },
+          { id: 4, key: 'homestay', icon: 'hugeicons:house-02' },
+          { id: 5, key: 'hotel', icon: 'hugeicons:hotel-01' },
+          { id: 6, key: 'resort', icon: 'hugeicons:swimming-pool' },
+        ].map((category) => (
+          <button
+            key={category.id || 'all'}
+            onClick={() => setPropertyType(category.id)}
+            className={`flex flex-col items-center gap-2 min-w-max pb-3 border-b-2 transition-all ${
+              propertyType === category.id
+                ? 'border-slate-900 text-slate-900'
+                : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+            }`}
+          >
+            <Icon icon={category.icon} className="text-2xl" />
+            <span className="text-sm font-semibold">{t(`home.categories.${category.key}`)}</span>
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
@@ -94,7 +84,7 @@ export default function Home() {
         </div>
       ) : isError ? (
         <div className="text-center py-20 text-red-500 font-medium">
-          Failed to load properties. Make sure backend is running.
+          {t('home.failedToLoad')}
         </div>
       ) : showMap ? (
         <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden mt-4">
@@ -149,19 +139,19 @@ export default function Home() {
                     <span className="font-normal text-slate-900">{place.rating.toFixed(2)}</span>
                   </div>
                 </div>
-                <p className="text-[15px] text-slate-500 font-normal leading-tight">Within 50 km</p>
+                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{place.displayAddress || t('home.within50km')}</p>
                 <div className="pt-1.5">
                   <span className="text-[15px] text-slate-900 font-semibold">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: place.currency }).format(place.price)}
                   </span>
-                  <span className="text-[15px] text-slate-900 font-normal"> night</span>
+                  <span className="text-[15px] text-slate-900 font-normal"> / {t('home.night')}</span>
                 </div>
               </div>
             </div>
           ))}
           {searchData?.items.length === 0 && (
             <div className="col-span-full text-center py-20 text-slate-500">
-              No properties found in this area.
+              {t('home.noProperties')}
             </div>
           )}
         </div>
@@ -169,20 +159,20 @@ export default function Home() {
 
       {/* Floating Map Toggle Button */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40">
-        <button
+        <Button
           onClick={() => setShowMap(!showMap)}
-          className="bg-slate-900 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+          className="bg-slate-950 hover:bg-slate-800 text-white px-6 py-6 rounded-full font-semibold shadow-lg hover:scale-105 transition-all flex items-center gap-2 h-auto"
         >
           {showMap ? (
             <>
-              Show list <ListIcon className="w-5 h-5" />
+              {t('home.showList')} <ListIcon className="w-5 h-5" />
             </>
           ) : (
             <>
-              Show map <MapIcon className="w-5 h-5" />
+              {t('home.showMap')} <MapIcon className="w-5 h-5" />
             </>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -7,15 +7,15 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Profile.Update;
 
-public class Handler(UserDbContext _db) : ICommandHandler<Request, ApiResponse<Response>>
+public class Handler(UserDbContext _db) : Mediator.ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<ApiResponse<Response>> ExecuteAsync(Request cmd, CancellationToken ct)
+    public async ValueTask<ApiResponse<Response>> Handle(Request cmd, CancellationToken ct)
     {
         var user = await _db.Users
             .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Id == cmd.UserId, ct);
 
-        if (user == null) throw new InvalidOperationException("User not found");
+        if (user == null) throw new NotFoundException("User not found");
 
         user.UpdateProfile(cmd.FullName, cmd.AvatarUrl, cmd.PhoneNumber, cmd.Bio);
         

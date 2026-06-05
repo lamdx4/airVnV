@@ -15,6 +15,7 @@ public record PropertyResponse(
     Guid Id,
     string Title,
     string DisplayAddress,
+    Airbnb.PropertyService.Domain.Enums.PropertyType Type,
     int Status,
     decimal BasePrice,
     string? CoverImageUrl,

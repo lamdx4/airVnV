@@ -43,6 +43,8 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
     x.AddConsumer<Airbnb.BookingService.Features.Consumers.BookingApprovalTimeoutConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentSucceededConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentFailedConsumer>();
     
     // Saga Configuration
     x.AddSagaStateMachine<Airbnb.BookingService.Infrastructure.Saga.BookingStateMachine, Airbnb.BookingService.Infrastructure.Saga.BookingState>()

@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/api/properties/{PropertyId}/availability/{AvailabilityId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Remove property availability/blocked dates";
             s.Description = 

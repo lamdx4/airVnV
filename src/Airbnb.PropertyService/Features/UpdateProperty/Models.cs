@@ -10,6 +10,7 @@ public record Request(
     // Core info – tất cả optional (partial update)
     string? Title,
     string? Description,
+    Airbnb.PropertyService.Domain.Enums.PropertyType? Type,
     // Pricing
     decimal? BasePrice,
     string? CurrencyCode,

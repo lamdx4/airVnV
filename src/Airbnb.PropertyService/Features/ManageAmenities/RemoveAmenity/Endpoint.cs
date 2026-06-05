@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/api/properties/{PropertyId}/amenities/{AmenityId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Remove amenity from property (Host only)";
             s.Description = "Possible Error Codes: \n" +

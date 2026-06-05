@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { getUploadSignature, uploadToCloudinary } from '@/features/media/api/media';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const useUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
+  const { t } = useTranslation();
 
   const uploadImage = async (file: File, folder: string = 'avatars') => {
     try {
@@ -18,7 +20,7 @@ export const useUpload = () => {
       return result.secure_url;
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Lỗi khi tải ảnh lên. Vui lòng thử lại!');
+      toast.error(t('common.uploadError'));
       throw error;
     } finally {
       setIsUploading(false);

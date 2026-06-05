@@ -55,7 +55,7 @@ public sealed class Handler(AppDbContext db)
                 CustomRules: req.CustomRules ?? property.HouseRules.CustomRules);
         }
 
-        property.UpdateCoreInfo(req.Title, req.Description, pricing, capacity, houseRules, req.BookingMode);
+        property.UpdateCoreInfo(req.Title, req.Description, pricing, capacity, houseRules, req.Type, req.BookingMode);
         await db.SaveChangesAsync(ct);
 
         return new Response(property.Id, property.UpdatedAt!.Value);

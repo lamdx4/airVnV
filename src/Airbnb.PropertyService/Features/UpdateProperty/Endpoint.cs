@@ -1,3 +1,4 @@
+using FastEndpoints;
 using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
 
@@ -8,7 +9,8 @@ public class Endpoint(IMediator mediator)
 {
     public override void Configure()
     {
-        Patch("/api/properties/{PropertyId}");
+        Verbs(Http.PUT, Http.PATCH);
+        Routes("/api/properties/{PropertyId}");
         AllowAnonymous();
         Summary(s => {
             s.Summary = "Update property information (Host only, partial update)";

@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, AlertCircle } from 'lucide-react';
+import { PropertyType } from '../../types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface BasicInfoSectionProps {
   register: UseFormRegister<any>;
@@ -60,6 +68,31 @@ export function BasicInfoSection({
           {errors.description && (
             <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 mt-1">
               <AlertCircle className="h-4 w-4" /> {errors.description.message as string}
+            </div>
+          )}
+        </div>
+
+        {/* Property Type */}
+        <div className="space-y-2">
+          <Label htmlFor="type" className="text-sm font-semibold text-slate-900">Property Type</Label>
+          <Select
+            value={String(watch('type'))}
+            onValueChange={(val) => setValue('type', Number(val), { shouldValidate: true })}
+          >
+            <SelectTrigger className="w-full h-12 px-4 py-3 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100 transition-all text-slate-900 bg-white">
+              <SelectValue placeholder="Select Property Type" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {Object.entries(PropertyType).map(([key, value]) => (
+                <SelectItem key={value} value={String(value)}>
+                  {key}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.type && (
+            <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 mt-1">
+              <AlertCircle className="h-4 w-4" /> {errors.type.message as string}
             </div>
           )}
         </div>

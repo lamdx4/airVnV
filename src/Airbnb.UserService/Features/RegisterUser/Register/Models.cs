@@ -9,7 +9,7 @@ public record Request(
     string Email, 
     string Password, 
     string FullName
-) : ICommand<ApiResponse<Response>>;
+) : Mediator.ICommand<ApiResponse<Response>>;
 
 public record Response(string Message);
 

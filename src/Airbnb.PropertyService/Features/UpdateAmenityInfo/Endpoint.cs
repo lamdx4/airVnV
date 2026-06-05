@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/api/properties/{PropertyId}/amenities/{AmenityId}");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Update amenity additional information/notes";
             s.Description = 

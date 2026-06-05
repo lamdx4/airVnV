@@ -43,7 +43,11 @@ public class Endpoint(IMediator mediator)
         {
             // Deserialize using the Source Generator Context
             payloadDto = JsonSerializer.Deserialize(req.Payload, Infrastructure.PropertyJsonContext.Default.CreatePropertyDto);
-            if (payloadDto == null) throw new Exception("Payload is null after deserialization");
+            if (payloadDto == null) 
+            {
+                await Send.ResponseAsync(ApiResponse<Response>.FailureResult("INVALID_PAYLOAD", "Payload is null after deserialization"), 400, ct);
+                return;
+            }
         }
         catch (Exception ex)
         {

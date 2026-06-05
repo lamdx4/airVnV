@@ -20,14 +20,20 @@ import { AmenityManager } from './AmenityManager';
 import { LocationManager } from './LocationManager';
 import { AvailabilityCalendar } from './AvailabilityCalendar';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PropertyStatus } from '../types';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PropertyStatus, PropertyType } from '../types';
 import { getStatusColor, getStatusText } from '../utils/status';
 
 const schema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
+  type: z.number().min(1, 'Property type is required'),
   basePrice: z.number().min(1, 'Price must be at least 1'),
   cleaningFee: z.number(),
   allowPets: z.boolean(),
@@ -43,6 +49,7 @@ type EditPropertyInput = z.infer<typeof schema>;
 type TabType = 'general' | 'photos' | 'amenities' | 'location' | 'calendar';
 
 export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId }) => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') as TabType;
   
@@ -59,12 +66,15 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    watch,
+    setValue
   } = useForm<EditPropertyInput>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
       description: '',
+      type: PropertyType.Apartment,
       basePrice: 0,
       cleaningFee: 0,
       allowPets: false,
@@ -81,6 +91,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
       reset({
         title: property.title,
         description: property.description,
+        type: property.type,
         basePrice: property.pricing.basePrice,
         cleaningFee: property.pricing.cleaningFee,
         allowPets: property.houseRules.allowPets,
@@ -99,6 +110,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
       const payload = {
         title: data.title,
         description: data.description,
+        type: data.type,
         pricing: {
             basePrice: data.basePrice,
             cleaningFee: data.cleaningFee || 0
@@ -113,9 +125,9 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
         }
       };
       await updateMutation.mutateAsync({ propertyId, data: payload });
-      toast.success('Basic info updated');
+      toast.success(t('editProperty.updatedSuccess'));
     } catch (err) {
-      toast.error('Failed to update property');
+      toast.error(t('editProperty.updatedFailed'));
     }
   };
 
@@ -125,11 +137,11 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
         propertyId, 
         status: PropertyStatus.Published 
       });
-      toast.success('Your listing is now live!');
+      toast.success(t('editProperty.publishedSuccess'));
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Check requirements before publishing';
+      const message = err.response?.data?.message || t('editProperty.publishedFailed');
       toast.error(message, {
-        description: 'Ensure 5+ photos, cover image, and full details.'
+        description: t('editProperty.publishedFailedDesc')
       });
     }
   };
@@ -137,16 +149,16 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
   if (isLoading || !property) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loading03Icon className="h-10 w-10 animate-spin text-rausch" />
-        <p className="text-slate-400 font-medium">Fetching listing details...</p>
+        <p className="text-slate-400 font-medium">{t('editProperty.fetchingDetails')}</p>
     </div>
   );
 
   const tabs: { id: TabType, label: string, icon: any }[] = [
-    { id: 'general', label: 'Basic Info', icon: Settings01Icon },
-    { id: 'photos', label: 'Photos', icon: Image01Icon },
-    { id: 'amenities', label: 'Amenities', icon: Task01Icon },
-    { id: 'location', label: 'Location', icon: Location01Icon },
-    { id: 'calendar', label: 'Calendar', icon: Calendar03Icon },
+    { id: 'general', label: t('editProperty.basicInfo'), icon: Settings01Icon },
+    { id: 'photos', label: t('editProperty.photos'), icon: Image01Icon },
+    { id: 'amenities', label: t('editProperty.amenities'), icon: Task01Icon },
+    { id: 'location', label: t('editProperty.location'), icon: Location01Icon },
+    { id: 'calendar', label: t('editProperty.calendar'), icon: Calendar03Icon },
   ];
 
   return (
@@ -157,8 +169,8 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
             <a href="/host/properties"><ArrowLeft02Icon className="h-6 w-6" /></a>
          </Button>
          <div>
-            <h1 className="text-2xl font-bold text-hof">Manage Listing</h1>
-            <p className="text-sm text-slate-500">Edit your property details and manage availability.</p>
+            <h1 className="text-2xl font-bold text-hof">{t('editProperty.manageListing')}</h1>
+            <p className="text-sm text-slate-500">{t('editProperty.manageSubtitle')}</p>
          </div>
       </div>
 
@@ -195,13 +207,13 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                             className="bg-rausch hover:bg-rausch-dark text-white rounded-2xl h-14 font-bold text-lg shadow-lg shadow-rausch/20"
                         >
                             {updateStatusMutation.isPending ? <Loading03Icon className="h-6 w-6 animate-spin" /> : <Tick02Icon className="h-6 w-6" />}
-                            Publish Listing
+                            {t('editProperty.publishListing')}
                         </Button>
                     )}
                     <Button variant="outline" className="rounded-2xl h-12 border-slate-200 font-bold flex gap-2" asChild>
-                        <a href={`/rooms/${propertyId}`} target="_blank">
+                        <a href={`/properties/${propertyId}`} target="_blank">
                             <ViewIcon className="h-5 w-5" />
-                            Preview Live
+                            {t('editProperty.previewLive')}
                         </a>
                     </Button>
                 </div>
@@ -210,20 +222,21 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
             {/* Tab Navigation Menu */}
             <div className="bg-white rounded-3xl border shadow-sm overflow-hidden p-2">
                 {tabs.map(tab => (
-                    <button
+                    <Button
                         key={tab.id}
+                        variant="ghost"
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all
+                            w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all justify-start h-auto
                             ${activeTab === tab.id 
-                                ? 'bg-hof text-white shadow-md' 
+                                ? 'bg-hof text-white shadow-md hover:bg-hof hover:text-white' 
                                 : 'text-slate-500 hover:bg-slate-50 hover:text-hof'
                             }
                         `}
                     >
                         <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-rausch' : 'text-slate-300'}`} />
                         {tab.label}
-                    </button>
+                    </Button>
                 ))}
             </div>
         </div>
@@ -233,44 +246,65 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
             {activeTab === 'general' && (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     <div className="space-y-4">
-                        <h3 className="text-xl font-bold text-hof">Basic Information</h3>
+                        <h3 className="text-xl font-bold text-hof">{t('editProperty.basicInformation')}</h3>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Listing Title</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.listingTitle')}</Label>
+                            <Input
                                 {...register('title')}
-                                className="w-full text-lg p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-medium"
-                                placeholder="Catchy title for your home"
+                                className="text-lg h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-medium"
+                                placeholder={t('editProperty.titlePlaceholder')}
                             />
                             {errors.title && <p className="text-xs text-rausch font-semibold mt-1">{errors.title.message}</p>}
                         </div>
                         
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Description</label>
-                            <textarea 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.description')}</Label>
+                            <Textarea
                                 {...register('description')}
                                 rows={6}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all text-hof leading-relaxed"
-                                placeholder="Tell guests what makes your place special..."
+                                className="rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch text-hof leading-relaxed resize-none"
+                                placeholder={t('editProperty.descPlaceholder')}
                             />
                             {errors.description && <p className="text-xs text-rausch font-semibold mt-1">{errors.description.message}</p>}
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.propertyType')}</Label>
+                            <Select
+                                value={String(watch('type') ?? '')}
+                                onValueChange={(val) => setValue('type', Number(val) as any)}
+                            >
+                                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-slate-100 focus:ring-rausch font-medium">
+                                    <SelectValue placeholder={t('editProperty.propertyType')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(PropertyType)
+                                        .filter(([, v]) => typeof v === 'number')
+                                        .map(([key, value]) => (
+                                            <SelectItem key={value as number} value={String(value)}>{key}</SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                            {errors.type && <p className="text-xs text-rausch font-semibold mt-1">{errors.type.message}</p>}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Base Price (USD)</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.basePrice')}</Label>
+                            <Input
                                 type="number"
                                 {...register('basePrice', { valueAsNumber: true })}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-bold"
+                                className="h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-bold text-lg"
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Cleaning Fee (USD)</label>
-                            <input 
+                            <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">{t('editProperty.cleaningFee')}</Label>
+                            <Input
                                 type="number"
                                 {...register('cleaningFee', { valueAsNumber: true })}
-                                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-rausch outline-none transition-all font-bold"
+                                className="h-14 rounded-2xl border-2 border-slate-100 focus-visible:ring-rausch focus-visible:border-rausch font-bold text-lg"
                             />
                         </div>
                     </div>
@@ -281,7 +315,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                         className="bg-hof hover:bg-slate-800 text-white rounded-2xl h-14 px-10 font-bold flex gap-2"
                     >
                         {updateMutation.isPending && <Loading03Icon className="h-5 w-5 animate-spin" />}
-                        Save Changes
+                        {t('editProperty.saveChanges')}
                     </Button>
                 </form>
             )}
@@ -299,7 +333,7 @@ export const EditPropertyForm: React.FC<{ propertyId: string }> = ({ propertyId 
                     propertyId={propertyId} 
                     initialLat={property.latitude} 
                     initialLng={property.longitude}
-                    initialAddress={property.displayAddress || ''}
+                    initialAddress={property.streetAddress || ''}
                     initialSubDivisions={property.subDivisions}
                 />
             )}

@@ -1,3 +1,5 @@
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.PropertyService.Domain.ValueObjects;
 
 public record Pricing
@@ -15,13 +17,13 @@ public record Pricing
         decimal serviceFee,
         decimal weekendPremiumPercent)
     {
-        if (basePrice <= 0) throw new ArgumentException("BasePrice must be greater than 0.");
+        if (basePrice <= 0) throw new BusinessException("BasePrice must be greater than 0.", "PROPERTY_INVALID_PRICE");
         if (string.IsNullOrWhiteSpace(currencyCode) || currencyCode.Length != 3)
-            throw new ArgumentException("CurrencyCode must be ISO 4217 (3 chars).");
-        if (cleaningFee < 0) throw new ArgumentException("CleaningFee cannot be negative.");
-        if (serviceFee < 0) throw new ArgumentException("ServiceFee cannot be negative.");
+            throw new BusinessException("CurrencyCode must be ISO 4217 (3 chars).", "PROPERTY_INVALID_PRICE");
+        if (cleaningFee < 0) throw new BusinessException("CleaningFee cannot be negative.", "PROPERTY_INVALID_FEES");
+        if (serviceFee < 0) throw new BusinessException("ServiceFee cannot be negative.", "PROPERTY_INVALID_FEES");
         if (weekendPremiumPercent < 0 || weekendPremiumPercent > 500)
-            throw new ArgumentException("WeekendPremiumPercent must be between 0 and 500.");
+            throw new BusinessException("WeekendPremiumPercent must be between 0 and 500.", "PROPERTY_INVALID_WEEKEND_PREMIUM");
 
         BasePrice = basePrice;
         CurrencyCode = currencyCode.ToUpperInvariant();

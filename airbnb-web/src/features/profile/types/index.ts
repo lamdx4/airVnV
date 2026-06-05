@@ -17,4 +17,4 @@ export interface UpdateProfileRequest {
   bio?: string;
 }
 
-export interface UpdateProfileResponse extends ProfileResponse {}
+export type UpdateProfileResponse = ProfileResponse;

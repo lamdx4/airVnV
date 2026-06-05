@@ -10,6 +10,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/availability/block");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Block property dates (Calendar Management)";
             s.Description = 

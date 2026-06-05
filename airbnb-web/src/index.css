@@ -103,6 +103,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Airbnb Custom Palette */
+  --color-rausch: #FF385C;
+  --color-rausch-dark: #D90B38;
+  --color-hof: #222222;
+  --color-foggy: #717171;
+  --color-hackb: #008489;
+
   /* Radius Scale Mappings */
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);

@@ -7,6 +7,7 @@ public class PropertyDoc
     public string Title { get; set; } = default!;
     public string Description { get; set; } = default!;
     public string Slug { get; set; } = default!;
+    public int PropertyType { get; set; }
     public decimal BasePrice { get; set; }
     public decimal AverageRating { get; set; }
     public int ReviewCount { get; set; }

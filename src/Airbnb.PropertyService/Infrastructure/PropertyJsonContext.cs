@@ -8,6 +8,8 @@ namespace Airbnb.PropertyService.Infrastructure;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.Request), TypeInfoPropertyName = "CreatePropertyRequest")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.CreatePropertyDto), TypeInfoPropertyName = "CreatePropertyDto")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.ImageMetadataDto), TypeInfoPropertyName = "ImageMetadataDto")]
+[JsonSerializable(typeof(System.Collections.Generic.List<Airbnb.PropertyService.Features.CreateProperty.ImageMetadataDto>), TypeInfoPropertyName = "ImageMetadataDtoList")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.CreateProperty.Response), TypeInfoPropertyName = "CreatePropertyResponse")]
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetProperty.Request), TypeInfoPropertyName = "GetPropertyRequest")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetProperty.PropertyDto>), TypeInfoPropertyName = "ApiResponseGetProperty")]

@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-
+using Airbnb.ServiceDefaults.Infrastructure;
 using Airbnb.SharedKernel.Domain;
 using Airbnb.UserService.Domain.Events;
 
@@ -33,22 +33,22 @@ public class User : AggregateRoot
     public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
     public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
-    public void SetPassword(string hashedPassword)
+    public void SetPassword(string password)
     {
-        HashedPassword = hashedPassword;
+        HashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
     }
 
     private User() { }
 
     // 1. Khởi tạo cho Local User
-    public User(string email, string hashedPassword, UserRole role, string fullName)
+    public User(string email, string password, UserRole role, string fullName)
     {
-        if (string.IsNullOrWhiteSpace(hashedPassword))
-            throw new ArgumentException("Mật khẩu là bắt buộc đối với tài khoản cục bộ.");
+        if (string.IsNullOrWhiteSpace(password))
+            throw new BusinessException("Mật khẩu là bắt buộc đối với tài khoản cục bộ.", "USER_PASSWORD_REQUIRED");
 
         Id = Guid.CreateVersion7();
         Email = email;
-        HashedPassword = hashedPassword;
+        HashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
         Role = role;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
@@ -58,7 +58,7 @@ public class User : AggregateRoot
     public User(string email, UserRole role, string fullName, AuthProvider provider, string providerKey)
     {
         if (string.IsNullOrWhiteSpace(providerKey))
-            throw new ArgumentException("Thông tin Provider Key là bắt buộc.");
+            throw new BusinessException("Thông tin Provider Key là bắt buộc.", "USER_PROVIDER_KEY_REQUIRED");
 
         Id = Guid.CreateVersion7();
         Email = email;

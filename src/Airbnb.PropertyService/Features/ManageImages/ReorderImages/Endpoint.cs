@@ -9,7 +9,9 @@ public class Endpoint(IMediator mediator)
 {
     public override void Configure()
     {
-        Post("/api/properties/{PropertyId}/images/reorder");
+        Verbs(Http.PUT, Http.POST);
+        Routes("/api/properties/{PropertyId}/images/reorder");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Reorder property images";
             s.Description = 

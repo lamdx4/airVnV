@@ -36,6 +36,7 @@ public sealed class Handler(AppDbContext db)
                 p.Id,
                 p.Title,
                 p.DisplayAddress,
+                p.Type,
                 (int)p.Status,
                 p.Pricing.BasePrice,
                 p.Images

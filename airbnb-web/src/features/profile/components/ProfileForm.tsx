@@ -5,12 +5,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { useUpload } from '@/hooks/useUpload';
 import { Camera, Mail, Phone, User, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function ProfileForm() {
   const { data: profile, isLoading } = useProfile();
   const updateMutation = useUpdateProfile();
   const { uploadImage, isUploading } = useUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -54,7 +56,7 @@ export function ProfileForm() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Loader2 className="h-10 w-10 text-rausch animate-spin" />
-        <p className="text-slate-500 font-medium">Đang tải thông tin cá nhân...</p>
+        <p className="text-slate-500 font-medium">{t('profile.loading')}</p>
       </div>
     );
   }
@@ -88,14 +90,16 @@ export function ProfileForm() {
               className="hidden" 
               accept="image/*"
             />
-            <button 
+            <Button 
               type="button"
+              variant="outline"
+              size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg border border-slate-100 text-slate-600 hover:text-rausch transition-colors disabled:opacity-50"
+              className="absolute bottom-0 right-0 h-9 w-9 bg-white rounded-full shadow-lg border border-slate-100 text-slate-600 hover:text-rausch hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
               <Camera size={18} />
-            </button>
+            </Button>
           </div>
           
           <div className="mb-8">
@@ -110,16 +114,16 @@ export function ProfileForm() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4">Thông tin tài khoản</h3>
+            <h3 className="font-bold text-slate-900 mb-4">{t('profile.accountInfo')}</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Vai trò</span>
+                <span className="text-slate-500">{t('profile.role')}</span>
                 <span className="px-2 py-1 bg-rausch/10 text-rausch rounded-lg font-bold text-xs uppercase">
                   {profile?.role}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">ID Người dùng</span>
+                <span className="text-slate-500">{t('profile.userId')}</span>
                 <span className="text-slate-900 font-mono text-[10px]">{profile?.id?.substring(0, 8) ?? ''}...</span>
               </div>
             </div>
@@ -129,19 +133,19 @@ export function ProfileForm() {
         <div className="md:col-span-2">
           <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-2">
-              <h3 className="text-xl font-bold text-slate-900">Chỉnh sửa hồ sơ</h3>
-              <p className="text-slate-400 text-xs">Cập nhật thông tin công khai của bạn</p>
+              <h3 className="text-xl font-bold text-slate-900">{t('profile.editProfile')}</h3>
+              <p className="text-slate-400 text-xs">{t('profile.updatePublicInfo')}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1 flex items-center gap-2">
-                  <User size={16} className="text-slate-400" /> Họ và tên
+                  <User size={16} className="text-slate-400" /> {t('profile.fullName')}
                 </label>
                 <Input 
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Nhập họ tên đầy đủ"
+                  placeholder={t('profile.fullNamePlaceholder')}
                   className="h-12 rounded-xl border-slate-200 focus:border-rausch focus:ring-rausch"
                   required
                 />
@@ -149,23 +153,23 @@ export function ProfileForm() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1 flex items-center gap-2">
-                  <Phone size={16} className="text-slate-400" /> Số điện thoại
+                  <Phone size={16} className="text-slate-400" /> {t('profile.phoneNumber')}
                 </label>
                 <Input 
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Nhập số điện thoại"
+                  placeholder={t('profile.phoneNumberPlaceholder')}
                   className="h-12 rounded-xl border-slate-200 focus:border-rausch focus:ring-rausch"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Giới thiệu bản thân</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('profile.bio')}</label>
               <Textarea 
                 value={bio}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBio(e.target.value)}
-                placeholder="Hãy chia sẻ một chút về bản thân bạn..."
+                placeholder={t('profile.bioPlaceholder')}
                 className="min-h-[120px] rounded-xl border-slate-200 focus:border-rausch focus:ring-rausch resize-none"
               />
             </div>
@@ -177,7 +181,7 @@ export function ProfileForm() {
                 onClick={() => profile && setAvatarUrl(profile.avatarUrl || '')}
                 className="h-12 px-8 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold"
               >
-                Hủy bỏ
+                {t('profile.cancel')}
               </Button>
               <Button 
                 type="submit" 
@@ -187,9 +191,9 @@ export function ProfileForm() {
                 {updateMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang lưu...
+                    {t('profile.saving')}
                   </>
-                ) : 'Lưu thay đổi'}
+                ) : t('profile.saveChanges')}
               </Button>
             </div>
           </form>

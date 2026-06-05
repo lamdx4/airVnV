@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input'
 import { useRegister, useVerifyEmail, useGoogleAuth } from '../hooks/useAuth'
 import { GoogleLogin } from '@react-oauth/google'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export function RegisterForm() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -27,7 +29,7 @@ export function RegisterForm() {
     setLocalError(null)
 
     if (password !== confirmPassword) {
-      setLocalError('Mật khẩu xác nhận không khớp!')
+      setLocalError(t('auth.confirmPasswordMismatch'))
       return
     }
 
@@ -46,7 +48,7 @@ export function RegisterForm() {
     setLocalError(null)
     
     if (otpCode.length !== 6) {
-      setLocalError('Mã OTP phải bao gồm 6 số!')
+      setLocalError(t('auth.otpLengthError'))
       return
     }
 
@@ -58,10 +60,10 @@ export function RegisterForm() {
 
   const errorMessage = localError || 
     (regApiError 
-      ? (regApiError.errorCode === 'USER_ALREADY_EXISTS' ? 'Email này đã tồn tại trong hệ thống!' : regApiError.message || 'Đăng ký thất bại!') 
+      ? (regApiError.errorCode === 'USER_ALREADY_EXISTS' ? t('auth.userExists') : regApiError.message || t('auth.registerFailed')) 
       : null) ||
     (verifyApiError 
-      ? (verifyApiError.errorCode === 'VERIFY_FAILED' ? 'Mã OTP không đúng hoặc đã hết hạn!' : verifyApiError.message || 'Xác thực thất bại!') 
+      ? (verifyApiError.errorCode === 'VERIFY_FAILED' ? t('auth.otpIncorrect') : verifyApiError.message || t('auth.verificationFailed')) 
       : null);
 
   // 1. Giao diện Nhập mã OTP
@@ -69,12 +71,12 @@ export function RegisterForm() {
     return (
       <form onSubmit={handleVerifyOtp} className="space-y-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Xác minh Email</h1>
-          <p className="text-slate-500 text-sm mt-1">Mã xác thực OTP 6 số đã được gửi tới <b>{email}</b></p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('auth.verifyEmail')}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t('auth.otpSentMessage', { email })}</p>
           
           {devOtp && (
             <div className="mt-2 p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-medium">
-              🔒 Chế độ Dev: Mã OTP của bạn là: <span className="font-bold text-base tracking-widest">{devOtp}</span>
+              🔒 {t('auth.devOtpMode', { otp: devOtp })}
             </div>
           )}
         </div>
@@ -89,7 +91,7 @@ export function RegisterForm() {
           <Input
             type="text"
             maxLength={6}
-            placeholder="Nhập 6 chữ số OTP"
+            placeholder={t('auth.otpPlaceholder')}
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
             required
@@ -102,18 +104,19 @@ export function RegisterForm() {
           disabled={verifyMutation.isPending}
           className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
         >
-          {verifyMutation.isPending ? 'Đang xác thực...' : 'Xác nhận'}
+          {verifyMutation.isPending ? t('auth.authenticating') : t('auth.confirm')}
         </Button>
 
         <p className="text-center text-sm text-slate-600 pt-2">
-          Không nhận được mã?{' '}
-          <button
+          {t('auth.didNotReceive')}{' '}
+          <Button
             type="button"
+            variant="link"
             onClick={handleRegister}
-            className="text-rausch font-semibold hover:underline"
+            className="text-rausch font-semibold hover:underline h-auto p-0"
           >
-            Gửi lại mã
-          </button>
+            {t('auth.resendCode')}
+          </Button>
         </p>
       </form>
     )
@@ -123,8 +126,8 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleRegister} className="space-y-4">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Đăng ký tài khoản</h1>
-        <p className="text-slate-500 text-sm mt-1">Gia nhập cộng đồng Airbnb</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('auth.register')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('auth.joinCommunity')}</p>
       </div>
 
       {errorMessage && (
@@ -136,7 +139,7 @@ export function RegisterForm() {
       <div className="space-y-3">
         <Input
           type="text"
-          placeholder="Họ và tên"
+          placeholder={t('auth.fullName')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -144,7 +147,7 @@ export function RegisterForm() {
         />
         <Input
           type="email"
-          placeholder="Địa chỉ Email"
+          placeholder={t('auth.email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -152,7 +155,7 @@ export function RegisterForm() {
         />
         <Input
           type="password"
-          placeholder="Mật khẩu"
+          placeholder={t('auth.password')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -160,7 +163,7 @@ export function RegisterForm() {
         />
         <Input
           type="password"
-          placeholder="Xác nhận mật khẩu"
+          placeholder={t('auth.confirmPassword')}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
@@ -173,12 +176,12 @@ export function RegisterForm() {
         disabled={registerMutation.isPending}
         className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
       >
-        {registerMutation.isPending ? 'Đang gửi yêu cầu...' : 'Đăng ký'}
+        {registerMutation.isPending ? t('auth.submittingRequest') : t('auth.signUp')}
       </Button>
 
       <div className="flex items-center gap-4 my-2">
         <div className="flex-1 h-px bg-slate-200"></div>
-        <span className="text-slate-400 text-xs uppercase">Hoặc</span>
+        <span className="text-slate-400 text-xs uppercase">{t('auth.or')}</span>
         <div className="flex-1 h-px bg-slate-200"></div>
       </div>
 
@@ -190,21 +193,22 @@ export function RegisterForm() {
             }
           }}
           onError={() => {
-            toast.error('Đăng ký bằng Google thất bại!');
+            toast.error(t('auth.googleRegisterFailed'));
           }}
           useOneTap
         />
       </div>
 
       <p className="text-center text-sm text-slate-600 pt-2">
-        Đã có tài khoản?{' '}
-        <button
+        {t('auth.alreadyHaveAccount')}{' '}
+        <Button
           type="button"
+          variant="link"
           onClick={() => navigate('/login')}
-          className="text-rausch font-semibold hover:underline"
+          className="text-rausch font-semibold hover:underline h-auto p-0"
         >
-          Đăng nhập
-        </button>
+          {t('auth.login')}
+        </Button>
       </p>
     </form>
   )

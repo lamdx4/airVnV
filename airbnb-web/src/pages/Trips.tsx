@@ -1,26 +1,31 @@
-import { useGuestBookings, useCancelBooking } from '@/features/booking';
+import { useGuestBookings, useCancelBooking, BookingStatus } from '@/features/booking';
 import { useInitiatePayment } from '@/features/payment/hooks';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
 
 export default function Trips() {
+  const { t } = useTranslation();
   const { data: bookings, isLoading, isError } = useGuestBookings();
   const cancelBooking = useCancelBooking();
   const initiatePayment = useInitiatePayment();
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
 
-  if (isLoading) return <div className="p-8 text-center text-gray-500">Loading your trips...</div>;
-  if (isError) return <div className="p-8 text-center text-red-500">Failed to load trips.</div>;
+  if (isLoading) return <div className="p-8 text-center text-gray-500">{t('trips.loading')}</div>;
+  if (isError) return <div className="p-8 text-center text-red-500">{t('trips.failedToLoad')}</div>;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900">Trips</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-900">{t('trips.title')}</h1>
 
       {!bookings || bookings.length === 0 ? (
         <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-2">No trips booked... yet!</h2>
-          <p className="text-gray-600 mb-4">Time to dust off your bags and start planning your next adventure.</p>
+          <h2 className="text-xl font-semibold mb-2">{t('trips.noTrips')}</h2>
+          <p className="text-gray-600 mb-4">{t('trips.noTripsDesc')}</p>
           <Button variant="outline" className="border-gray-900 font-semibold hover:bg-gray-100">
-            Start searching
+            {t('trips.startSearching')}
           </Button>
         </div>
       ) : (
@@ -37,12 +42,12 @@ export default function Trips() {
                     {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
                   </h3>
                   <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                    booking.status === 'AwaitingApproval' ? 'bg-orange-100 text-orange-800' :
+                    booking.status === BookingStatus.Confirmed ? 'bg-green-100 text-green-800' :
+                    booking.status === BookingStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                    booking.status === BookingStatus.AwaitingApproval ? 'bg-orange-100 text-orange-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {booking.status === 'AwaitingApproval' ? 'Awaiting Host Approval' : booking.status}
+                    {booking.status === BookingStatus.AwaitingApproval ? t('trips.awaitingHostApproval') : booking.status}
                   </span>
                 </div>
                 
@@ -55,7 +60,7 @@ export default function Trips() {
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col gap-2">
-                  {booking.status === 'Pending' && (
+                  {booking.status === BookingStatus.Pending && (
                     <Button 
                       className="w-full bg-[#ff385c] hover:bg-[#e31c5f] text-white"
                       onClick={() => {
@@ -70,21 +75,17 @@ export default function Trips() {
                       }}
                       disabled={initiatePayment.isPending}
                     >
-                      {initiatePayment.isPending ? 'Processing...' : 'Pay Now'}
+                      {initiatePayment.isPending ? t('trips.processing') : t('trips.payNow')}
                     </Button>
                   )}
-                  {booking.status === 'Pending' || booking.status === 'AwaitingApproval' || booking.status === 'Confirmed' ? (
+                  {booking.status === BookingStatus.Pending || booking.status === BookingStatus.AwaitingApproval || booking.status === BookingStatus.Confirmed ? (
                     <Button 
                       variant="outline" 
                       className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to cancel this booking?")) {
-                          cancelBooking.mutate(booking.id);
-                        }
-                      }}
+                      onClick={() => setBookingToCancel(booking.id)}
                       disabled={cancelBooking.isPending || initiatePayment.isPending}
                     >
-                      Cancel Reservation
+                      {t('trips.cancelReservation')}
                     </Button>
                   ) : (
                     <Button variant="outline" className="w-full" disabled>
@@ -97,6 +98,23 @@ export default function Trips() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={bookingToCancel !== null}
+        title={t('trips.cancelTitle')}
+        description={t('trips.cancelDesc')}
+        confirmText={t('trips.cancelConfirm')}
+        cancelText={t('trips.close')}
+        variant="destructive"
+        onConfirm={() => {
+          if (bookingToCancel) {
+            cancelBooking.mutate(bookingToCancel);
+            setBookingToCancel(null);
+          }
+        }}
+        onCancel={() => setBookingToCancel(null)}
+      />
     </div>
   );
 }
+

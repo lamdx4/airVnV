@@ -94,8 +94,10 @@ var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice
     .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(elasticsearch)
     .WithReference(kafka)
+    .WithReference(redis)
     .WaitFor(elasticsearch)
-    .WaitFor(kafka);
+    .WaitFor(kafka)
+    .WaitFor(redis);
 
 var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
     .WithEnvironment("DOTNET_gcServer", "0")

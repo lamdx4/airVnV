@@ -1,4 +1,4 @@
-﻿namespace Airbnb.PropertyService.Tests;
+namespace Airbnb.PropertyService.Tests;
 
 public class UnitTest1
 {

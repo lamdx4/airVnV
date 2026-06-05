@@ -6,8 +6,10 @@ import { useLogin, useGoogleAuth } from '../hooks/useAuth'
 import { GoogleLogin } from '@react-oauth/google'
 import { toast } from 'sonner'
 import { getFCMToken } from '@/lib/firebase'
+import { useTranslation } from 'react-i18next'
 
 export function LoginForm() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,15 +36,15 @@ export function LoginForm() {
   const apiError = loginMutation.error as any;
   const errorMessage = apiError
     ? (apiError.errorCode === 'AUTH_INVALID_CREDENTIALS'
-        ? 'Email hoặc mật khẩu không chính xác!'
-        : apiError.message || 'Đăng nhập thất bại. Vui lòng thử lại!')
+        ? t('auth.invalidCredentials')
+        : apiError.message || t('auth.loginFailed'))
     : null;
 
   return (
     <form onSubmit={(e) => void handleLogin(e)} className="space-y-4">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Đăng nhập</h1>
-        <p className="text-slate-500 text-sm mt-1">Chào mừng bạn quay trở lại</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('auth.login')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('auth.welcomeBack')}</p>
       </div>
 
       {errorMessage && (
@@ -54,7 +56,7 @@ export function LoginForm() {
       <div className="space-y-3">
         <Input
           type="email"
-          placeholder="Email của bạn"
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -62,7 +64,7 @@ export function LoginForm() {
         />
         <Input
           type="password"
-          placeholder="Mật khẩu"
+          placeholder={t('auth.passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -71,13 +73,14 @@ export function LoginForm() {
       </div>
 
       <div className="flex justify-end">
-        <button 
+        <Button 
           type="button"
+          variant="link"
           onClick={() => navigate('/forgot-password')}
-          className="text-sm text-slate-600 hover:text-rausch font-medium transition-colors"
+          className="text-sm text-slate-600 hover:text-rausch font-medium transition-colors h-auto p-0"
         >
-          Quên mật khẩu?
-        </button>
+          {t('auth.forgotPassword')}
+        </Button>
       </div>
 
       <Button
@@ -85,12 +88,12 @@ export function LoginForm() {
         disabled={loginMutation.isPending}
         className="w-full h-12 bg-rausch hover:bg-rose-700 text-white text-base font-semibold rounded-xl transition-all shadow-md active:scale-[98%]"
       >
-        {loginMutation.isPending ? 'Đang xác thực...' : 'Đăng nhập'}
+        {loginMutation.isPending ? t('auth.authenticating') : t('auth.login')}
       </Button>
 
       <div className="flex items-center gap-4 my-2">
         <div className="flex-1 h-px bg-slate-200"></div>
-        <span className="text-slate-400 text-xs uppercase">Hoặc</span>
+        <span className="text-slate-400 text-xs uppercase">{t('auth.or')}</span>
         <div className="flex-1 h-px bg-slate-200"></div>
       </div>
 
@@ -98,20 +101,21 @@ export function LoginForm() {
         <GoogleLogin
           onSuccess={(credentialResponse) => { void handleGoogleSuccess(credentialResponse); }}
           onError={() => {
-            toast.error('Đăng nhập bằng Google thất bại!');
+            toast.error(t('auth.googleLoginFailed'));
           }}
         />
       </div>
 
       <p className="text-center text-sm text-slate-600 pt-2">
-        Chưa có tài khoản?{' '}
-        <button
+        {t('auth.noAccount')}{' '}
+        <Button
           type="button"
+          variant="link"
           onClick={() => navigate('/register')}
-          className="text-rausch font-semibold hover:underline"
+          className="text-rausch font-semibold hover:underline h-auto p-0"
         >
-          Đăng ký ngay
-        </button>
+          {t('auth.signupNow')}
+        </Button>
       </p>
     </form>
   )

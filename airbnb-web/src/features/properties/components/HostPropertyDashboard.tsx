@@ -18,6 +18,7 @@ import { PropertyStatus } from '../types';
 import { getStatusColor, getStatusText } from '../utils/status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,12 +29,28 @@ import {
 export const HostPropertyDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const pageSize = 5;
   
-  const { data, isLoading } = useMyProperties(page, pageSize);
-  const properties = data?.items || [];
-  const totalCount = data?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
+  // We fetch a larger amount for local search and filtering
+  const { data, isLoading } = useMyProperties(1, 1000);
+  
+  const allProperties = data?.items || [];
+  
+  const filteredProperties = allProperties.filter(p => 
+    p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.province && p.province.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.district && p.district.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.displayAddress && p.displayAddress.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const totalCount = allProperties.length;
+  const filteredCount = filteredProperties.length;
+  const totalPages = Math.ceil(filteredCount / pageSize);
+  const properties = filteredProperties.slice((page - 1) * pageSize, page * pageSize);
+
+  const activeCount = allProperties.filter(p => p.status === PropertyStatus.Published).length;
+  const draftCount = allProperties.filter(p => p.status === PropertyStatus.Draft).length;
 
   if (isLoading) return <DashboardSkeleton />;
 
@@ -54,23 +71,28 @@ export const HostPropertyDashboard: React.FC = () => {
         </Button>
       </div>
 
-      {/* Stats Bar (Optional/Placeholder for future) */}
+      {/* Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          <StatCard label="Total Listings" value={totalCount.toString()} icon={Home01Icon} color="bg-blue-50 text-blue-600" />
-         <StatCard label="Active" value={properties.filter(p => p.status === PropertyStatus.Published).length.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
-         <StatCard label="Drafts" value={properties.filter(p => p.status === PropertyStatus.Draft).length.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
+         <StatCard label="Active" value={activeCount.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
+         <StatCard label="Drafts" value={draftCount.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
       </div>
 
       {/* Filter & Search */}
       <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border shadow-sm">
         <div className="flex-1 relative">
-            <Search01Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-            <input 
-                placeholder="Search by title or location..."
-                className="w-full pl-12 pr-4 py-2 rounded-xl border-none focus:ring-2 ring-rausch/20 outline-none text-sm"
+            <Search01Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+            <Input 
+                placeholder="Search by title, address, or province..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1); // Reset to page 1 on search
+                }}
+                className="w-full pl-12 pr-4 h-12 rounded-xl border-none focus-visible:ring-2 focus-visible:ring-rausch/20 outline-none text-sm bg-slate-50/50"
             />
         </div>
-        <Button variant="outline" className="rounded-xl border-slate-200 gap-2">
+        <Button variant="outline" className="rounded-xl border-slate-200 h-12 px-5 gap-2">
             <FilterIcon className="h-4 w-4" />
             Filters
         </Button>
@@ -131,7 +153,7 @@ export const HostPropertyDashboard: React.FC = () => {
                           <Edit02Icon className="h-4 w-4 text-blue-500" />
                           Edit Listing
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-xl gap-3 py-2 cursor-pointer">
+                        <DropdownMenuItem onClick={() => navigate(`/properties/${property.id}?isPreview=true`)} className="rounded-xl gap-3 py-2 cursor-pointer">
                           <ViewIcon className="h-4 w-4 text-slate-500" />
                           View Live
                         </DropdownMenuItem>
@@ -171,8 +193,8 @@ export const HostPropertyDashboard: React.FC = () => {
           <div className="px-6 py-6 border-t flex items-center justify-between bg-slate-50/30">
             <p className="text-xs text-slate-500 font-medium">
               Showing <span className="font-bold text-hof">{(page - 1) * pageSize + 1}</span> to{' '}
-              <span className="font-bold text-hof">{Math.min(page * pageSize, totalCount)}</span> of{' '}
-              <span className="font-bold text-hof">{totalCount}</span> results
+              <span className="font-bold text-hof">{Math.min(page * pageSize, filteredCount)}</span> of{' '}
+              <span className="font-bold text-hof">{filteredCount}</span> results
             </p>
             <div className="flex items-center gap-2">
               <Button 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ChevronLeft, CheckCheck } from 'lucide-react';
+import { Search, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Loading03Icon } from '@/components/common/Icons';
 import { useNavigate } from 'react-router-dom';
@@ -114,7 +114,6 @@ export const ConversationList: React.FC = () => {
             {conversations.map((conv: Conversation) => (
               <button 
                 key={conv.id}
-                aria-label={`Chat with ${conv.otherParticipantName} about ${conv.propertyTitle}`}
                 onClick={() => {
                   setActiveConversationId(conv.id);
                   setSearchQuery('');
@@ -137,12 +136,17 @@ export const ConversationList: React.FC = () => {
                   </Avatar>
                 </div>
                 
-                <div className="flex-1 min-w-0 pr-2">
-                  <h3 className={`text-[15px] truncate transition-colors mb-1 ${
-                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
-                  }`}>
-                    {conv.otherParticipantName}
-                  </h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <h3 className={`text-[15px] truncate transition-colors ${
+                        conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
+                    }`}>
+                      {conv.otherParticipantName}
+                    </h3>
+                    <span className="text-[12px] text-[#b0b0b0] font-normal">
+                      {conv.lastMessageAt ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }) : ''}
+                    </span>
+                  </div>
                   
                   <p className={`text-[14px] truncate leading-snug mb-1 ${
                       conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#6a6a6a] font-medium'
@@ -162,26 +166,6 @@ export const ConversationList: React.FC = () => {
                     )}
                   </p>
                 </div>
-
-                <div className="flex flex-col items-end shrink-0 space-y-2 pt-0.5">
-                  <span className="text-[12px] text-[#b0b0b0] font-normal">
-                    {conv.lastMessageAt 
-                      ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }).replace('less than a minute', 'now') 
-                      : ''}
-                  </span>
-                  
-                  {conv.unreadCount > 0 && (
-                    <div className="flex items-center justify-center h-[22px] w-[22px] bg-[#25D366] text-white rounded-full text-[11px] font-bold">
-                      {conv.unreadCount}
-                    </div>
-                  )}
-                </div>
-
-                {conv.unreadCount === 0 && conv.latestMessageId && conv.otherLastReadMessageId && conv.latestMessageId.toLowerCase() === conv.otherLastReadMessageId.toLowerCase() && (
-                  <div className="absolute bottom-3 right-4 text-[#25D366]">
-                    <CheckCheck className="h-4 w-4" />
-                  </div>
-                )}
               </button>
             ))}
           </div>

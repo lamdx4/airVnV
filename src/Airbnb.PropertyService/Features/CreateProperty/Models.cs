@@ -12,10 +12,13 @@ namespace Airbnb.PropertyService.Features.CreateProperty;
 // DTO for JSON Deserialization from Payload
 // ============================================================
 
+public record ImageMetadataDto(string FileName, ImageType Type);
+
 public record CreatePropertyDto(
     string Title,
     string Description,
     string Slug,
+    PropertyType Type,
     decimal BasePrice,
     string CurrencyCode,
     decimal CleaningFee,
@@ -43,7 +46,8 @@ public record CreatePropertyDto(
     bool FlexibleCheckOut = false,
     List<string>? CustomRules = null,
     List<Guid>? AmenityIds = null,
-    BookingMode BookingMode = BookingMode.InstantBook);
+    BookingMode BookingMode = BookingMode.InstantBook,
+    List<ImageMetadataDto>? ImageMetadata = null);
 
 // ============================================================
 // HTTP Request (Multipart/form-data)

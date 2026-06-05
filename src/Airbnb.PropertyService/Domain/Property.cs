@@ -35,6 +35,7 @@ public class Property : AggregateRoot
 
     public PropertyStatus Status { get; private set; }
     public BookingMode BookingMode { get; private set; }
+    public PropertyType Type { get; private set; }
     public string? SuspensionReason { get; private set; }
     
     // Review Stats
@@ -70,6 +71,7 @@ public class Property : AggregateRoot
         Pricing pricing,
         PropertyCapacity capacity,
         HouseRules houseRules,
+        PropertyType type,
         string? admin1Code = null,
         string? admin2Code = null,
         BookingMode bookingMode = BookingMode.InstantBook)
@@ -96,6 +98,7 @@ public class Property : AggregateRoot
             Capacity = capacity,
             HouseRules = houseRules,
             BookingMode = bookingMode,
+            Type = type,
             Status = PropertyStatus.Draft,
             ReviewCount = 0,
             AverageRating = 0m,
@@ -251,6 +254,7 @@ public class Property : AggregateRoot
         Pricing? pricing,
         PropertyCapacity? capacity,
         HouseRules? houseRules,
+        PropertyType? type,
         BookingMode? bookingMode)
     {
         if (title is not null)
@@ -263,6 +267,7 @@ public class Property : AggregateRoot
         if (pricing is not null) Pricing = pricing;
         if (capacity is not null) Capacity = capacity;
         if (houseRules is not null) HouseRules = houseRules;
+        if (type is not null) Type = type.Value;
         if (bookingMode is not null) BookingMode = bookingMode.Value;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

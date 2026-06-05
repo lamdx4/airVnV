@@ -5,7 +5,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Profile.Update;
 
-public class Endpoint : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(Mediator.IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -24,7 +24,6 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
         // Map UserId từ Claim vào Command
         req.UserId = userId;
 
-        // Bắt buộc dùng ExecuteAsync() cho Command (Rule 2)
-        Response = await req.ExecuteAsync(ct);
+        Response = await mediator.Send(req, ct);
     }
 }

@@ -22,8 +22,25 @@ export const propertiesApi = {
     api.get(`/api/properties/${id}`) as any,
 
   // Update core info
-  updateProperty: (id: string, data: EditPropertyInput): Promise<void> => 
-    api.put(`/api/properties/${id}`, data) as any,
+  updateProperty: (id: string, data: EditPropertyInput): Promise<void> => {
+    const flatData = {
+      title: data.title,
+      description: data.description,
+      type: data.type,
+      // Pricing
+      basePrice: data.pricing?.basePrice,
+      cleaningFee: data.pricing?.cleaningFee,
+      // HouseRules
+      allowPets: data.houseRules?.allowPets,
+      allowSmoking: data.houseRules?.allowSmoking,
+      allowEvents: data.houseRules?.allowEvents,
+      checkInTime: data.houseRules?.checkInTime,
+      checkOutTime: data.houseRules?.checkOutTime,
+      flexibleCheckOut: data.houseRules?.flexibleCheckOut,
+      customRules: data.houseRules?.customRules
+    };
+    return api.put(`/api/properties/${id}`, flatData) as any;
+  },
 
   // Update location
   updateLocation: (id: string, data: UpdateLocationRequest): Promise<void> =>
