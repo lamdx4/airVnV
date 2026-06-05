@@ -220,7 +220,9 @@ export const useChatHub = (activeConversationId: string | null) => {
             const newAttPages = [...oldAtts.pages];
             if (newAttPages.length > 0) {
               const attItems = [...newAttPages[0].items];
-              const attExists = attItems.some((a: any) => a.messageId === newAtt.messageId);
+              const attExists = attItems.some(
+                (a: any) => a.messageId === newAtt.messageId,
+              );
               if (!attExists) {
                 newAttPages[0] = {
                   ...newAttPages[0],
@@ -229,7 +231,7 @@ export const useChatHub = (activeConversationId: string | null) => {
               }
             }
             return { ...oldAtts, pages: newAttPages };
-          }
+          },
         );
       }
     });

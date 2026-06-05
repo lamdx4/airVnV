@@ -29,8 +29,11 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
-            // Đã gỡ bỏ Unique Index sai logic (1 property chỉ có 1 conversation)
-            // Thay vào đó việc chống duplicate được xử lý ở tầng Application (Handler)
+            // Đảm bảo không tạo 2 conversation cho cùng 1 booking (property + reservation)
+            entity.HasIndex(e => new { e.PropertyId, e.ReservationId })
+                  .IsUnique()
+                  .HasFilter("\"ReservationId\" IS NOT NULL")
+                  .HasDatabaseName("idx_conversation_property_reservation_unique");
             
             // Vẫn giữ lại Index thông thường để query cho nhanh
             entity.HasIndex(e => e.PropertyId)

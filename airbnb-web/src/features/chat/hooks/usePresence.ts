@@ -28,6 +28,7 @@ export const usePresence = (userId?: string | null, connection?: signalR.HubConn
       return response;
     },
     enabled: !!userId,
-    staleTime: Infinity, // SignalR updates will manually mutate cache
+    staleTime: 60 * 1000, // 60 giây
+    refetchInterval: 60 * 1000, // Tự động polling để check trạng thái phòng khi bạn bè tắt tab (Redis hết hạn)
   });
 };

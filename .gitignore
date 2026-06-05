@@ -25,3 +25,6 @@ dist-ssr/
 log.txt
 # Secrets
 firebase-service-account.json
+
+# UserService Settings
+src/Airbnb.UserService/appsettings*.json

@@ -76,13 +76,12 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var userIdObj) && userIdObj is Guid userId)
         {
-            // Xóa connection khỏi user group (SignalR cũng tự động clear, nhưng thêm vào để tường minh hoặc xử lý thêm logic offline sau này)
+            // Xóa connection khỏi user group (SignalR cũng tự động clear, nhưng thêm vào để tường minh)
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
 
-            // Xóa presence cache
-            await cache.RemoveAsync($"presence:user:{userId}");
-
-            await NotifyStatusChanged(userId, "offline");
+            // KHÔNG xóa presence cache hay báo "offline" ngay lập tức ở đây.
+            // Tránh lỗi Multi-tab: Nếu user đóng 1 tab nhưng vẫn còn tab khác, họ không được phép bị offline.
+            // Trạng thái Offline thực sự sẽ xảy ra một cách tự nhiên sau 90s khi Redis TTL hết hạn (vì không còn tab nào bơm Heartbeat nữa).
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -105,6 +104,16 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var callerIdObj) && callerIdObj is Guid callerId)
         {
+            // Kiểm tra xem 2 người đã từng có chung ít nhất 1 conversation chưa
+            var hasSharedConversation = await db.Conversations
+                .AnyAsync(c => c.Participants.Any(p => p.UserId == callerId) 
+                            && c.Participants.Any(p => p.UserId == targetUserId));
+
+            if (!hasSharedConversation)
+            {
+                throw new HubException("Forbidden: You must have an active conversation with this user to initiate a call.");
+            }
+
             await Clients.Group($"user_{targetUserId}").SendAsync("IncomingCall", new 
             { 
                 CallerId = callerId, 
