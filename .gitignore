@@ -23,7 +23,8 @@ AGENTS.md
 CLAUDE.md
 .gitnexusrc
 specs
-.factory/
+.factory
+.claude
 
 # Logs
 *.txt
