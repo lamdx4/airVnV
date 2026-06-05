@@ -95,6 +95,15 @@ export const ChatContainer: React.FC = () => {
     rejectCall();
   };
 
+  const handleStreamReady = useCallback((stream: MediaStream) => {
+    if (!activeCallParticipant) return;
+    if (isAnswering) {
+      acceptCall(stream);
+    } else {
+      startCall(activeCallParticipant.id, stream, isVideoCall);
+    }
+  }, [isAnswering, acceptCall, startCall, activeCallParticipant, isVideoCall]);
+
   // Find info of the person calling us
   const incomingConversation = data?.pages
     .flatMap((page) => page.items)
@@ -233,13 +242,7 @@ export const ChatContainer: React.FC = () => {
             isVideoCall={isVideoCall}
             connection={connection}
             remoteStream={remoteStream}
-            onStreamReady={(stream) => {
-              if (isAnswering) {
-                acceptCall(stream);
-              } else {
-                startCall(activeCallParticipant.id, stream, isVideoCall);
-              }
-            }}
+            onStreamReady={handleStreamReady}
           />
         )}
       </div>

@@ -274,17 +274,4 @@ const CallModalComponent: React.FC<CallModalProps> = ({
   );
 };
 
-export const CallModal = React.memo(
-  CallModalComponent,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.isOpen === nextProps.isOpen &&
-      prevProps.onClose === nextProps.onClose &&
-      prevProps.isVideoCall === nextProps.isVideoCall &&
-      prevProps.connection === nextProps.connection &&
-      prevProps.remoteStream === nextProps.remoteStream &&
-      prevProps.otherParticipantName === nextProps.otherParticipantName &&
-      prevProps.otherParticipantAvatar === nextProps.otherParticipantAvatar
-    );
-  },
-);
+export const CallModal = React.memo(CallModalComponent);
