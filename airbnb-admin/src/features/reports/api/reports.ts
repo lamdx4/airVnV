@@ -47,8 +47,8 @@ export const reportsApi = {
       params: { from, to, limit },
     }),
 
-  getUserGrowth: (from: string, to: string) =>
+  getUserGrowth: (from: string, to: string, groupBy: "day" | "week" | "month" = "day") =>
     api.get<ApiResponse<UserGrowthPoint[]>>("/admin/reports/user-growth", {
-      params: { from, to },
+      params: { from, to, groupBy },
     }),
 };

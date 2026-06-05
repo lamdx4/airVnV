@@ -55,4 +55,20 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.PropertyService.Features.GetRecentActivity.ActivityItem))]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.PropertyService.Features.GetRecentActivity.ActivityItem>>))]
 
+// --- Admin: GetPublishedCount (UC-E2 Reports) ---
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetPublishedCount.Request), TypeInfoPropertyName = "AdminGetPublishedCountRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetPublishedCount.PublishedCountResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetPublishedCount.PublishedCountResponse>))]
+
+// --- Admin: GetNewPropertiesCount (UC-E2 Reports) ---
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetNewPropertiesCount.Request), TypeInfoPropertyName = "AdminGetNewPropertiesCountRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetNewPropertiesCount.NewPropertiesCountResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.GetNewPropertiesCount.NewPropertiesCountResponse>))]
+
+// --- Admin: GetPropertiesByIds (UC-E2 Reports) ---
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetPropertiesByIds.Request), TypeInfoPropertyName = "AdminGetPropertiesByIdsRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.GetPropertiesByIds.PropertyBasicInfo))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.PropertyService.Features.GetPropertiesByIds.PropertyBasicInfo>>))]
+[JsonSerializable(typeof(Guid[]), TypeInfoPropertyName = "GuidArray")]
+
 internal partial class PropertyJsonContext : JsonSerializerContext { }

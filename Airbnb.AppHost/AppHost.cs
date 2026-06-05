@@ -68,13 +68,6 @@ builder.AddProject<Projects.Airbnb_Infrastructure_Configurator>("debezium-config
     .WaitFor(debezium);
 
 // 4. Microservices (VSA Architecture)
-var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
-    .WithEnvironment("DOTNET_gcServer", "0") // Workstation GC giúp tiết kiệm RAM tối đa cho local
-    .WithReference(userDb)
-    .WithReference(rabbit)
-    .WaitFor(userDb)
-    .WaitFor(rabbit);
-
 var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
     .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(propDb)
@@ -90,6 +83,15 @@ var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice
     .WaitFor(bookDb)
     .WaitFor(rabbit)
     .WaitFor(kafka);
+
+var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
+    .WithEnvironment("DOTNET_gcServer", "0") // Workstation GC giúp tiết kiệm RAM tối đa cho local
+    .WithReference(userDb)
+    .WithReference(rabbit)
+    .WithReference(propSvc)   // needed for dashboard: property stats + recent activity
+    .WithReference(bookSvc)   // needed for dashboard: booking stats + revenue chart
+    .WaitFor(userDb)
+    .WaitFor(rabbit);
 
 var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
     .WithEnvironment("DOTNET_gcServer", "0")

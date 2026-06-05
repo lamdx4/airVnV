@@ -1,3 +1,10 @@
 export { reportsApi } from "./api/reports";
 export type { ReportSummary, RevenueBreakdown, TopProperty, UserGrowthPoint } from "./types";
 export { useReportSummary, useRevenueBreakdown, useTopProperties, useUserGrowth } from "./hooks";
+export { ReportsView } from "./components/reports-view";
+export { ReportsTabBar, type ReportsTab } from "./components/reports-tab-bar";
+export { DateRangePicker } from "./components/date-range-picker";
+export { SummaryView } from "./components/summary-view";
+export { RevenueBreakdownView } from "./components/revenue-breakdown-view";
+export { TopPropertiesView } from "./components/top-properties-view";
+export { UserGrowthView } from "./components/user-growth-view";

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 
+using Airbnb.ServiceDefaults.Infrastructure;
 using Airbnb.SharedKernel.Domain;
 using Airbnb.UserService.Domain.Events;
 

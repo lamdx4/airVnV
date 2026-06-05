@@ -1,0 +1,10 @@
+{
+  "_comment": "Postgres databases exposed via Aspire Resource MCP proxy (WithPostgresMcp). Aspire must be running: cd src/Airbnb.AppHost && dotnet run. See docs/Aspire_Postgres_MCP.md.",
+  "mcpServers": {
+    "aspire": {
+      "type": "stdio",
+      "command": "C:\\Users\\anhkh\\.dotnet\\tools\\aspire.cmd",
+      "args": ["agent", "mcp"]
+    }
+  }
+}

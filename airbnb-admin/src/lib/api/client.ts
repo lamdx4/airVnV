@@ -24,9 +24,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => {
     const body = response.data as ApiResponse<unknown>;
-    if (body && typeof body === "object" && "success" in body && body.success === true) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { ...response, data: body.data } as any;
+    if (body && typeof body === "object" && "success" in body) {
+      if (body.success === true) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return { ...response, data: body.data } as any;
+      }
+      // success: false — treat as error so queries enter isError state
+      return Promise.reject(
+        Object.assign(new Error(body.message ?? "Request failed"), {
+          response,
+          errorCode: body.errorCode,
+        })
+      );
     }
     return response;
   },

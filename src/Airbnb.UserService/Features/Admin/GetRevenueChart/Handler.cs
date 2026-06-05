@@ -27,11 +27,6 @@ public sealed class Handler(
             logger.LogWarning(ex, "Failed to retrieve revenue chart from BookingService");
         }
 
-        var empty = Enumerable.Range(0, days)
-            .Select(offset => DateTimeOffset.UtcNow.AddDays(-days + offset + 1).Date.ToString("yyyy-MM-dd"))
-            .Select(date => new RevenueChartPoint(date, 0, 0))
-            .ToList();
-
-        return ApiResponse<List<RevenueChartPoint>>.SuccessResult(empty);
+        return ApiResponse<List<RevenueChartPoint>>.SuccessResult([]);
     }
 }

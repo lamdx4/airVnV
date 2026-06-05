@@ -38,14 +38,24 @@ public sealed class Handler(
             logger.LogWarning(ex, "Failed to retrieve booking stats from BookingService");
         }
 
+        if (propertyStats is null || bookingStats is null)
+        {
+            logger.LogWarning(
+                "Dashboard stats unavailable — PropertyService={PropertyAvailable}, BookingService={BookingAvailable}",
+                propertyStats is not null, bookingStats is not null);
+            return ApiResponse<DashboardStatsResponse>.FailureResult(
+                "DASHBOARD_UNAVAILABLE",
+                "Some services are temporarily unavailable. Please try again later.");
+        }
+
         return ApiResponse<DashboardStatsResponse>.SuccessResult(
             new DashboardStatsResponse(
-                TotalProperties: propertyStats?.TotalProperties ?? 0,
-                TotalBookings: bookingStats?.TotalBookings ?? 0,
+                TotalProperties: propertyStats.TotalProperties,
+                TotalBookings: bookingStats.TotalBookings,
                 TotalUsers: totalUsers,
-                TotalRevenue: bookingStats?.TotalRevenue ?? 0,
-                PendingReviews: propertyStats?.TotalReviews ?? 0,
-                ActiveBookings: bookingStats?.ActiveBookings ?? 0
+                TotalRevenue: bookingStats.TotalRevenue,
+                PendingReviews: propertyStats.TotalReviews,
+                ActiveBookings: bookingStats.ActiveBookings
             )
         );
     }
