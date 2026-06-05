@@ -164,6 +164,10 @@ export const useChatHub = (activeConversationId: string | null) => {
           targetConv.latestMessageId = newMsg.id;
           targetConv.latestMessageType = newMsg.messageType;
 
+          if (newMsg.messageType === "System") {
+            targetConv.latestSystemMessageContent = newMsg.content;
+          }
+
           // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
           const isCurrentlyActive =
             currentActiveId?.toLowerCase() ===

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ChatMessage, Conversation } from '../types/model';
 import { useMessages } from '../hooks/useMessages';
 import { useInbox } from '../hooks/useInbox';
@@ -25,6 +25,7 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
   const { data: inboxData } = useInbox();
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [showPin, setShowPin] = useState(true);
 
   const messages = [...(data?.pages.flatMap(page => page.items) || [])]
     .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()); // Sắp xếp giảm dần (mới nhất ở index 0)
@@ -107,12 +108,54 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
   });
 
   return (
-    <div 
-      ref={scrollRef}
-      className="flex-1 overflow-y-auto px-4 md:px-12 py-8 flex flex-col-reverse bg-[#ffffff] custom-scrollbar"
-      onScroll={handleScroll}
-    >
-      <div className="h-4 shrink-0" />
+    <div className="relative flex-1 flex flex-col min-h-0 bg-[#ffffff]">
+      {/* Pinned system message */}
+      <AnimatePresence>
+        {(showPin && conversation?.latestSystemMessageContent) && (
+          <div className="absolute top-4 left-0 right-0 z-20 flex justify-center pointer-events-none px-4">
+            <motion.div 
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="pointer-events-auto bg-white/95 backdrop-blur-md text-[#222222] p-2.5 rounded-[16px] border border-[#ebebeb] shadow-sm flex items-center gap-3 max-w-[420px] w-full ring-1 ring-black/5"
+            >
+              <div className="w-11 h-11 bg-[#f7f7f7] p-2.5 rounded-[10px] border border-[#ebebeb] shrink-0 shadow-xs flex items-center justify-center">
+                <Icon icon="logos:airbnb-icon" className="w-6 h-6 opacity-80" />
+              </div>
+              
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className="font-semibold text-[13.5px] truncate">{conversation?.propertyTitle || 'Reservation Update'}</span>
+                </div>
+                <div className="flex items-center text-[#6a6a6a] text-[12px] truncate mt-0.5">
+                  <span className="truncate">{conversation?.latestSystemMessageContent}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0 ml-1">
+                <button 
+                  className="w-7 h-7 flex items-center justify-center hover:bg-[#ebebeb] rounded-full text-[#6a6a6a] transition-colors" 
+                  title="Dismiss"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPin(false);
+                  }}
+                >
+                  <Icon icon="fluent:dismiss-24-regular" className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 md:px-12 py-8 flex flex-col-reverse custom-scrollbar"
+        onScroll={handleScroll}
+      >
+        <div className="h-4 shrink-0" />
 
       {/* Typing indicator nằm ở visual bottom (DOM đầu tiên trong flex-col-reverse) */}
       {isTyping && (
@@ -191,6 +234,7 @@ export const MessageList: React.FC<MessageListProps> = ({ connection, activeConv
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -18,5 +18,6 @@ public record InboxItem(
     Guid? OtherLastReadMessageId,
     string? LatestMessageContent,
     Guid? LatestMessageId,
-    string? LatestMessageType
+    string? LatestMessageType,
+    string? LatestSystemMessageContent
 );

@@ -39,7 +39,11 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
                     .FirstOrDefault(),
                 LatestMessage = c.Messages.OrderByDescending(m => m.CreatedAt)
                                           .Select(m => new { m.Id, m.Content, m.MessageType })
-                                          .FirstOrDefault()
+                                          .FirstOrDefault(),
+                LatestSystemMessage = c.Messages.Where(m => m.MessageType == MessageType.System)
+                                                .OrderByDescending(m => m.CreatedAt)
+                                                .Select(m => m.Content)
+                                                .FirstOrDefault()
             })
             .Select(x => new
             {
@@ -55,7 +59,8 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
                 ),
                 LatestMessageContent = x.LatestMessage != null ? x.LatestMessage.Content : null,
                 LatestMessageId = x.LatestMessage != null ? (Guid?)x.LatestMessage.Id : null,
-                LatestMessageType = x.LatestMessage != null ? x.LatestMessage.MessageType.ToString() : null
+                LatestMessageType = x.LatestMessage != null ? x.LatestMessage.MessageType.ToString() : null,
+                LatestSystemMessageContent = x.LatestSystemMessage
             })
             .ToListAsync(ct);
 
@@ -74,7 +79,8 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             r.OtherParticipant?.LastReadMessageId,
             r.LatestMessageContent,
             r.LatestMessageId,
-            r.LatestMessageType
+            r.LatestMessageType,
+            r.LatestSystemMessageContent
         )).ToList();
 
         DateTimeOffset? nextCursor = hasMore ? items.Last().LastMessageAt : null;

@@ -44,6 +44,7 @@ export const mapConversationDtoToModel = (
     latestMessageContent: dto.latestMessageContent || dto.LatestMessageContent,
     latestMessageId: dto.latestMessageId || dto.LatestMessageId,
     latestMessageType: dto.latestMessageType || dto.LatestMessageType,
+    latestSystemMessageContent: dto.latestSystemMessageContent || dto.LatestSystemMessageContent,
     otherParticipantId: otherParticipantId,
   };
 };
