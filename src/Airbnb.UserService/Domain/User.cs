@@ -129,12 +129,11 @@ public class User : AggregateRoot
 
     public void Activate()
     {
-        if (Status is not UserStatus.Suspended)
-            throw new BusinessException("Only suspended users can be activated.", "INVALID_STATUS_TRANSITION");
-        if (Status is UserStatus.Banned)
-            throw new BusinessException("Banned accounts cannot be reactivated.", "USER_ALREADY_BANNED");
+        if (Status is not (UserStatus.Suspended or UserStatus.Banned))
+            throw new BusinessException("Only suspended or banned users can be activated.", "INVALID_STATUS_TRANSITION");
         Status = UserStatus.Active;
         SuspensionReason = null;
+        BanReason = null;
     }
 
     public void ApproveVerification()

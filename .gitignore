@@ -20,6 +20,8 @@ dist-ssr/
 .agent/
 .gitnexus
 AGENTS.md
+CLAUDE.md
+.gitnexusrc
 specs
 .factory/
 

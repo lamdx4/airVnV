@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,7 +14,6 @@ import {
   RotateCcw,
   ZoomIn,
 } from "lucide-react";
-
 import { ROUTES } from "@/config/constants";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/breadcrumbs";
 import { PageLoader } from "@/components/common/loading";
@@ -33,7 +31,6 @@ import {
   AlertDialogTitle,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-
 import {
   useUser,
   useSuspendUser,
@@ -57,7 +54,6 @@ export function UserDetail({ userId }: UserDetailProps) {
     isError,
     refetch,
   } = useUser(userId);
-
   const suspendMutation = useSuspendUser();
   const banMutation = useBanUser();
   const activateMutation = useActivateUser();
@@ -82,9 +78,11 @@ export function UserDetail({ userId }: UserDetailProps) {
   const statusConfig = getUserStatusConfig(user.status);
   const roleConfig = getUserRoleConfig(user.role);
   const isHost = user.role === UserRole.USER;
+
   const canSuspend = user.status === UserStatus.ACTIVE || user.status === UserStatus.PENDING_VERIFICATION;
   const canBan = user.status === UserStatus.ACTIVE || user.status === UserStatus.SUSPENDED || user.status === UserStatus.PENDING_VERIFICATION;
-  const canActivate = user.status === UserStatus.SUSPENDED;
+  const canActivate = user.status === UserStatus.SUSPENDED || user.status === UserStatus.BANNED;
+
   const hasKycDocuments = user.kycDocuments && user.kycDocuments.length > 0;
   const hasPendingKyc = hasKycDocuments && user.kycDocuments!.some((d) => d.status === "Submitted");
 
@@ -240,11 +238,6 @@ export function UserDetail({ userId }: UserDetailProps) {
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Activate
               </Button>
-              {user.status === UserStatus.BANNED && (
-                <p className="text-xs text-[#6a6a6a]">
-                  Banned accounts cannot be reactivated by standard admin.
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -309,13 +302,11 @@ export function UserDetail({ userId }: UserDetailProps) {
                         {doc.reviewedAt && <> &middot; Reviewed {formatDate(doc.reviewedAt)}</>}
                       </span>
                     </div>
-
                     {doc.rejectionReason && (
                       <p className="text-sm text-[#c13515]">
                         Reason: {doc.rejectionReason}
                       </p>
                     )}
-
                     {doc.images.length > 0 && (
                       <div className="flex flex-wrap gap-3">
                         {doc.images.map((img) => (
@@ -339,7 +330,6 @@ export function UserDetail({ userId }: UserDetailProps) {
                     )}
                   </div>
                 ))}
-
                 {hasPendingKyc && (
                   <div className="flex items-center gap-3">
                     <Button
@@ -399,7 +389,7 @@ export function UserDetail({ userId }: UserDetailProps) {
           if (!open) setBanReason("");
         }}
         title="Ban User"
-        description="Are you sure you want to ban this user? This action is permanent and cannot be reversed by standard admin."
+        description="Are you sure you want to ban this user? This action is permanent."
         confirmLabel="Ban"
         variant="destructive"
         onConfirm={handleBan}
