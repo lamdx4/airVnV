@@ -14,7 +14,7 @@ export const propertiesApi = {
     api.get<ApiResponse<Property>>(`/properties/${id}`),
 
   approve: (id: string) =>
-    api.post<ApiResponse<{ id: string; status: string }>>(`/properties/${id}/approve`),
+    api.post<ApiResponse<{ id: string; status: string }>>(`/properties/${id}/approve`, {}),
 
   reject: (id: string, reason: string) =>
     api.post<ApiResponse<{ id: string; status: string; reason: string }>>(`/properties/${id}/reject`, { reason }),
@@ -23,7 +23,7 @@ export const propertiesApi = {
     api.post<ApiResponse<{ id: string; status: string; reason: string }>>(`/properties/${id}/suspend`, { reason }),
 
   reinstate: (id: string) =>
-    api.post<ApiResponse<{ id: string; status: string }>>(`/properties/${id}/reinstate`),
+    api.post<ApiResponse<{ id: string; status: string }>>(`/properties/${id}/reinstate`, {}),
 
   adminDelete: (id: string) =>
     api.delete<ApiResponse<{ id: string; message: string }>>(`/properties/${id}/admin-delete`),

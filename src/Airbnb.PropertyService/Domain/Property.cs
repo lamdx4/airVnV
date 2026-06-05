@@ -125,7 +125,9 @@ public class Property : AggregateRoot
     {
         if (Status != PropertyStatus.PendingReview)
             throw new BusinessException("Only properties pending review can be approved.", "PROPERTY_NOT_IN_REVIEW");
-            
+
+        Status = PropertyStatus.Published;
+        UpdatedAt = DateTimeOffset.UtcNow;
         Version++;
         Raise(new PropertyPublishedEvent(Id, HostId, Title, CountryCode, Admin1Code, Admin2Code, Latitude, Longitude, Version));
     }
