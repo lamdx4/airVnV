@@ -119,7 +119,7 @@ export function UsersList() {
       header: "Verified",
       cell: ({ row }) =>
         row.original.isVerified ? (
-          <Badge variant="default" className="bg-green-600">Verified</Badge>
+          <Badge variant="success">Verified</Badge>
         ) : (
           <Badge variant="outline">Unverified</Badge>
         ),
@@ -153,7 +153,7 @@ export function UsersList() {
   if (isError) {
     return (
       <div className="flex h-[50vh] items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load users.</p>
+        <p className="text-[#6a6a6a]">Failed to load users.</p>
         <Button variant="outline" onClick={() => refetch()}>
           Retry
         </Button>
@@ -205,7 +205,7 @@ export function UsersList() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-[#6a6a6a]">
           <Users className="h-4 w-4" />
           {totalItems} users
         </div>

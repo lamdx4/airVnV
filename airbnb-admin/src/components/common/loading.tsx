@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PageLoaderProps {
   text?: string;
@@ -6,9 +7,9 @@ interface PageLoaderProps {
 
 export function PageLoader({ text = "Loading..." }: PageLoaderProps) {
   return (
-    <div className="flex h-[50vh] flex-col items-center justify-center gap-2">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      <p className="text-sm text-muted-foreground">{text}</p>
+    <div className="flex h-[50vh] flex-col items-center justify-center gap-3">
+      <Loader2 className="h-8 w-8 animate-spin text-[#ff385c]" />
+      <p className="text-sm text-[#6a6a6a]">{text}</p>
     </div>
   );
 }
@@ -16,5 +17,3 @@ export function PageLoader({ text = "Loading..." }: PageLoaderProps) {
 export function InlineLoader({ className }: { className?: string }) {
   return <Loader2 className={cn("h-4 w-4 animate-spin", className)} />;
 }
-
-import { cn } from "@/lib/utils";

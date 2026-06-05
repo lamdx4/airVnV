@@ -15,11 +15,11 @@ import type { RecentActivity } from "../types";
 import { RecentActivitySkeleton } from "./skeletons";
 
 const ActivityTypeConfig = {
-  booking:  { icon: CalendarCheck, color: "text-blue-600",  bg: "bg-blue-50"  },
+  booking:  { icon: CalendarCheck, color: "text-[#ff385c]",  bg: "bg-[#ff385c]/10"  },
   property: { icon: Building2,     color: "text-emerald-600", bg: "bg-emerald-50" },
-  user:     { icon: UserPlus,      color: "text-purple-600", bg: "bg-purple-50" },
+  user:     { icon: UserPlus,      color: "text-[#460479]", bg: "bg-[#460479]/10" },
   payment:  { icon: CreditCard,    color: "text-amber-600",  bg: "bg-amber-50"  },
-  review:   { icon: Star,          color: "text-pink-600",   bg: "bg-pink-50"   },
+  review:   { icon: Star,          color: "text-[#92174d]",   bg: "bg-[#92174d]/10"   },
 } as const;
 
 type ActivityType = keyof typeof ActivityTypeConfig;
@@ -51,8 +51,8 @@ function ActivityItem({ activity }: { activity: RecentActivity }) {
         <Icon className={cn("h-4 w-4", config.color)} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-ink">{activity.description}</p>
-        <p className="text-xs text-muted-foreground">{getRelativeTime(activity.timestamp)}</p>
+        <p className="truncate text-sm text-[#222222]">{activity.description}</p>
+        <p className="text-xs text-[#6a6a6a]">{getRelativeTime(activity.timestamp)}</p>
       </div>
     </div>
   );
@@ -68,7 +68,7 @@ export function RecentActivityFeed() {
       <Card>
         <CardContent className="flex h-[300px] items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <p className="text-sm text-muted-foreground">Failed to load recent activity.</p>
+            <p className="text-sm text-[#6a6a6a]">Failed to load recent activity.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
@@ -87,7 +87,7 @@ export function RecentActivityFeed() {
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent className="flex h-[200px] items-center justify-center">
-          <p className="text-sm text-muted-foreground">No recent activity to display.</p>
+          <p className="text-sm text-[#6a6a6a]">No recent activity to display.</p>
         </CardContent>
       </Card>
     );
@@ -97,12 +97,12 @@ export function RecentActivityFeed() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Activity</CardTitle>
-        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+        <Button variant="ghost" size="sm" className="text-xs text-[#6a6a6a]">
           View All
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="divide-y divide-hairline">
+        <div className="divide-y divide-[#dddddd]">
           {activities.map((activity) => (
             <ActivityItem key={activity.id} activity={activity} />
           ))}

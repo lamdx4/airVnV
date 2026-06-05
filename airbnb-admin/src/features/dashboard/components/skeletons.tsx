@@ -25,7 +25,7 @@ export function RevenueChartSkeleton() {
         <Skeleton className="h-5 w-40" />
         <div className="flex gap-2">
           {["7d", "14d", "30d", "90d"].map((d) => (
-            <Skeleton key={d} className="h-8 w-12 rounded-md" />
+            <Skeleton key={d} className="h-8 w-12 rounded-[8px]" />
           ))}
         </div>
       </CardHeader>

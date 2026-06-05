@@ -73,14 +73,19 @@ function LoginForm() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-semibold">Admin Login</CardTitle>
-        <CardDescription>
+    <Card className="border-[#dddddd] shadow-[rgba(0,0,0,0.02)_0_0_0_1px,rgba(0,0,0,0.04)_0_2px_6px,rgba(0,0,0,0.1)_0_4px_8px]">
+      <CardHeader className="text-center pb-2">
+        <div className="mx-auto mb-2">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" className="h-12 w-12">
+            <path d="M16 1c2.008 0 3.463.963 4.751 3.269l.533 1.022c1.158 2.244 2.944 4.67 5.224 7.263l.654.727.835.916c2.085 2.3 3.179 4.186 3.332 5.72l.012.214.006.288c0 4.062-2.877 6.831-7.027 6.831-1.586 0-3.163-.465-4.638-1.322l-.227-.14-.277-.178-.246-.165-.136-.097-.276-.203-.166-.13c-.198-.156-.327-.272-.393-.348l-.035-.042-.035.042c-.066.076-.195.192-.393.348l-.166.13-.276.203-.136.097-.246.165-.277.178-.227.14c-1.475.857-3.052 1.322-4.638 1.322-4.15 0-7.027-2.769-7.027-6.831 0-1.694.864-3.536 2.477-5.59l.378-.465.835-.916.654-.727c2.28-2.593 4.066-5.02 5.224-7.263l.533-1.022C12.537 1.963 13.992 1 16 1z" fill="#ff385c"/>
+          </svg>
+        </div>
+        <CardTitle className="text-[22px] font-semibold text-[#222222]">Admin Login</CardTitle>
+        <CardDescription className="text-[#6a6a6a]">
           Sign in to manage the Airbnb platform
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -97,7 +102,7 @@ function LoginForm() {
               aria-invalid={!!errors.email}
             />
             {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
+              <p className="text-xs text-[#c13515]">{errors.email.message}</p>
             )}
           </div>
 
@@ -120,18 +125,18 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a6a6a] hover:text-[#222222] transition-colors"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
+              <p className="text-xs text-[#c13515]">{errors.password.message}</p>
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-12 rounded-[8px] text-base font-medium" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -145,7 +150,7 @@ function LoginForm() {
           <div className="text-center">
             <Link
               href="/forgot-password"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-[#6a6a6a] hover:text-[#222222] transition-colors"
             >
               Forgot your password?
             </Link>

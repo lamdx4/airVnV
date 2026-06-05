@@ -77,11 +77,11 @@ export function RejectPropertyDialog({
                 },
               })}
               aria-invalid={!!errors.reason}
-              className={errors.reason ? "border-destructive" : ""}
+              className={errors.reason ? "border-[#c13515]" : ""}
               rows={4}
             />
             {errors.reason && (
-              <p className="text-xs text-destructive">{errors.reason.message}</p>
+              <p className="text-xs text-[#c13515]">{errors.reason.message}</p>
             )}
           </div>
 

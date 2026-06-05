@@ -158,10 +158,10 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
-            <h1 className="text-2xl font-semibold">{property.title}</h1>
+            <h1 className="text-[28px] font-bold text-[#222222]">{property.title}</h1>
             <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[#6a6a6a]">
             Created {formatDate(property.createdAt)}
             {property.updatedAt && <> &middot; Updated {formatDate(property.updatedAt)}</>}
           </p>
@@ -195,7 +195,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
                 {property.averageRating > 0 ? property.averageRating.toFixed(1) : "No reviews yet"}
               </span>
               {property.reviewCount > 0 && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-[#6a6a6a]">
                   ({property.reviewCount} reviews)
                 </span>
               )}
@@ -207,7 +207,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
       {property.status === PropertyStatus.REJECTED && property.rejectionReason && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-destructive">Rejection Reason</CardTitle>
+            <CardTitle className="text-[#c13515]">Rejection Reason</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{property.rejectionReason}</p>
@@ -218,7 +218,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
       {property.status === PropertyStatus.SUSPENDED && property.suspensionReason && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-amber-600">Suspension Reason</CardTitle>
+            <CardTitle className="text-[#6a6a6a]">Suspension Reason</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{property.suspensionReason}</p>
@@ -313,7 +313,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="delete-confirm" className="text-sm text-muted-foreground">
+            <Label htmlFor="delete-confirm" className="text-sm text-[#6a6a6a]">
               Type &ldquo;{property.title}&rdquo; to confirm
             </Label>
             <Input
@@ -350,7 +350,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="flex items-center gap-2 text-muted-foreground">
+      <span className="flex items-center gap-2 text-[#6a6a6a]">
         {Icon && <Icon className="h-4 w-4" />}
         {label}
       </span>

@@ -176,7 +176,7 @@ export function PropertiesList() {
   if (isError) {
     return (
       <div className="flex h-[50vh] items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load properties.</p>
+        <p className="text-[#6a6a6a]">Failed to load properties.</p>
         <Button variant="outline" onClick={() => refetch()}>
           Retry
         </Button>
@@ -215,7 +215,7 @@ export function PropertiesList() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-[#6a6a6a]">
           <Building2 className="h-4 w-4" />
           {totalItems} properties
         </div>

@@ -1,3 +1,5 @@
+#pragma warning disable ASPIREMCP001, ASPIREPOSTGRES001 // Experimental MCP server & Postgres MCP APIs
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Đọc config môi trường
@@ -17,11 +19,11 @@ var postgres = builder.AddPostgres("postgres")
         e.TargetPort = 5432;
     });
 
-var userDb = postgres.AddDatabase("userdb");
-var propDb = postgres.AddDatabase("propdb");
-var bookDb = postgres.AddDatabase("bookdb");
-var payDb = postgres.AddDatabase("paydb");
-var chatDb = postgres.AddDatabase("chatdb");
+var userDb = postgres.AddDatabase("userdb").WithPostgresMcp();
+var propDb = postgres.AddDatabase("propdb").WithPostgresMcp();
+var bookDb = postgres.AddDatabase("bookdb").WithPostgresMcp();
+var payDb = postgres.AddDatabase("paydb").WithPostgresMcp();
+var chatDb = postgres.AddDatabase("chatdb").WithPostgresMcp();
 
 var kafka = builder.AddKafka("kafka")
     .WithLifetime(ContainerLifetime.Persistent)

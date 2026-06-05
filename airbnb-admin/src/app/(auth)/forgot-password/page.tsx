@@ -47,13 +47,13 @@ export default function ForgotPasswordPage() {
 
   if (isSent) {
     return (
-      <Card>
+      <Card className="border-[#dddddd] shadow-[rgba(0,0,0,0.02)_0_0_0_1px,rgba(0,0,0,0.04)_0_2px_6px,rgba(0,0,0,0.1)_0_4px_8px]">
         <CardHeader className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Mail className="h-6 w-6 text-primary" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#ff385c]/10">
+            <Mail className="h-6 w-6 text-[#ff385c]" />
           </div>
-          <CardTitle className="text-xl font-semibold">Check your email</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl font-semibold text-[#222222]">Check your email</CardTitle>
+          <CardDescription className="text-[#6a6a6a]">
             We sent a password reset link to your email address.
           </CardDescription>
         </CardHeader>
@@ -70,10 +70,10 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <Card>
+    <Card className="border-[#dddddd] shadow-[rgba(0,0,0,0.02)_0_0_0_1px,rgba(0,0,0,0.04)_0_2px_6px,rgba(0,0,0,0.1)_0_4px_8px]">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-semibold">Forgot Password</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-[22px] font-semibold text-[#222222]">Forgot Password</CardTitle>
+        <CardDescription className="text-[#6a6a6a]">
           Enter your email and we&apos;ll send you a reset link
         </CardDescription>
       </CardHeader>
@@ -94,11 +94,11 @@ export default function ForgotPasswordPage() {
               aria-invalid={!!errors.email}
             />
             {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
+              <p className="text-xs text-[#c13515]">{errors.email.message}</p>
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-12 rounded-[8px] text-base font-medium" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
           <div className="text-center">
             <Link
               href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-[#6a6a6a] hover:text-[#222222] transition-colors"
             >
               <ArrowLeft className="h-3 w-3 inline mr-1" />
               Back to login

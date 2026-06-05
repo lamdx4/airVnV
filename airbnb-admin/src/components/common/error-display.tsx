@@ -12,8 +12,8 @@ interface ErrorDisplayProps {
 export function ErrorDisplay({ message = "Something went wrong", onRetry }: ErrorDisplayProps) {
   return (
     <div className="flex h-[30vh] flex-col items-center justify-center gap-4">
-      <AlertCircle className="h-10 w-10 text-destructive" />
-      <p className="text-sm text-muted-foreground">{message}</p>
+      <AlertCircle className="h-10 w-10 text-[#c13515]" />
+      <p className="text-sm text-[#6a6a6a]">{message}</p>
       {onRetry && (
         <Button variant="outline" onClick={onRetry}>
           Try again

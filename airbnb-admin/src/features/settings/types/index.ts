@@ -26,3 +26,27 @@ export interface SystemSetting {
   description: string;
   updatedAt: string;
 }
+
+export interface PlatformFeeConfig {
+  id: string;
+  feePercentage: number;
+  description?: string;
+  changedBy: string;
+  previousValue?: number;
+  createdAt: string;
+}
+
+export interface PlatformFeeHistoryItem {
+  id: string;
+  feePercentage: number;
+  description?: string;
+  isActive: boolean;
+  changedBy: string;
+  previousValue?: number;
+  createdAt: string;
+}
+
+export interface CreatePlatformFeeRequest {
+  feePercentage: number;
+  description?: string;
+}

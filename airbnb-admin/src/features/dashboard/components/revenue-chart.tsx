@@ -49,12 +49,12 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   const bookings = payload.find((p) => p.dataKey === "bookings")?.value ?? 0;
 
   return (
-    <div className="rounded-lg border bg-card p-3 shadow-md">
-      <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold text-ink">
+    <div className="rounded-[8px] border border-[#dddddd] bg-white p-3 shadow-[rgba(0,0,0,0.02)_0_0_0_1px,rgba(0,0,0,0.04)_0_2px_6px,rgba(0,0,0,0.1)_0_4px_8px]">
+      <p className="mb-1 text-xs font-medium text-[#6a6a6a]">{label}</p>
+      <p className="text-sm font-semibold text-[#222222]">
         Revenue: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(revenue)}
       </p>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-[#6a6a6a]">
         Bookings: {bookings.toLocaleString()}
       </p>
     </div>
@@ -72,7 +72,7 @@ export function RevenueChart() {
       <Card>
         <CardContent className="flex h-[380px] items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <p className="text-sm text-muted-foreground">Failed to load chart data.</p>
+            <p className="text-sm text-[#6a6a6a]">Failed to load chart data.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
@@ -91,7 +91,7 @@ export function RevenueChart() {
           <CardTitle>Revenue & Bookings</CardTitle>
         </CardHeader>
         <CardContent className="flex h-[300px] items-center justify-center">
-          <p className="text-sm text-muted-foreground">No data available for the selected period.</p>
+          <p className="text-sm text-[#6a6a6a]">No data available for the selected period.</p>
         </CardContent>
       </Card>
     );
@@ -107,7 +107,7 @@ export function RevenueChart() {
               key={opt.days}
               variant={days === opt.days ? "default" : "ghost"}
               size="sm"
-              className={cn("h-7 px-3 text-xs", days === opt.days && "bg-ink text-white")}
+              className={cn("h-7 px-3 text-xs", days === opt.days && "bg-[#222222] text-white")}
               onClick={() => setDays(opt.days)}
             >
               {opt.label}

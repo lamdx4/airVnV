@@ -15,6 +15,8 @@ export const ROUTES = {
   USER_DETAIL: (id: string) => `/users/${id}`,
   PAYMENTS: "/payments",
   PAYMENT_DETAIL: (id: string) => `/payments/${id}`,
+  PAYOUTS: "/payments/payouts",
+  PAYOUT_DETAIL: (id: string) => `/payments/payouts/${id}`,
   REVIEWS: "/reviews",
   REPORTS: "/reports",
   SETTINGS: "/settings",

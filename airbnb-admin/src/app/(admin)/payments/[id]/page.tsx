@@ -1,3 +1,10 @@
-export default function PaymentDetailPage() {
-  return <div>Payment detail page placeholder</div>;
+import { PaymentDetailView } from "@/features/payments";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function PaymentDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  return <PaymentDetailView paymentId={id} />;
 }

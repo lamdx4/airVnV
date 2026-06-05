@@ -177,17 +177,17 @@ export function UserDetail({ userId }: UserDetailProps) {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
-            <h1 className="text-2xl font-semibold">{user.fullName}</h1>
+            <h1 className="text-[28px] font-bold text-[#222222]">{user.fullName}</h1>
             <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
             <Badge variant="outline">{roleConfig.label}</Badge>
             {user.isVerified && (
-              <Badge variant="default" className="bg-green-600">
+              <Badge variant="success">
                 <ShieldCheck className="h-3 w-3 mr-1" />
                 Verified
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[#6a6a6a]">
             Created {formatDate(user.createdAt)}
             {user.lastLoginAt && <> &middot; Last login {formatDate(user.lastLoginAt)}</>}
           </p>
@@ -241,7 +241,7 @@ export function UserDetail({ userId }: UserDetailProps) {
                 Activate
               </Button>
               {user.status === UserStatus.BANNED && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-[#6a6a6a]">
                   Banned accounts cannot be reactivated by standard admin.
                 </p>
               )}
@@ -253,7 +253,7 @@ export function UserDetail({ userId }: UserDetailProps) {
       {user.suspensionReason && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-amber-600">Suspension Reason</CardTitle>
+            <CardTitle className="text-[#6a6a6a]">Suspension Reason</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{user.suspensionReason}</p>
@@ -264,7 +264,7 @@ export function UserDetail({ userId }: UserDetailProps) {
       {user.banReason && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-destructive">Ban Reason</CardTitle>
+            <CardTitle className="text-[#c13515]">Ban Reason</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{user.banReason}</p>
@@ -279,40 +279,39 @@ export function UserDetail({ userId }: UserDetailProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             {!hasKycDocuments && (
-              <p className="text-sm text-muted-foreground">No identity documents submitted.</p>
+              <p className="text-sm text-[#6a6a6a]">No identity documents submitted.</p>
             )}
             {hasKycDocuments && (
               <>
                 {user.kycDocuments!.map((doc) => (
-                  <div key={doc.id} className="space-y-3 rounded-md border p-4">
+                  <div key={doc.id} className="space-y-3 rounded-[8px] border border-[#dddddd] p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge
                           variant={
                             doc.status === "Approved"
-                              ? "default"
+                              ? "success"
                               : doc.status === "Rejected"
                                 ? "destructive"
                                 : "secondary"
                           }
-                          className={doc.status === "Approved" ? "bg-green-600" : undefined}
                         >
                           {doc.status}
                         </Badge>
                         {doc.documentType && (
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-[#6a6a6a]">
                             {doc.documentType}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-[#6a6a6a]">
                         Submitted {formatDate(doc.submittedAt)}
                         {doc.reviewedAt && <> &middot; Reviewed {formatDate(doc.reviewedAt)}</>}
                       </span>
                     </div>
 
                     {doc.rejectionReason && (
-                      <p className="text-sm text-destructive">
+                      <p className="text-sm text-[#c13515]">
                         Reason: {doc.rejectionReason}
                       </p>
                     )}
@@ -324,7 +323,7 @@ export function UserDetail({ userId }: UserDetailProps) {
                             key={img.id}
                             type="button"
                             onClick={() => setZoomedImage(img.imageUrl)}
-                            className="group relative overflow-hidden rounded-md border"
+                            className="group relative overflow-hidden rounded-[8px] border border-[#dddddd]"
                           >
                             <img
                               src={img.imageUrl}
@@ -474,7 +473,7 @@ export function UserDetail({ userId }: UserDetailProps) {
             <img
               src={zoomedImage}
               alt="Document"
-              className="w-full rounded-md"
+              className="w-full rounded-[8px]"
             />
           )}
           <div className="flex justify-end">
@@ -497,7 +496,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="flex items-center gap-2 text-muted-foreground">
+      <span className="flex items-center gap-2 text-[#6a6a6a]">
         {Icon && <Icon className="h-4 w-4" />}
         {label}
       </span>

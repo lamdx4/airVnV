@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { ApiResponse } from "@/types/api";
+import type { ApiResponse, PaginatedResponse } from "@/types/api";
 
 export interface AdminProfile {
   userId: string;
@@ -30,6 +30,30 @@ export interface SystemSetting {
   updatedAt: string;
 }
 
+export interface PlatformFeeConfig {
+  id: string;
+  feePercentage: number;
+  description?: string;
+  changedBy: string;
+  previousValue?: number;
+  createdAt: string;
+}
+
+export interface PlatformFeeHistoryItem {
+  id: string;
+  feePercentage: number;
+  description?: string;
+  isActive: boolean;
+  changedBy: string;
+  previousValue?: number;
+  createdAt: string;
+}
+
+export interface CreatePlatformFeeRequest {
+  feePercentage: number;
+  description?: string;
+}
+
 export const settingsApi = {
   getProfile: () => api.get<ApiResponse<AdminProfile>>("/users/me"),
 
@@ -44,4 +68,14 @@ export const settingsApi = {
 
   updateSystemSetting: (key: string, value: string) =>
     api.patch<ApiResponse<SystemSetting>>(`/admin/settings/${key}`, { value }),
+
+  // Platform Fee
+  getCurrentPlatformFee: () =>
+    api.get<ApiResponse<PlatformFeeConfig>>("/platform-fee/admin/current"),
+
+  getPlatformFeeHistory: (params?: { page?: number; pageSize?: number }) =>
+    api.get<ApiResponse<PaginatedResponse<PlatformFeeHistoryItem>>>("/platform-fee/admin/history", { params }),
+
+  createPlatformFee: (data: CreatePlatformFeeRequest) =>
+    api.post<ApiResponse<PlatformFeeConfig>>("/platform-fee/admin", data),
 };

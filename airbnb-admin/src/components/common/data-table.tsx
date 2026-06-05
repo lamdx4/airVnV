@@ -68,7 +68,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      <div className="rounded-[14px] border border-[#dddddd] bg-white overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -86,7 +86,7 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-[#6a6a6a]">
                   Loading...
                 </TableCell>
               </TableRow>
@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-[#6a6a6a]">
                   No results.
                 </TableCell>
               </TableRow>
@@ -112,7 +112,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[#6a6a6a]">
           {(pagination.pageIndex * pagination.pageSize) + 1}–{Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalItems)} of {totalItems}
         </p>
         <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export function DataTable<TData, TValue>({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm">
+          <span className="text-sm text-[#222222]">
             Page {pagination.pageIndex + 1} of {totalPages}
           </span>
           <Button

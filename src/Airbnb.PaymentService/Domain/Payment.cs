@@ -3,7 +3,7 @@ using Airbnb.SharedKernel;
 
 namespace Airbnb.PaymentService.Domain;
 
-public enum PaymentStatus { Pending, Success, Failed, Expired }
+public enum PaymentStatus { Pending, Success, Failed, Expired, Refunded, PartiallyRefunded }
 
 public class Payment : AggregateRoot
 {
@@ -81,4 +81,20 @@ public class Payment : AggregateRoot
 
     public bool IsStillValid() 
         => Status == PaymentStatus.Pending && ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2);
+
+    public void MarkAsRefunded()
+    {
+        if (Status != PaymentStatus.Success && Status != PaymentStatus.PartiallyRefunded)
+            throw new InvalidOperationException("Only Success or PartiallyRefunded payments can be fully refunded.");
+        Status = PaymentStatus.Refunded;
+        Version++;
+    }
+
+    public void MarkAsPartiallyRefunded()
+    {
+        if (Status != PaymentStatus.Success)
+            throw new InvalidOperationException("Only Success payments can be partially refunded.");
+        Status = PaymentStatus.PartiallyRefunded;
+        Version++;
+    }
 }

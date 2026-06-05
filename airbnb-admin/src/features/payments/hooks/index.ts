@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { paymentsApi } from "../api/payments";
-import type { PaymentListParams } from "../types";
+import type { Payment, PaymentDetail, PaymentListParams, RefundRequest } from "../types";
+import type { PaginatedResponse } from "@/types/api";
 
 const QUERY_KEYS = {
   ALL: ["admin", "payments"] as const,
@@ -12,14 +13,21 @@ const QUERY_KEYS = {
 export function usePayments(params?: PaymentListParams) {
   return useQuery({
     queryKey: QUERY_KEYS.LIST(params),
-    queryFn: () => paymentsApi.getAll(params),
+    queryFn: async () => {
+      const response = await paymentsApi.getAll(params);
+      const raw = response.data as unknown as PaginatedResponse<Payment>;
+      return raw;
+    },
   });
 }
 
 export function usePayment(id: string) {
   return useQuery({
     queryKey: QUERY_KEYS.DETAIL(id),
-    queryFn: () => paymentsApi.getById(id),
+    queryFn: async () => {
+      const response = await paymentsApi.getById(id);
+      return response.data as unknown as PaymentDetail;
+    },
     enabled: !!id,
   });
 }
@@ -27,8 +35,10 @@ export function usePayment(id: string) {
 export function useRefundPayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount, reason }: { id: string; amount?: number; reason?: string }) =>
-      paymentsApi.refund(id, amount, reason),
+    mutationFn: async ({ id, data }: { id: string; data: RefundRequest }) => {
+      const response = await paymentsApi.refund(id, data);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL });
     },
