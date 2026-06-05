@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loading03Icon } from '@/components/common/Icons';
 import { Icon } from '@iconify/react';
 import { PhotoView } from 'react-photo-view';
+import { toast } from 'sonner';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -76,12 +77,24 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
         ) : message.messageType === 'File' ? (
           (() => {
             let fileData = { url: '', name: 'Attachment', size: 0 };
-            try { fileData = JSON.parse(message.content); } catch (e) {}
+            try { 
+              const parsed = JSON.parse(message.content); 
+              fileData = { ...fileData, ...parsed };
+            } catch (e) {
+              console.warn('Could not parse file message content:', e);
+            }
+              const isValidUrl = fileData.url && (fileData.url.startsWith('http') || fileData.url.startsWith('blob:'));
             return (
               <a 
-                href={fileData.url} 
-                target="_blank" 
+                href={isValidUrl ? fileData.url : '#'} 
+                target={isValidUrl ? "_blank" : "_self"} 
                 rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!isValidUrl) {
+                    e.preventDefault();
+                    toast.error("File đính kèm bị lỗi hoặc không còn tồn tại");
+                  }
+                }}
                 className={`relative flex items-center gap-3 p-3 rounded-[16px] border shadow-sm transition-all max-w-[260px] sm:max-w-xs ${
                   isOwnMessage 
                     ? 'bg-[#25D366] border-[#20ba59] text-white hover:bg-[#20ba59] rounded-tr-sm' 
