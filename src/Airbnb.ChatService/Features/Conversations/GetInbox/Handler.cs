@@ -37,11 +37,11 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
                         p.LastReadMessageId 
                     })
                     .FirstOrDefault(),
-                LatestMessage = c.Messages.OrderByDescending(m => m.CreatedAt)
+                LatestMessage = c.Messages.OrderByDescending(m => m.Id)
                                           .Select(m => new { m.Id, m.Content, m.MessageType })
                                           .FirstOrDefault(),
                 LatestSystemMessage = c.Messages.Where(m => m.MessageType == MessageType.System)
-                                                .OrderByDescending(m => m.CreatedAt)
+                                                .OrderByDescending(m => m.Id)
                                                 .Select(m => m.Content)
                                                 .FirstOrDefault()
             })

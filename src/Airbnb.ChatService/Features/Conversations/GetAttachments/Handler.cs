@@ -35,7 +35,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
         }
 
         var rawMessages = await query
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.Id)
             .Take(req.Limit + 1)
             .ToListAsync(ct);
 
