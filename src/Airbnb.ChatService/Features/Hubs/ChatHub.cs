@@ -163,10 +163,9 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     private async Task NotifyStatusChanged(Guid userId, string status)
     {
         var relatedUserIds = await db.ConversationParticipants
-            .Where(p => db.ConversationParticipants
-                .Where(cp => cp.UserId == userId)
-                .Select(cp => cp.ConversationId)
-                .Contains(p.ConversationId) && p.UserId != userId)
+            .Where(cp => cp.UserId == userId)
+            .SelectMany(cp => cp.Conversation.Participants)
+            .Where(p => p.UserId != userId)
             .Select(p => p.UserId)
             .Distinct()
             .ToListAsync();
