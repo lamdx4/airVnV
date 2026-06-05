@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.BookingService.Domain;
 
@@ -41,13 +42,13 @@ public class Booking : AggregateRoot
         DateOnly checkIn, DateOnly checkOut, int guestCount,
         decimal basePricePerNight, decimal cleaningFee, decimal serviceFee, decimal taxAmount, decimal totalPrice, string currencyCode, string bookingMode)
     {
-        if (propertyId == Guid.Empty) throw new ArgumentException("PropertyId cannot be empty.");
-        if (hostId == Guid.Empty) throw new ArgumentException("HostId cannot be empty.");
-        if (guestId == Guid.Empty) throw new ArgumentException("GuestId cannot be empty.");
-        if (string.IsNullOrWhiteSpace(countryCode)) throw new ArgumentException("CountryCode cannot be empty.");
-        if (checkOut <= checkIn) throw new ArgumentException("CheckOut must be after CheckIn.");
-        if (guestCount <= 0) throw new ArgumentException("GuestCount must be greater than 0.");
-        if (string.IsNullOrWhiteSpace(currencyCode)) throw new ArgumentException("CurrencyCode cannot be empty.");
+        if (propertyId == Guid.Empty) throw new BusinessException("PropertyId cannot be empty.", "BOOKING_PROPERTY_REQUIRED");
+        if (hostId == Guid.Empty) throw new BusinessException("HostId cannot be empty.", "BOOKING_HOST_REQUIRED");
+        if (guestId == Guid.Empty) throw new BusinessException("GuestId cannot be empty.", "BOOKING_GUEST_REQUIRED");
+        if (string.IsNullOrWhiteSpace(countryCode)) throw new BusinessException("CountryCode cannot be empty.", "BOOKING_COUNTRY_CODE_REQUIRED");
+        if (checkOut <= checkIn) throw new BusinessException("CheckOut must be after CheckIn.", "BOOKING_INVALID_DATES");
+        if (guestCount <= 0) throw new BusinessException("GuestCount must be greater than 0.", "BOOKING_INVALID_GUEST_COUNT");
+        if (string.IsNullOrWhiteSpace(currencyCode)) throw new BusinessException("CurrencyCode cannot be empty.", "BOOKING_CURRENCY_REQUIRED");
 
         var nightCount = checkOut.DayNumber - checkIn.DayNumber;
 
@@ -84,14 +85,14 @@ public class Booking : AggregateRoot
     public void Approve(Guid currentHostId)
     {
         if (currentHostId != HostId)
-            throw new InvalidOperationException("Only the host of this property can approve the booking.");
+            throw new BusinessException("Only the host of this property can approve the booking.", "BOOKING_NOT_AUTHORIZED_HOST");
         Confirm();
     }
 
     public void Confirm()
     {
         if (Status != BookingStatus.Pending && Status != BookingStatus.AwaitingApproval)
-            throw new InvalidOperationException("Only Pending or AwaitingApproval bookings can be confirmed.");
+            throw new BusinessException("Only Pending or AwaitingApproval bookings can be confirmed.", "BOOKING_INVALID_STATUS_FOR_CONFIRM");
             
         Status = BookingStatus.Confirmed;
         Version++;
@@ -108,7 +109,7 @@ public class Booking : AggregateRoot
     public void AwaitForApproval()
     {
         if (Status != BookingStatus.Pending)
-            throw new InvalidOperationException("Only Pending bookings can transition to AwaitingApproval.");
+            throw new BusinessException("Only Pending bookings can transition to AwaitingApproval.", "BOOKING_INVALID_STATUS_FOR_AWAIT");
             
         Status = BookingStatus.AwaitingApproval;
         Version++;
@@ -119,9 +120,9 @@ public class Booking : AggregateRoot
     public void Reject(Guid currentHostId)
     {
         if (currentHostId != HostId)
-            throw new InvalidOperationException("Only the host of this property can reject the booking.");
+            throw new BusinessException("Only the host of this property can reject the booking.", "BOOKING_NOT_AUTHORIZED_HOST");
         if (Status != BookingStatus.Pending && Status != BookingStatus.AwaitingApproval)
-            throw new InvalidOperationException("Only Pending or AwaitingApproval bookings can be rejected.");
+            throw new BusinessException("Only Pending or AwaitingApproval bookings can be rejected.", "BOOKING_INVALID_STATUS_FOR_REJECT");
             
         Status = BookingStatus.Cancelled;
         CancelledBy = currentHostId;
@@ -132,12 +133,14 @@ public class Booking : AggregateRoot
     public void Cancel(Guid cancelledBy)
     {
         if (cancelledBy != GuestId && cancelledBy != HostId)
-            throw new InvalidOperationException("Unauthorized cancellation.");
+            throw new BusinessException("Unauthorized cancellation.", "BOOKING_UNAUTHORIZED_CANCEL");
         if (Status == BookingStatus.Cancelled)
-             throw new InvalidOperationException("Booking is already cancelled.");
+             throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
              
         Status = BookingStatus.Cancelled;
         CancelledBy = cancelledBy;
+        Version++;
+        Raise(new BookingCancelledDomainEvent(Id, Version));
     }
 }
 

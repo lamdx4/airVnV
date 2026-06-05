@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSessions, revokeSession, changePassword } from '../api/accountApi';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const useSessions = () => {
   return useQuery({
@@ -11,26 +12,28 @@ export const useSessions = () => {
 
 export const useRevokeSession = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: revokeSession,
     onSuccess: () => {
-      toast.success('Đã đăng xuất thiết bị');
+      toast.success(t('profile.logoutSuccess'));
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Đăng xuất thất bại');
+      toast.error(error.message || t('profile.logoutFailed'));
     }
   });
 };
 
 export const useChangePassword = () => {
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: changePassword,
     onSuccess: () => {
-      toast.success('Đổi mật khẩu thành công');
+      toast.success(t('profile.changePasswordSuccess'));
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Đổi mật khẩu thất bại');
+      toast.error(error.message || t('profile.changePasswordFailed'));
     }
   });
 };

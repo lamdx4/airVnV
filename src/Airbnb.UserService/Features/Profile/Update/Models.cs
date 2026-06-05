@@ -10,7 +10,7 @@ public record Request(
     string? AvatarUrl,
     string? PhoneNumber,
     string? Bio
-) : ICommand<ApiResponse<Response>>
+) : Mediator.ICommand<ApiResponse<Response>>
 {
     [JsonIgnore]
     public Guid UserId { get; set; }

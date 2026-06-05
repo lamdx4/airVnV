@@ -36,6 +36,42 @@ interface LocationSectionProps {
   onContinue: () => void;
 }
 
+function LocationMarker({ lat, lng, setValue }: { lat: number, lng: number, setValue: UseFormSetValue<any> }) {
+  const markerRef = useRef<any>(null);
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const latLng = marker.getLatLng();
+          setValue('latitude', latLng.lat);
+          setValue('longitude', latLng.lng);
+        }
+      },
+    }),
+    [setValue]
+  );
+
+  useMapEvents({
+    click(e) {
+      setValue('latitude', e.latlng.lat);
+      setValue('longitude', e.latlng.lng);
+    },
+  });
+
+  return (
+    <Marker draggable={true} eventHandlers={eventHandlers} position={[lat, lng]} ref={markerRef} />
+  );
+}
+
+function MapPluginControls({ lat, lng }: { lat: number, lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], 14, { duration: 1.5 });
+  }, [lat, lng, map]);
+  return null;
+}
+
 export function LocationSection({
   setValue,
   watch,
@@ -114,7 +150,7 @@ export function LocationSection({
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser.');
+      toast.error(t('location.geoNotSupported'));
       return;
     }
 
@@ -129,48 +165,14 @@ export function LocationSection({
       },
       (error) => {
         toast.dismiss(toastId);
-        toast.error('Unable to retrieve your location. Please check browser permissions.');
+        toast.error(t('location.geoError'));
         console.error('Geolocation error:', error);
       },
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   };
 
-  function LocationMarker() {
-    const markerRef = useRef<any>(null);
-    const eventHandlers = useMemo(
-      () => ({
-        dragend() {
-          const marker = markerRef.current;
-          if (marker != null) {
-            const latLng = marker.getLatLng();
-            setValue('latitude', latLng.lat);
-            setValue('longitude', latLng.lng);
-          }
-        },
-      }),
-      []
-    );
 
-    useMapEvents({
-      click(e) {
-        setValue('latitude', e.latlng.lat);
-        setValue('longitude', e.latlng.lng);
-      },
-    });
-
-    return (
-      <Marker draggable={true} eventHandlers={eventHandlers} position={[lat, lng]} ref={markerRef} />
-    );
-  }
-
-  function MapPluginControls() {
-    const map = useMap();
-    useEffect(() => {
-      map.flyTo([lat, lng], 14, { duration: 1.5 });
-    }, [lat, lng, map]);
-    return null;
-  }
 
   return (
     <Card className="rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
@@ -192,13 +194,13 @@ export function LocationSection({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
             <Label className="text-sm font-semibold text-slate-900 flex items-center gap-1">
-              Địa chỉ chi tiết (Số nhà, Đường) <span className="text-red-500 font-bold">*</span>
+              {t('location.streetAddressLabel')} <span className="text-red-500 font-bold">*</span>
             </Label>
             <Input
               type="text"
               value={streetAddress}
               onChange={(e) => setValue('streetAddress', e.target.value, { shouldValidate: true })}
-              placeholder="VD: 208 Nguyễn Hữu Cảnh"
+              placeholder={t('location.streetAddressPlaceholder')}
               className="h-12 rounded-lg border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100"
             />
             {errors.streetAddress && (
@@ -210,13 +212,13 @@ export function LocationSection({
           
           <div className="space-y-2 sm:col-span-2">
             <Label className="text-sm font-semibold text-slate-900">
-              Số phòng / Căn hộ / Tòa nhà (Tùy chọn)
+              {t('location.unitLabel')}
             </Label>
             <Input
               type="text"
               value={unit}
               onChange={(e) => setDynamicAddressValues(prev => ({ ...prev, unit: e.target.value }))}
-              placeholder="VD: Landmark 81, Tầng 40, Phòng 101"
+              placeholder={t('location.unitPlaceholder')}
               className="h-12 rounded-lg border-slate-300 focus:border-slate-900 focus:ring-3 focus:ring-pink-100"
             />
           </div>
@@ -224,15 +226,15 @@ export function LocationSection({
 
         {/* Interactive Map */}
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-slate-900">Điều chỉnh Tọa độ (Kéo thả Ghim)</Label>
+          <Label className="text-sm font-semibold text-slate-900">{t('location.adjustPinLabel')}</Label>
           <div className="relative w-full h-72 rounded-xl border border-slate-200 overflow-hidden shadow-inner bg-slate-100 z-0">
             <MapContainer center={[lat, lng]} zoom={13} scrollWheelZoom={false} className="w-full h-full z-0">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <LocationMarker />
-              <MapPluginControls />
+              <LocationMarker lat={lat} lng={lng} setValue={setValue} />
+              <MapPluginControls lat={lat} lng={lng} />
             </MapContainer>
             
             <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">

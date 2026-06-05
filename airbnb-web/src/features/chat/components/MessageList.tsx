@@ -6,6 +6,7 @@ import { MessageBubble } from './MessageBubble';
 import { formatChatDate } from '../utils/date';
 import { Loading03Icon } from '@/components/common/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 export const MessageList: React.FC = () => {
   const { activeConversationId } = useChat();
@@ -57,13 +58,15 @@ export const MessageList: React.FC = () => {
     >
       {hasNextPage && (
         <div className="flex justify-center pb-4">
-          <button 
+          <Button 
+            variant="link"
+            size="sm"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="text-[12px] font-semibold text-[#6a6a6a] hover:text-[#222222] transition-colors underline"
+            className="text-[12px] font-semibold text-[#6a6a6a] hover:text-[#222222] transition-colors underline h-auto p-0"
           >
             {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
-          </button>
+          </Button>
         </div>
       )}
 

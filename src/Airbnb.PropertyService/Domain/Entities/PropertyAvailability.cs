@@ -1,3 +1,5 @@
+using Airbnb.ServiceDefaults.Infrastructure;
+
 namespace Airbnb.PropertyService.Domain.Entities;
 
 public enum AvailabilityType
@@ -19,7 +21,7 @@ public class PropertyAvailability
 
     public static PropertyAvailability Create(Guid propertyId, DateOnly startDate, DateOnly endDate, AvailabilityType type, string? note = null)
     {
-        if (endDate < startDate) throw new ArgumentException("EndDate cannot be before StartDate.");
+        if (endDate < startDate) throw new BusinessException("EndDate cannot be before StartDate.", "PROPERTY_INVALID_AVAILABILITY_DATES");
 
         return new PropertyAvailability
         {

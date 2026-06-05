@@ -4,7 +4,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.RegisterUser.Verify;
 
-public class Endpoint : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(Mediator.IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -14,13 +14,6 @@ public class Endpoint : Endpoint<Request, ApiResponse<Response>>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        try
-        {
-            Response = await req.ExecuteAsync(ct);
-        }
-        catch (InvalidOperationException ex)
-        {
-            await Send.ResponseAsync(ApiResponse<Response>.FailureResult("VERIFY_FAILED", ex.Message), 400, ct);
-        }
+        Response = await mediator.Send(req, ct);
     }
 }

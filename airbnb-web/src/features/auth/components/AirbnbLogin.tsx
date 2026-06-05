@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import BgLogin from '@/assets/bg-login.png'
+import { useTranslation } from 'react-i18next'
 
 // Tự động lấy toàn bộ ảnh trong thư mục locations
 const locationImages = Object.values(
@@ -16,6 +17,7 @@ interface AirbnbLoginProps {
 
 export function AirbnbLogin({ view }: AirbnbLoginProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (locationImages.length <= 1) return;
@@ -50,10 +52,10 @@ export function AirbnbLogin({ view }: AirbnbLoginProps) {
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30 backdrop-blur-[1px] flex flex-col justify-end p-12 text-white z-10">
           <h2 className="text-4xl font-bold tracking-tight leading-tight mb-4 animate-fade-in">
-            Tìm kiếm chỗ ở mơ ước cho chuyến đi tiếp theo.
+            {t('auth.loginHeading')}
           </h2>
           <p className="text-lg text-slate-200/90 font-light">
-            Trải nghiệm kỳ nghỉ hoàn hảo với hàng triệu lựa chọn trên toàn Việt Nam.
+            {t('auth.loginSubheading')}
           </p>
         </div>
       </div>

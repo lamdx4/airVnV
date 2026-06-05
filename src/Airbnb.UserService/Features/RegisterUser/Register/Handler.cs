@@ -8,14 +8,14 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.RegisterUser.Register;
 
-public class Handler(UserDbContext _db, IMemoryCache _cache) : ICommandHandler<Request, ApiResponse<Response>>
+public class Handler(UserDbContext _db, IMemoryCache _cache) : Mediator.ICommandHandler<Request, ApiResponse<Response>>
 {
-    public async Task<ApiResponse<Response>> ExecuteAsync(Request req, CancellationToken ct)
+    public async ValueTask<ApiResponse<Response>> Handle(Request req, CancellationToken ct)
     {
         // Kiểm tra email tồn tại
         if (await _db.Users.AnyAsync(u => u.Email == req.Email, ct))
         {
-            throw new InvalidOperationException("Email already exists.");
+            throw new BusinessException("Email already exists.", "USER_ALREADY_EXISTS");
         }
 
         // Tạo Entity qua Rich Domain Model

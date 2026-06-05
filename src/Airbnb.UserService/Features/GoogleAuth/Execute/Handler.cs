@@ -9,7 +9,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.GoogleAuth.Execute;
 
-public sealed class Handler(UserDbContext _db, IConfiguration _config) : ICommandHandler<Request, ApiResponse<Response>>
+public sealed class Handler(UserDbContext _db, IConfiguration _config, ILogger<Handler> _logger) : ICommandHandler<Request, ApiResponse<Response>>
 {
     public async ValueTask<ApiResponse<Response>> Handle(Request req, CancellationToken ct)
     {
@@ -71,7 +71,7 @@ public sealed class Handler(UserDbContext _db, IConfiguration _config) : IComman
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    Console.WriteLine($"[Concurrency Error] Entities involved: {string.Join(", ", ex.Entries.Select(e => e.Entity.GetType().Name))}");
+                    _logger.LogWarning($"[Concurrency Error] Entities involved: {string.Join(", ", ex.Entries.Select(e => e.Entity.GetType().Name))}");
                     
                     if (retry == maxRetries - 1)
                         throw;
@@ -90,7 +90,7 @@ public sealed class Handler(UserDbContext _db, IConfiguration _config) : IComman
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[GoogleAuth] ERROR: {ex.Message}");
+            _logger.LogError($"[GoogleAuth] ERROR: {ex.Message}");
             throw;
         }
     }
