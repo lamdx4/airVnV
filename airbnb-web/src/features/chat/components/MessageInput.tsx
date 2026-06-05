@@ -206,14 +206,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId, conn
             <Icon icon="fluent:attach-24-filled" className="size-5" />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            aria-label="Voice message"
-            className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
-          >
-            <Icon icon="fluent:mic-24-filled" className="size-5" />
-          </Button>
         </div>
       </div>
       

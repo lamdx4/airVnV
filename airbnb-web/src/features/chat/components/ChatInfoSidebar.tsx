@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useChat } from "../context/ChatContext";
 import { useInbox } from "../hooks/useInbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +14,7 @@ export const ChatInfoSidebar: React.FC = () => {
   const { isInfoSidebarOpen, toggleInfoSidebar, activeConversationId } =
     useChat();
   const { data } = useInbox();
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<SidebarView>("main");
   const [activeMediaTab, setActiveMediaTab] = useState<"images" | "files">(
     "images",
@@ -107,7 +109,10 @@ export const ChatInfoSidebar: React.FC = () => {
                 <h4 className="text-[15px] font-semibold text-[#222222]">
                   Listing
                 </h4>
-                <div className="flex items-center gap-3 p-3 rounded-xl border border-[#ebebeb] hover:shadow-sm transition-shadow cursor-pointer">
+                <div 
+                  onClick={() => navigate(`/properties/${conversation.propertyId}`)}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-[#ebebeb] hover:shadow-sm transition-shadow cursor-pointer"
+                >
                   <div className="h-12 w-12 bg-slate-200 rounded-lg shrink-0 flex items-center justify-center text-slate-400">
                     <Icon icon="lucide:home" className="size-5" />
                   </div>
@@ -120,7 +125,11 @@ export const ChatInfoSidebar: React.FC = () => {
 
             <div className="w-full h-px bg-[#ebebeb]"></div>
 
-            <div className="flex flex-col gap-1">
+            <div className="space-y-3">
+              <h4 className="text-[15px] font-semibold text-[#222222]">
+                Files and Images
+              </h4>
+              <div className="flex flex-col gap-1">
               <button
                 onClick={() => {
                   setCurrentView("media");
@@ -168,6 +177,7 @@ export const ChatInfoSidebar: React.FC = () => {
                   className="size-5 text-[#b0b0b0]"
                 />
               </button>
+            </div>
             </div>
           </div>
         </>
