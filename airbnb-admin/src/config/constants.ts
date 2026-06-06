@@ -13,6 +13,11 @@ export const ROUTES = {
   USER_DETAIL: (id: string) => `/users/${id}`,
 
   REPORTS: "/reports",
+
+  PAYMENTS: "/payments",
+  PAYMENT_DETAIL: (id: string) => `/payments/${id}`,
+
+  SETTINGS: "/settings",
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 10;

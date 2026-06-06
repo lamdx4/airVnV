@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Airbnb.SharedKernel;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PaymentService.Domain;
 
+[JsonConverter(typeof(JsonStringEnumConverter<PaymentStatus>))]
 public enum PaymentStatus { Pending, Success, Failed, Expired, Refunded, PartiallyRefunded }
 
 public class Payment : AggregateRoot
