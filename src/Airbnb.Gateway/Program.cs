@@ -100,6 +100,25 @@ builder.Services.AddReverseProxy()
                 transformContext.ProxyRequest.Headers.Add("X-User-Id", userId);
             }
 
+            // 3. Xóa access_token khỏi Query String để bảo mật Log
+            if (transformContext.ProxyRequest.RequestUri != null)
+            {
+                var queryStr = transformContext.ProxyRequest.RequestUri.Query;
+                if (!string.IsNullOrEmpty(queryStr) && queryStr.Contains("access_token="))
+                {
+                    // Xóa tham số access_token khỏi chuỗi query để chống lộ JWT trong log
+                    var newQuery = System.Text.RegularExpressions.Regex.Replace(queryStr, @"([?&])access_token=[^&]*", "$1");
+                    // Chuẩn hóa lại dấu ? và &
+                    newQuery = newQuery.Replace("?&", "?").TrimEnd('?', '&');
+                    
+                    var uriBuilder = new UriBuilder(transformContext.ProxyRequest.RequestUri)
+                    {
+                        Query = newQuery
+                    };
+                    transformContext.ProxyRequest.RequestUri = uriBuilder.Uri;
+                }
+            }
+
             return ValueTask.CompletedTask;
         });
     });
