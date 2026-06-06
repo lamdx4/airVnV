@@ -209,7 +209,12 @@ export function PropertiesList() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="w-[240px]"
             />
-            <Button variant="outline" size="sm" onClick={handleSearch}>
+            <Button
+              variant="outline"
+              onClick={handleSearch}
+              aria-label="Search"
+              className="h-12 w-12 px-0"
+            >
               <Search className="h-4 w-4" />
             </Button>
           </div>

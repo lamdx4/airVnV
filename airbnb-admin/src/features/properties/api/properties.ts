@@ -11,7 +11,7 @@ export const propertiesApi = {
     api.get<BackendPage<Property>>("/properties/admin", { params }),
 
   getById: (id: string) =>
-    api.get<Property>(`/properties/${id}`),
+    api.get<Property>(`/admin/properties/${id}`),
 
   approve: (id: string) =>
     api.post<{ id: string; status: string }>(`/properties/${id}/approve`, {}),

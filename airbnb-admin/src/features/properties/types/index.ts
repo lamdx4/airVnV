@@ -9,15 +9,29 @@ export const PropertyStatus = {
 
 export type PropertyStatusValue = (typeof PropertyStatus)[keyof typeof PropertyStatus];
 
+export interface PropertyImage {
+  url: string;
+  displayOrder: number;
+}
+
+export interface PropertyAmenity {
+  name: string;
+  category: string;
+}
+
 export interface Property {
   id: string;
   hostId: string;
   title: string;
   displayAddress: string;
+  streetAddress: string;
+  description: string;
   type: number;
   status: PropertyStatusValue;
   basePrice: number;
   coverImageUrl: string | null;
+  images: PropertyImage[];
+  amenities: PropertyAmenity[];
   guestCount: number;
   bedroomCount: number;
   bathroomCount: number;

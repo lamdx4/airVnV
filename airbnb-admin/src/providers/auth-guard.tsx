@@ -30,7 +30,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated && !isAuthRoute) {
       router.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(pathname)}`);
     } else if (isAuthenticated && isAuthRoute) {
-      router.replace(ROUTES.DASHBOARD);
+      router.replace(ROUTES.PROPERTIES);
     }
   }, [isAuthenticated, isAuthRoute, pathname, router, hydrated]);
 

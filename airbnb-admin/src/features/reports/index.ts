@@ -1,10 +1,29 @@
 export { reportsApi } from "./api/reports";
-export type { ReportSummary, RevenueBreakdown, TopProperty, UserGrowthPoint } from "./types";
-export { useReportSummary, useRevenueBreakdown, useTopProperties, useUserGrowth } from "./hooks";
+export type {
+  ReportSummary,
+  UserGrowthPoint,
+  UserActivityReport,
+  PropertyStatusFunnel,
+  PendingBacklog,
+  NewListingPoint,
+  TypeCount,
+  PriceBucket,
+  PriceDistribution,
+  GroupBy,
+} from "./types";
+export {
+  useReportSummary,
+  useUserGrowth,
+  useUserActivity,
+  useStatusFunnel,
+  usePendingBacklog,
+  useNewListings,
+  useTypeDistribution,
+  usePriceDistribution,
+} from "./hooks";
 export { ReportsView } from "./components/reports-view";
 export { ReportsTabBar, type ReportsTab } from "./components/reports-tab-bar";
 export { DateRangePicker } from "./components/date-range-picker";
-export { SummaryView } from "./components/summary-view";
-export { RevenueBreakdownView } from "./components/revenue-breakdown-view";
-export { TopPropertiesView } from "./components/top-properties-view";
-export { UserGrowthView } from "./components/user-growth-view";
+export { OverviewView } from "./components/overview-view";
+export { UsersView } from "./components/users-view";
+export { PropertiesView } from "./components/properties-view";

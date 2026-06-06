@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-export type ReportsTab = "summary" | "revenue" | "top" | "growth";
+export type ReportsTab = "overview" | "users" | "properties";
 
 interface ReportsTabBarProps {
   active: ReportsTab;
@@ -10,10 +10,9 @@ interface ReportsTabBarProps {
 }
 
 const TABS: { id: ReportsTab; label: string }[] = [
-  { id: "summary", label: "Summary" },
-  { id: "revenue", label: "Revenue Breakdown" },
-  { id: "top", label: "Top Properties" },
-  { id: "growth", label: "User Growth" },
+  { id: "overview", label: "Overview" },
+  { id: "users", label: "Users" },
+  { id: "properties", label: "Properties" },
 ];
 
 export function ReportsTabBar({ active, onChange }: ReportsTabBarProps) {
@@ -31,7 +30,7 @@ export function ReportsTabBar({ active, onChange }: ReportsTabBarProps) {
               "border-b-2 -mb-px",
               isActive
                 ? "border-[#222222] text-[#222222]"
-                : "border-transparent text-[#6a6a6a] hover:text-[#222222]"
+                : "border-transparent text-[#6a6a6a] hover:text-[#222222]",
             )}
           >
             {t.label}

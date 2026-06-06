@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -16,6 +17,12 @@ import {
   Bath,
   Star,
   DollarSign,
+  Home,
+  Grid3x3,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ImageIcon,
 } from "lucide-react";
 
 import { ROUTES } from "@/config/constants";
@@ -75,6 +82,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
   const [showReinstateDialog, setShowReinstateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmTitle, setDeleteConfirmTitle] = useState("");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (isLoading) return <PageLoader text="Loading property..." />;
   if (isError || !property) {
@@ -97,6 +105,22 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
     { label: "Properties", href: ROUTES.PROPERTIES },
     { label: property.title },
   ];
+
+  // Build gallery images: sorted by displayOrder, fallback to coverImageUrl
+  const sortedImages = [...property.images].sort((a, b) => a.displayOrder - b.displayOrder);
+  const galleryImages =
+    sortedImages.length > 0
+      ? sortedImages
+      : property.coverImageUrl
+        ? [{ url: property.coverImageUrl, displayOrder: 0 }]
+        : [];
+
+  // Group amenities by category
+  const amenitiesByCategory = property.amenities.reduce<Record<string, string[]>>((acc, am) => {
+    if (!acc[am.category]) acc[am.category] = [];
+    acc[am.category].push(am.name);
+    return acc;
+  }, {});
 
   function handleApprove() {
     approveMutation.mutate(propertyId, {
@@ -150,6 +174,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Breadcrumbs items={breadcrumbs} />
@@ -168,6 +193,32 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
         </div>
       </div>
 
+      {/* Row 1: Image Gallery */}
+      {galleryImages.length > 0 ? (
+        <PropertyGallery
+          images={galleryImages}
+          title={property.title}
+          onOpenLightbox={setLightboxIndex}
+        />
+      ) : (
+        <div className="flex h-[280px] items-center justify-center rounded-[20px] border border-dashed border-[#dddddd] bg-[#f7f7f7] text-[#6a6a6a]">
+          <div className="flex flex-col items-center gap-2 text-sm">
+            <ImageIcon className="h-8 w-8" />
+            <span>No images uploaded for this listing</span>
+          </div>
+        </div>
+      )}
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={galleryImages}
+          startIndex={lightboxIndex}
+          title={property.title}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
+      {/* Row 2: Property Info + Host & Rating */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -204,6 +255,55 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
         </Card>
       </div>
 
+      {/* Row 3: Description */}
+      {property.description && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Description</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed text-[#222222] whitespace-pre-line">
+              {property.description}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Row 4: Amenities */}
+      {property.amenities.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Amenities</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {Object.entries(amenitiesByCategory).map(([category, names]) => (
+              <div key={category}>
+                <h4 className="text-sm font-semibold text-[#222222] mb-2">{category}</h4>
+                <div className="flex flex-wrap gap-2">
+                  {names.map((name) => (
+                    <Badge key={name} variant="secondary" className="font-normal">
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Row 5: Address Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Address Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <DetailRow icon={MapPin} label="Display Address" value={property.displayAddress} />
+          <DetailRow icon={MapPin} label="Street Address" value={property.streetAddress} />
+        </CardContent>
+      </Card>
+
+      {/* Status reason cards */}
       {property.status === PropertyStatus.REJECTED && property.rejectionReason && (
         <Card>
           <CardHeader>
@@ -226,6 +326,7 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
         </Card>
       )}
 
+      {/* Moderation Actions */}
       <Card>
         <CardHeader>
           <CardTitle>Moderation Actions</CardTitle>
@@ -335,6 +436,230 @@ export function PropertyDetail({ propertyId }: PropertyDetailProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+type GalleryImage = { url: string; displayOrder: number };
+
+function PropertyGallery({
+  images,
+  title,
+  onOpenLightbox,
+}: {
+  images: GalleryImage[];
+  title: string;
+  onOpenLightbox: (index: number) => void;
+}) {
+  const cover = images[0];
+  const thumbs = images.slice(1, 5);
+  const remaining = Math.max(0, images.length - 5);
+
+  return (
+    <div className="relative">
+      <div className="grid h-[420px] grid-cols-1 gap-2 overflow-hidden rounded-[20px] md:grid-cols-4 md:grid-rows-2">
+        {/* Cover */}
+        <button
+          type="button"
+          onClick={() => onOpenLightbox(0)}
+          className="group relative col-span-1 row-span-1 overflow-hidden md:col-span-2 md:row-span-2"
+          aria-label="Open cover image"
+        >
+          <Image
+            src={cover.url}
+            alt={`${title} cover`}
+            fill
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
+          <Badge className="absolute left-4 top-4 bg-white/95 font-medium text-[#222222] shadow-sm hover:bg-white">
+            Cover
+          </Badge>
+        </button>
+
+        {/* Thumbnails */}
+        {thumbs.map((img, idx) => {
+          const realIdx = idx + 1;
+          const isLastVisible = idx === thumbs.length - 1 && remaining > 0;
+          return (
+            <button
+              key={realIdx}
+              type="button"
+              onClick={() => onOpenLightbox(realIdx)}
+              className="group relative hidden overflow-hidden md:block"
+              aria-label={`Open image ${realIdx + 1}`}
+            >
+              <Image
+                src={img.url}
+                alt={`${title} ${realIdx + 1}`}
+                fill
+                className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+                sizes="25vw"
+              />
+              <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
+              {isLastVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-white">
+                  <span className="text-lg font-semibold">+{remaining}</span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+
+        {/* Fill empty cells with subtle placeholders so layout stays clean */}
+        {Array.from({ length: Math.max(0, 4 - thumbs.length) }).map((_, i) => (
+          <div
+            key={`ph-${i}`}
+            className="hidden bg-[#f7f7f7] md:block"
+            aria-hidden
+          />
+        ))}
+      </div>
+
+      {/* Count pill (mobile-visible) */}
+      <div className="pointer-events-none absolute left-4 top-4 md:hidden">
+        <Badge className="bg-white/95 font-medium text-[#222222] shadow-sm">
+          1 / {images.length}
+        </Badge>
+      </div>
+
+      {/* Show all photos */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onOpenLightbox(0)}
+        className="absolute bottom-4 right-4 h-9 rounded-[10px] border-[#222222] bg-white text-[13px] font-semibold text-[#222222] shadow-sm hover:bg-white hover:shadow-md"
+      >
+        <Grid3x3 className="mr-2 h-4 w-4" />
+        Show all photos ({images.length})
+      </Button>
+    </div>
+  );
+}
+
+function Lightbox({
+  images,
+  startIndex,
+  title,
+  onClose,
+}: {
+  images: GalleryImage[];
+  startIndex: number;
+  title: string;
+  onClose: () => void;
+}) {
+  const [index, setIndex] = useState(startIndex);
+
+  const next = useCallback(
+    () => setIndex((i) => (i + 1) % images.length),
+    [images.length],
+  );
+  const prev = useCallback(
+    () => setIndex((i) => (i - 1 + images.length) % images.length),
+    [images.length],
+  );
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+    }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [next, prev, onClose]);
+
+  const current = images[index];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image gallery"
+    >
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-3 text-white md:px-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10"
+          aria-label="Close gallery"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <span className="text-sm font-medium tabular-nums">
+          {index + 1} / {images.length}
+        </span>
+        <div className="w-10" />
+      </div>
+
+      {/* Main image */}
+      <div className="relative flex flex-1 items-center justify-center px-4 pb-4">
+        <button
+          type="button"
+          onClick={prev}
+          className="absolute left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#222222] shadow-md transition hover:bg-white md:left-8"
+          aria-label="Previous image"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <div className="relative h-full w-full max-w-5xl">
+          <Image
+            key={current.url}
+            src={current.url}
+            alt={`${title} ${index + 1}`}
+            fill
+            className="object-contain"
+            sizes="100vw"
+            priority
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={next}
+          className="absolute right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#222222] shadow-md transition hover:bg-white md:right-8"
+          aria-label="Next image"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Thumbnail strip */}
+      <div className="border-t border-white/10 bg-black/60 px-4 py-3">
+        <div className="mx-auto flex max-w-5xl gap-2 overflow-x-auto">
+          {images.map((img, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIndex(i)}
+              className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-[8px] transition ${
+                i === index
+                  ? "ring-2 ring-white"
+                  : "opacity-60 hover:opacity-100"
+              }`}
+              aria-label={`Go to image ${i + 1}`}
+            >
+              <Image
+                src={img.url}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="96px"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

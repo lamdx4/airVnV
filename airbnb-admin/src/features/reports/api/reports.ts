@@ -1,25 +1,43 @@
 import { api } from "@/lib/api";
 
-import type { ReportSummary, RevenueBreakdown, TopProperty, UserGrowthPoint } from "../types";
+import type {
+  GroupBy,
+  NewListingPoint,
+  PendingBacklog,
+  PriceDistribution,
+  PropertyStatusFunnel,
+  ReportSummary,
+  TypeCount,
+  UserActivityReport,
+  UserGrowthPoint,
+} from "../types";
 
 export const reportsApi = {
   getSummary: (from: string, to: string) =>
-    api.get<ReportSummary>("/admin/reports/summary", {
-      params: { from, to },
-    }),
+    api.get<ReportSummary>("/admin/reports/summary", { params: { from, to } }),
 
-  getRevenueBreakdown: (from: string, to: string, groupBy: "day" | "week" | "month" = "day") =>
-    api.get<RevenueBreakdown[]>("/admin/reports/revenue-breakdown", {
-      params: { from, to, groupBy },
-    }),
-
-  getTopProperties: (from: string, to: string, limit = 10) =>
-    api.get<TopProperty[]>("/admin/reports/top-properties", {
-      params: { from, to, limit },
-    }),
-
-  getUserGrowth: (from: string, to: string, groupBy: "day" | "week" | "month" = "day") =>
+  getUserGrowth: (from: string, to: string, groupBy: GroupBy = "day") =>
     api.get<UserGrowthPoint[]>("/admin/reports/user-growth", {
       params: { from, to, groupBy },
     }),
+
+  getUserActivity: () =>
+    api.get<UserActivityReport>("/admin/reports/user-activity"),
+
+  getStatusFunnel: () =>
+    api.get<PropertyStatusFunnel>("/properties/admin/reports/status-funnel"),
+
+  getPendingBacklog: () =>
+    api.get<PendingBacklog>("/properties/admin/reports/pending-backlog"),
+
+  getNewListings: (from: string, to: string, groupBy: GroupBy = "day") =>
+    api.get<NewListingPoint[]>("/properties/admin/reports/new-listings", {
+      params: { from, to, groupBy },
+    }),
+
+  getTypeDistribution: () =>
+    api.get<TypeCount[]>("/properties/admin/reports/type-distribution"),
+
+  getPriceDistribution: () =>
+    api.get<PriceDistribution>("/properties/admin/reports/price-distribution"),
 };

@@ -30,7 +30,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const redirectTo = searchParams.get("redirect") ?? ROUTES.DASHBOARD;
+  const redirectTo = searchParams.get("redirect") ?? ROUTES.PROPERTIES;
 
   const {
     register,

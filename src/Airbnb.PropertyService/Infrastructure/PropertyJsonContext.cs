@@ -71,4 +71,9 @@ namespace Airbnb.PropertyService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.PropertyService.Features.GetPropertiesByIds.PropertyBasicInfo>>))]
 [JsonSerializable(typeof(Guid[]), TypeInfoPropertyName = "GuidArray")]
 
+// --- Admin: GetPropertyDetail ---
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.Admin.GetPropertyDetail.Request), TypeInfoPropertyName = "AdminGetPropertyDetailRequest")]
+[JsonSerializable(typeof(Airbnb.PropertyService.Features.Admin.GetPropertyDetail.AdminPropertyDetailDto), TypeInfoPropertyName = "AdminPropertyDetailDto")]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.PropertyService.Features.Admin.GetPropertyDetail.AdminPropertyDetailDto>), TypeInfoPropertyName = "ApiResponseAdminPropertyDetail")]
+
 internal partial class PropertyJsonContext : JsonSerializerContext { }
