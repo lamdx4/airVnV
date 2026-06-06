@@ -47,10 +47,13 @@ var redis = builder.AddRedis("redis")
     .WithDataVolume("airbnb_redis_data");
 
 // 2. Debezium (CDC)
+// Note: On Docker Desktop for Windows, containers run in a VM. The confluent-local Kafka image
+// advertises localhost:29092 which is only reachable from the host. For container-to-container
+// communication, we use host.docker.internal which resolves to the host from inside containers.
 var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithHttpEndpoint(8083, 8083, "http")
-    .WithEnvironment("BOOTSTRAP_SERVERS", "kafka:9092")
+    .WithEnvironment("BOOTSTRAP_SERVERS", "host.docker.internal:29092")  // Docker Desktop host bridge
     .WithEnvironment("GROUP_ID", "1")
     .WithEnvironment("CONFIG_STORAGE_TOPIC", "my_connect_configs")
     .WithEnvironment("OFFSET_STORAGE_TOPIC", "my_connect_offsets")
