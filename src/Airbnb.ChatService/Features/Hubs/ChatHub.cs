@@ -28,8 +28,6 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(90)
             };
             await cache.SetStringAsync($"presence:user:{userId}", "online", options);
-
-            await NotifyStatusChanged(userId, "online");
         }
         
         await base.OnConnectedAsync();
@@ -174,23 +172,6 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
         if (!hasSharedConversation)
         {
             throw new HubException("Forbidden: You must have an active conversation with this user.");
-        }
-    }
-
-    private async Task NotifyStatusChanged(Guid userId, string status)
-    {
-        var relatedUserIds = await db.ConversationParticipants
-            .Where(cp => cp.UserId == userId)
-            .SelectMany(cp => cp.Conversation.Participants)
-            .Where(p => p.UserId != userId)
-            .Select(p => p.UserId)
-            .Distinct()
-            .ToListAsync();
-
-        if (relatedUserIds.Count != 0)
-        {
-            var groupNames = relatedUserIds.Select(id => $"user_{id}").ToList();
-            await Clients.Groups(groupNames).SendAsync("UserStatusChanged", userId, status);
         }
     }
 }

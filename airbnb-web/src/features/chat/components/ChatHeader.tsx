@@ -21,7 +21,7 @@ export const ChatHeader: React.FC<{
     .flatMap(page => page.items)
     .find(c => c.id === activeConversationId);
 
-  const { data: presence } = usePresence(conversation?.otherParticipantId, connection);
+  const { data: presence } = usePresence(conversation?.otherParticipantId);
   const isOnline = presence?.isOnline;
 
   if (!activeConversationId) return null;
