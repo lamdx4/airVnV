@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { dashboardApi } from "../api/dashboard";
-import type { DashboardStats, RevenueChartPoint, RecentActivity } from "../types";
 
 const QUERY_KEYS = {
   STATS: ["admin", "dashboard", "stats"],
@@ -14,7 +13,7 @@ export function useDashboardStats() {
     queryKey: QUERY_KEYS.STATS,
     queryFn: async () => {
       const response = await dashboardApi.getStats();
-      return response.data as unknown as DashboardStats;
+      return response.data;
     },
   });
 }
@@ -24,7 +23,7 @@ export function useRevenueChart(days = 30) {
     queryKey: QUERY_KEYS.REVENUE_CHART(days),
     queryFn: async () => {
       const response = await dashboardApi.getRevenueChart(days);
-      return response.data as unknown as RevenueChartPoint[];
+      return response.data;
     },
   });
 }
@@ -34,7 +33,7 @@ export function useRecentActivity(limit = 10) {
     queryKey: QUERY_KEYS.RECENT_ACTIVITY(limit),
     queryFn: async () => {
       const response = await dashboardApi.getRecentActivity(limit);
-      return response.data as unknown as RecentActivity[];
+      return response.data;
     },
   });
 }

@@ -4,10 +4,7 @@ using Airbnb.UserService.Domain;
 namespace Airbnb.UserService.Infrastructure.Migrations;
 
 /// <summary>
-/// Seeds a default Admin account for initial setup.
-/// Password: "Admin@123456" (plaintext — will be hashed on first login or via migration logic).
-/// NOTE: This stores a plaintext password for initial setup only.
-/// In production, change the password immediately after first login.
+/// Seeds a default Admin account for initial setup. Login: admin@airbnb.com / Admin@123456
 /// </summary>
 public partial class SeedAdminAccount : Migration
 {
@@ -19,10 +16,11 @@ public partial class SeedAdminAccount : Migration
     {
         var adminId = Guid.CreateVersion7().ToString();
         var now = DateTime.UtcNow.ToString("O");
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(AdminPassword);
 
         migrationBuilder.Sql($"""
             INSERT INTO "Users" ("Id", "Email", "HashedPassword", "Role", "CreatedAt")
-            VALUES ('{adminId}', '{AdminEmail}', '{AdminPassword}', 'Admin', '{now}')
+            VALUES ('{adminId}', '{AdminEmail}', '{hashedPassword}', 'Admin', '{now}')
             ON CONFLICT ("Email") DO NOTHING;
 
             INSERT INTO "UserProfiles" ("UserId", "FullName", "AvatarUrl", "PhoneNumber", "Bio")

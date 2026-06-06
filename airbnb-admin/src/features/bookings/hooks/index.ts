@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { bookingsApi } from "../api/bookings";
-import type { Booking, BookingDetail, BookingListParams } from "../types";
+import type { BookingListParams } from "../types";
 
 const QUERY_KEYS = {
   ALL: ["admin", "bookings"] as const,
@@ -14,13 +14,7 @@ export function useBookings(params?: BookingListParams) {
     queryKey: QUERY_KEYS.LIST(params),
     queryFn: async () => {
       const response = await bookingsApi.getAll(params);
-      return response.data as unknown as {
-        items: Booking[];
-        totalItems: number;
-        page: number;
-        pageSize: number;
-        totalPages: number;
-      };
+      return response.data;
     },
   });
 }
@@ -30,7 +24,7 @@ export function useBooking(id: string) {
     queryKey: QUERY_KEYS.DETAIL(id),
     queryFn: async () => {
       const response = await bookingsApi.getById(id);
-      return response.data as unknown as BookingDetail;
+      return response.data;
     },
     enabled: !!id,
   });

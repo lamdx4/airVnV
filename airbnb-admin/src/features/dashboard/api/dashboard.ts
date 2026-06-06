@@ -1,38 +1,18 @@
 import { api } from "@/lib/api";
-import type { ApiResponse } from "@/types/api";
 
-export interface DashboardStats {
-  totalProperties: number;
-  totalBookings: number;
-  totalUsers: number;
-  totalRevenue: number;
-  pendingReviews: number;
-  activeBookings: number;
-}
-
-export interface RevenueChartPoint {
-  date: string;
-  revenue: number;
-  bookings: number;
-}
-
-export interface RecentActivity {
-  id: string;
-  type: "booking" | "property" | "user" | "payment" | "review";
-  description: string;
-  timestamp: string;
-}
+import type { DashboardStats, RevenueChartPoint, RecentActivity } from "../types";
 
 export const dashboardApi = {
-  getStats: () => api.get<ApiResponse<DashboardStats>>("/admin/dashboard/stats"),
+  getStats: () =>
+    api.get<DashboardStats>("/admin/dashboard/stats"),
 
   getRevenueChart: (days = 30) =>
-    api.get<ApiResponse<RevenueChartPoint[]>>("/admin/dashboard/revenue-chart", {
+    api.get<RevenueChartPoint[]>("/admin/dashboard/revenue-chart", {
       params: { days },
     }),
 
   getRecentActivity: (limit = 10) =>
-    api.get<ApiResponse<RecentActivity[]>>("/admin/dashboard/recent-activity", {
+    api.get<RecentActivity[]>("/admin/dashboard/recent-activity", {
       params: { limit },
     }),
 };

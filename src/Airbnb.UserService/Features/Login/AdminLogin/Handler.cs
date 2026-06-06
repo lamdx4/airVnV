@@ -16,7 +16,7 @@ public class Handler(UserDbContext db, IConfiguration config) : ICommandHandler<
             .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Email == req.Email, ct);
 
-        if (user == null || user.HashedPassword != req.Password)
+        if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.HashedPassword ?? string.Empty))
         {
             throw new UnauthorizedAccessException("Invalid credentials");
         }

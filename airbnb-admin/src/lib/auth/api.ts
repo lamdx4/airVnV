@@ -1,5 +1,4 @@
 import { api } from "@/lib/api";
-import type { ApiResponse } from "@/types/api";
 
 export interface LoginRequest {
   email: string;
@@ -35,12 +34,12 @@ export interface AdminProfile {
 
 export const authApi = {
   login: (data: LoginRequest) =>
-    api.post<ApiResponse<LoginResponse>>("/users/admin/login", data),
+    api.post<LoginResponse>("/users/admin/login", data),
 
-  logout: () => api.post<ApiResponse<null>>("/account/sessions/revoke"),
+  logout: () => api.post<null>("/account/sessions/revoke"),
 
   refreshToken: (data: RefreshTokenRequest) =>
-    api.post<ApiResponse<RefreshTokenResponse>>("/users/refresh-token", data),
+    api.post<RefreshTokenResponse>("/users/refresh-token", data),
 
-  getProfile: () => api.get<ApiResponse<AdminProfile>>("/users/me"),
+  getProfile: () => api.get<AdminProfile>("/users/me"),
 };

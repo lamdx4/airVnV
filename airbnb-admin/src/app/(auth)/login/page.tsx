@@ -45,13 +45,7 @@ function LoginForm() {
     setIsLoading(true);
     try {
       const response = await authApi.login(data);
-      const { accessToken, refreshToken, fullName, email, role } = response.data as unknown as {
-        accessToken: string;
-        refreshToken: string;
-        fullName: string;
-        email: string;
-        role: string;
-      };
+      const { accessToken, refreshToken, fullName, email, role } = response.data;
       const user = {
         id: email,
         email,

@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { ApiResponse, PaginatedResponse } from "@/types/api";
+import type { BackendPage } from "@/types/api";
 
 import type { User, UserDetail, UserListParams, KycDocument } from "../types";
 
@@ -22,32 +22,32 @@ export type UserStatusValue = (typeof UserStatus)[keyof typeof UserStatus];
 
 export const usersApi = {
   getAll: (params?: UserListParams) =>
-    api.get<ApiResponse<PaginatedResponse<User>>>("/admin/users", { params }),
+    api.get<BackendPage<User>>("/admin/users", { params }),
 
   getById: (id: string) =>
-    api.get<ApiResponse<UserDetail>>(`/admin/users/${id}`),
+    api.get<UserDetail>(`/admin/users/${id}`),
 
   suspend: (id: string, reason: string) =>
-    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/suspend`, { reason }),
+    api.patch<{ id: string; status: string }>(`/admin/users/${id}/suspend`, { reason }),
 
   ban: (id: string, reason: string) =>
-    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/ban`, { reason }),
+    api.patch<{ id: string; status: string }>(`/admin/users/${id}/ban`, { reason }),
 
   activate: (id: string) =>
-    api.patch<ApiResponse<{ id: string; status: string }>>(`/admin/users/${id}/activate`),
+    api.patch<{ id: string; status: string }>(`/admin/users/${id}/activate`),
 
   updateRole: (id: string, role: UserRoleValue) =>
-    api.patch<ApiResponse<User>>(`/admin/users/${id}/role`, { role }),
+    api.patch<User>(`/admin/users/${id}/role`, { role }),
 
   delete: (id: string) =>
-    api.delete<ApiResponse<null>>(`/admin/users/${id}`),
+    api.delete<null>(`/admin/users/${id}`),
 
   getKycDocuments: (id: string) =>
-    api.get<ApiResponse<KycDocument[]>>(`/admin/users/${id}/kyc-documents`),
+    api.get<KycDocument[]>(`/admin/users/${id}/kyc-documents`),
 
   approveVerification: (id: string) =>
-    api.patch<ApiResponse<{ id: string; isVerified: boolean; status: string }>>(`/admin/users/${id}/verify`),
+    api.patch<{ id: string; isVerified: boolean; status: string }>(`/admin/users/${id}/verify`),
 
   rejectVerification: (id: string, reason: string) =>
-    api.patch<ApiResponse<{ id: string; isVerified: boolean }>>(`/admin/users/${id}/reject-verification`, { reason }),
+    api.patch<{ id: string; isVerified: boolean }>(`/admin/users/${id}/reject-verification`, { reason }),
 };

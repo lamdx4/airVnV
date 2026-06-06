@@ -32,4 +32,5 @@ specs
 log.txt
 # Secrets
 firebase-service-account.json
+.mcp.json
 

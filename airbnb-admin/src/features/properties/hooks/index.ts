@@ -15,13 +15,7 @@ export function useProperties(params?: PropertyListParams) {
     queryKey: QUERY_KEYS.LIST(params),
     queryFn: async () => {
       const response = await propertiesApi.getAll(params);
-      const raw = response.data as unknown as {
-        items: Property[];
-        totalCount: number;
-        pageNumber: number;
-        pageSize: number;
-        totalPages: number;
-      };
+      const raw = response.data;
       return {
         items: raw.items,
         totalItems: raw.totalCount,
@@ -38,7 +32,7 @@ export function useProperty(id: string) {
     queryKey: QUERY_KEYS.DETAIL(id),
     queryFn: async () => {
       const response = await propertiesApi.getById(id);
-      return response.data as unknown as Property;
+      return response.data;
     },
     enabled: !!id,
   });

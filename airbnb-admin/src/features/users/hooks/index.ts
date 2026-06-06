@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { usersApi } from "../api/users";
-import type { UserListParams, UserRoleValue } from "../types";
+import type { User, UserDetail, KycDocument, UserListParams, UserRoleValue } from "../types";
 
 const QUERY_KEYS = {
   ALL: ["admin", "users"] as const,
@@ -15,15 +15,9 @@ export function useUsers(params?: UserListParams) {
     queryKey: QUERY_KEYS.LIST(params),
     queryFn: async () => {
       const response = await usersApi.getAll(params);
-      const raw = response.data as unknown as {
-        items: unknown[];
-        totalCount: number;
-        pageNumber: number;
-        pageSize: number;
-        totalPages: number;
-      };
+      const raw = response.data;
       return {
-        items: raw.items as import("../types").User[],
+        items: raw.items as User[],
         totalItems: raw.totalCount,
         page: raw.pageNumber,
         pageSize: raw.pageSize,
@@ -38,7 +32,7 @@ export function useUser(id: string) {
     queryKey: QUERY_KEYS.DETAIL(id),
     queryFn: async () => {
       const response = await usersApi.getById(id);
-      return response.data as unknown as import("../types").UserDetail;
+      return response.data as UserDetail;
     },
     enabled: !!id,
   });
@@ -102,7 +96,7 @@ export function useKycDocuments(userId: string) {
     queryKey: QUERY_KEYS.KYC(userId),
     queryFn: async () => {
       const response = await usersApi.getKycDocuments(userId);
-      return response.data as unknown as import("../types").KycDocument[];
+      return response.data as KycDocument[];
     },
     enabled: !!userId,
   });

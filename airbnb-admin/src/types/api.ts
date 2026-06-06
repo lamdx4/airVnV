@@ -22,3 +22,13 @@ export interface PaginationParams {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
+
+// Some backend services (PropertyService, UserService) use different field names
+// for paginated responses. This type reflects those field names before mapping.
+export interface BackendPage<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
