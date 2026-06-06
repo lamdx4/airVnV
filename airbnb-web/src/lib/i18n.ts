@@ -401,6 +401,45 @@ const resources = {
           "fileTypes": "PNG, JPG or WEBP (Max 5MB)",
           "morePhotosRequired": "Please select {{count}} more photo(s) to continue."
         }
+      },
+      "hostDashboard": {
+        "title": "Your Listings",
+        "subtitle": "Manage your properties and track their performance.",
+        "createNew": "Create New Listing",
+        "stats": {
+          "total": "Total Listings",
+          "active": "Active",
+          "drafts": "Drafts"
+        },
+        "searchPlaceholder": "Search by title, address, or province...",
+        "filters": "Filters",
+        "table": {
+          "listing": "Listing",
+          "status": "Status",
+          "price": "Price",
+          "location": "Location",
+          "actions": "Actions",
+          "guests": "guests",
+          "bedrooms": "bedrooms",
+          "perNight": "/ night",
+          "notSet": "Not set"
+        },
+        "actions": {
+          "edit": "Edit Listing",
+          "viewLive": "View Live",
+          "delete": "Delete"
+        },
+        "empty": {
+          "title": "No listings found",
+          "subtitle": "Get started by creating your first property listing.",
+          "createButton": "Create Listing"
+        },
+        "pagination": {
+          "showing": "Showing",
+          "to": "to",
+          "of": "of",
+          "results": "results"
+        }
       }
     }
   },
@@ -801,6 +840,45 @@ const resources = {
           "clickToAdd": "Click để thêm ảnh",
           "fileTypes": "PNG, JPG hoặc WEBP (Tối đa 5MB)",
           "morePhotosRequired": "Vui lòng chọn thêm {{count}} ảnh nữa để có thể đăng."
+        }
+      },
+      "hostDashboard": {
+        "title": "Danh sách của bạn",
+        "subtitle": "Quản lý chỗ nghỉ và theo dõi hiệu suất hoạt động.",
+        "createNew": "Tạo chỗ nghỉ mới",
+        "stats": {
+          "total": "Tổng số",
+          "active": "Đang hiển thị",
+          "drafts": "Bản nháp"
+        },
+        "searchPlaceholder": "Tìm kiếm theo tiêu đề, địa chỉ, hoặc tỉnh/thành...",
+        "filters": "Bộ lọc",
+        "table": {
+          "listing": "Chỗ nghỉ",
+          "status": "Trạng thái",
+          "price": "Giá",
+          "location": "Vị trí",
+          "actions": "Thao tác",
+          "guests": "khách",
+          "bedrooms": "phòng ngủ",
+          "perNight": "/ đêm",
+          "notSet": "Chưa đặt"
+        },
+        "actions": {
+          "edit": "Chỉnh sửa",
+          "viewLive": "Xem trực tiếp",
+          "delete": "Xóa"
+        },
+        "empty": {
+          "title": "Không tìm thấy chỗ nghỉ nào",
+          "subtitle": "Bắt đầu bằng cách tạo chỗ nghỉ đầu tiên của bạn.",
+          "createButton": "Tạo chỗ nghỉ"
+        },
+        "pagination": {
+          "showing": "Hiển thị",
+          "to": "đến",
+          "of": "trên tổng",
+          "results": "kết quả"
         }
       }
     }

@@ -13,7 +13,7 @@ import { Icon } from '@iconify/react';
 export const ChatHeader: React.FC<{ 
   connection?: signalR.HubConnection | null;
   onStartCall?: (video: boolean) => void;
-}> = ({ connection, onStartCall }) => {
+}> = ({ onStartCall }) => {
   const { activeConversationId, setActiveConversationId, toggleSidebar, toggleInfoSidebar } = useChat();
   const { data, isLoading } = useInbox();
 

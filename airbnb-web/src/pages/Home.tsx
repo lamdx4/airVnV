@@ -139,7 +139,7 @@ export default function Home() {
                     <span className="font-normal text-slate-900">{place.rating.toFixed(2)}</span>
                   </div>
                 </div>
-                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{place.displayAddress || t('home.within50km')}</p>
+                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{(place as any).displayAddress || t('home.within50km')}</p>
                 <div className="pt-1.5">
                   <span className="text-[15px] text-slate-900 font-semibold">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: place.currency }).format(place.price)}

@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useProperty } from '@/features/properties/hooks/useProperties';
 import { useReviews } from '@/features/reviews/hooks/useReviews';
 import { BookingWidget } from '@/features/booking';
-import { MapPin, Star, Medal, Wifi, Car, Coffee, Tv, Eye } from 'lucide-react';
+import { MapPin, Star, Medal, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { ImageLightbox } from '@/components/common/ImageLightbox';

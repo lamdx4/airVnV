@@ -25,8 +25,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from 'react-i18next';
 
 export const HostPropertyDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,8 +41,6 @@ export const HostPropertyDashboard: React.FC = () => {
   
   const filteredProperties = allProperties.filter(p => 
     p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.province && p.province.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (p.district && p.district.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (p.displayAddress && p.displayAddress.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -59,23 +59,23 @@ export const HostPropertyDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-hof">Your Listings</h1>
-          <p className="text-slate-500 mt-1">Manage your properties and track their performance.</p>
+          <h1 className="text-3xl font-bold text-hof">{t('hostDashboard.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('hostDashboard.subtitle')}</p>
         </div>
         <Button 
           onClick={() => navigate('/host/homes/new')}
           className="bg-black hover:bg-black/80 text-white rounded-2xl h-12 px-6 gap-2 font-bold shadow-lg shadow-rausch/20"
         >
           <PlusSignIcon className="h-5 w-5" />
-          Create New Listing
+          {t('hostDashboard.createNew')}
         </Button>
       </div>
 
       {/* Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <StatCard label="Total Listings" value={totalCount.toString()} icon={Home01Icon} color="bg-blue-50 text-blue-600" />
-         <StatCard label="Active" value={activeCount.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
-         <StatCard label="Drafts" value={draftCount.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
+         <StatCard label={t('hostDashboard.stats.total')} value={totalCount.toString()} icon={Home01Icon} color="bg-blue-50 text-blue-600" />
+         <StatCard label={t('hostDashboard.stats.active')} value={activeCount.toString()} icon={Tick02Icon} color="bg-green-50 text-green-600" />
+         <StatCard label={t('hostDashboard.stats.drafts')} value={draftCount.toString()} icon={Edit02Icon} color="bg-slate-50 text-slate-600" />
       </div>
 
       {/* Filter & Search */}
@@ -83,7 +83,7 @@ export const HostPropertyDashboard: React.FC = () => {
         <div className="flex-1 relative">
             <Search01Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
             <Input 
-                placeholder="Search by title, address, or province..."
+                placeholder={t('hostDashboard.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -94,7 +94,7 @@ export const HostPropertyDashboard: React.FC = () => {
         </div>
         <Button variant="outline" className="rounded-xl border-slate-200 h-12 px-5 gap-2">
             <FilterIcon className="h-4 w-4" />
-            Filters
+            {t('hostDashboard.filters')}
         </Button>
       </div>
 
@@ -104,11 +104,11 @@ export const HostPropertyDashboard: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-bottom">
-                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Listing</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Price</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">Location</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest text-right">Actions</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">{t('hostDashboard.table.listing')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">{t('hostDashboard.table.status')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">{t('hostDashboard.table.price')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest">{t('hostDashboard.table.location')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase text-slate-400 tracking-widest text-right">{t('hostDashboard.table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -125,7 +125,7 @@ export const HostPropertyDashboard: React.FC = () => {
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-hof truncate max-w-[240px] group-hover:text-rausch transition-colors">{property.title}</p>
-                        <p className="text-xs text-slate-400 mt-1 truncate max-w-[200px]">{property.guestCount} guests • {property.bedroomCount} bedrooms</p>
+                        <p className="text-xs text-slate-400 mt-1 truncate max-w-[200px]">{property.guestCount} {t('hostDashboard.table.guests')} • {property.bedroomCount} {t('hostDashboard.table.bedrooms')}</p>
                       </div>
                     </div>
                   </td>
@@ -136,10 +136,10 @@ export const HostPropertyDashboard: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-bold text-hof">${property.basePrice}</span>
-                    <span className="text-xs text-slate-400"> / night</span>
+                    <span className="text-xs text-slate-400"> {t('hostDashboard.table.perNight')}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600 truncate max-w-[150px] inline-block">{property.displayAddress || 'Not set'}</span>
+                    <span className="text-sm text-slate-600 truncate max-w-[150px] inline-block">{property.displayAddress || t('hostDashboard.table.notSet')}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <DropdownMenu>
@@ -151,15 +151,15 @@ export const HostPropertyDashboard: React.FC = () => {
                       <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl shadow-xl border-slate-100">
                         <DropdownMenuItem onClick={() => navigate(`/host/homes/${property.id}/edit`)} className="rounded-xl gap-3 py-2 cursor-pointer">
                           <Edit02Icon className="h-4 w-4 text-blue-500" />
-                          Edit Listing
+                          {t('hostDashboard.actions.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => navigate(`/properties/${property.id}?isPreview=true`)} className="rounded-xl gap-3 py-2 cursor-pointer">
                           <ViewIcon className="h-4 w-4 text-slate-500" />
-                          View Live
+                          {t('hostDashboard.actions.viewLive')}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-xl gap-3 py-2 text-rausch cursor-pointer focus:text-rausch focus:bg-rausch/5">
                           <Delete02Icon className="h-4 w-4" />
-                          Delete
+                          {t('hostDashboard.actions.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -176,14 +176,14 @@ export const HostPropertyDashboard: React.FC = () => {
               <Home01Icon className="h-12 w-12 text-slate-300" />
             </div>
             <div>
-              <p className="text-xl font-bold text-hof">No listings found</p>
-              <p className="text-slate-500">Get started by creating your first property listing.</p>
+              <p className="text-xl font-bold text-hof">{t('hostDashboard.empty.title')}</p>
+              <p className="text-slate-500">{t('hostDashboard.empty.subtitle')}</p>
             </div>
             <Button 
                 onClick={() => navigate('/host/homes/new')}
                 className="bg-slate-900 text-white rounded-xl px-8 mt-2"
             >
-                Create Listing
+                {t('hostDashboard.empty.createButton')}
             </Button>
           </div>
         )}
@@ -192,9 +192,9 @@ export const HostPropertyDashboard: React.FC = () => {
         {totalPages > 1 && (
           <div className="px-6 py-6 border-t flex items-center justify-between bg-slate-50/30">
             <p className="text-xs text-slate-500 font-medium">
-              Showing <span className="font-bold text-hof">{(page - 1) * pageSize + 1}</span> to{' '}
-              <span className="font-bold text-hof">{Math.min(page * pageSize, filteredCount)}</span> of{' '}
-              <span className="font-bold text-hof">{filteredCount}</span> results
+              {t('hostDashboard.pagination.showing')} <span className="font-bold text-hof">{(page - 1) * pageSize + 1}</span> {t('hostDashboard.pagination.to')}{' '}
+              <span className="font-bold text-hof">{Math.min(page * pageSize, filteredCount)}</span> {t('hostDashboard.pagination.of')}{' '}
+              <span className="font-bold text-hof">{filteredCount}</span> {t('hostDashboard.pagination.results')}
             </p>
             <div className="flex items-center gap-2">
               <Button 
