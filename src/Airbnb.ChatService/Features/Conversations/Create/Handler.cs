@@ -11,7 +11,7 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
 {
     public async ValueTask<Response> Handle(Request req, CancellationToken ct)
     {
-        // 1. Chống duplicate (Solution 2 - App-level check)
+        // 1. Chống duplicate an toàn tuyệt đối
         var existingConversation = await db.Conversations
             .AsNoTracking()
             .Where(c => c.PropertyId == req.PropertyId && c.ReservationId == req.ReservationId)
@@ -33,7 +33,33 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
             throw new BusinessException("Host cannot start a conversation as a guest for their own property.", "CHAT_SELF_CONVERSATION");
         }
 
-        // 3. Tạo Conversation
+        // 3. Đảm bảo ChatUser tồn tại (dùng SQL Upsert để triệt tiêu Race Condition khi insert)
+        var guestProfileTask = userClient.GetPublicProfileAsync(req.GuestId, ct);
+        var hostProfileTask = userClient.GetPublicProfileAsync(propertyInfo.HostId, ct);
+        await Task.WhenAll(guestProfileTask, hostProfileTask);
+
+        var guestProfile = guestProfileTask.Result;
+        var hostProfile = hostProfileTask.Result;
+
+        var guestName = guestProfile?.FullName ?? "Guest";
+        var guestAvatar = guestProfile?.AvatarUrl;
+        var hostName = hostProfile?.FullName ?? "Host";
+        var hostAvatar = hostProfile?.AvatarUrl;
+
+        // Chạy Raw SQL để "INSERT IF NOT EXISTS" an toàn tuyệt đối trong Postgres
+        await db.Database.ExecuteSqlAsync($@"
+            INSERT INTO ""ChatUsers"" (""UserId"", ""DisplayName"", ""AvatarUrl"")
+            VALUES ({req.GuestId}, {guestName}, {guestAvatar})
+            ON CONFLICT (""UserId"") DO NOTHING;
+        ", ct);
+
+        await db.Database.ExecuteSqlAsync($@"
+            INSERT INTO ""ChatUsers"" (""UserId"", ""DisplayName"", ""AvatarUrl"")
+            VALUES ({propertyInfo.HostId}, {hostName}, {hostAvatar})
+            ON CONFLICT (""UserId"") DO NOTHING;
+        ", ct);
+
+        // 4. Tạo Conversation
         var conversation = new Conversation
         {
             PropertyId = req.PropertyId,
@@ -45,33 +71,7 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
 
         db.Conversations.Add(conversation);
 
-        // Ensure Guest ChatUser exists
-        var guestUser = await db.ChatUsers.FindAsync([req.GuestId], ct);
-        if (guestUser == null)
-        {
-            var guestProfile = await userClient.GetPublicProfileAsync(req.GuestId, ct);
-            db.ChatUsers.Add(new ChatUser
-            {
-                UserId = req.GuestId,
-                DisplayName = guestProfile?.FullName ?? "Guest",
-                AvatarUrl = guestProfile?.AvatarUrl
-            });
-        }
-
-        // Ensure Host ChatUser exists
-        var hostUser = await db.ChatUsers.FindAsync([propertyInfo.HostId], ct);
-        if (hostUser == null)
-        {
-            var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, ct);
-            db.ChatUsers.Add(new ChatUser
-            {
-                UserId = propertyInfo.HostId,
-                DisplayName = hostProfile?.FullName ?? "Host",
-                AvatarUrl = hostProfile?.AvatarUrl
-            });
-        }
-
-        // 4. Add Guest Participant
+        // 5. Thêm Participants
         db.ConversationParticipants.Add(new ConversationParticipant
         {
             ConversationId = conversation.Id,
@@ -79,7 +79,6 @@ public sealed class Handler(AppDbContext db, PropertyServiceClient propertyClien
             Role = ParticipantRole.Guest
         });
 
-        // 5. Add Host Participant
         db.ConversationParticipants.Add(new ConversationParticipant
         {
             ConversationId = conversation.Id,
