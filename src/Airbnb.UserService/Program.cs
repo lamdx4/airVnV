@@ -54,11 +54,6 @@ builder.Services.AddHttpClient<Airbnb.UserService.Infrastructure.HttpClients.Pro
     client.BaseAddress = new Uri("http://propertyservice");
     client.Timeout = TimeSpan.FromSeconds(5);
 });
-builder.Services.AddHttpClient<Airbnb.UserService.Infrastructure.HttpClients.BookingServiceClient>(client =>
-{
-    client.BaseAddress = new Uri("http://bookingservice");
-    client.Timeout = TimeSpan.FromSeconds(5);
-});
 
 // Thêm Mediator
 builder.Services.AddMediator();
