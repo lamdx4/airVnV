@@ -37,13 +37,6 @@ const statusFilterOptions: { value: string; label: string }[] = [
   { value: UserStatus.BANNED, label: "Banned" },
 ];
 
-const roleFilterOptions: { value: string; label: string }[] = [
-  { value: "all", label: "All Roles" },
-  { value: UserRole.USER, label: "User" },
-  { value: UserRole.MODERATOR, label: "Moderator" },
-  { value: UserRole.ADMIN, label: "Admin" },
-];
-
 function StatusBadge({ status }: { status: UserStatusValue }) {
   const config = getUserStatusConfig(status);
   return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -59,9 +52,9 @@ export function UsersList() {
   const [params, setParams] = useState<UserListParams>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
+    role: UserRole.USER,
   });
   const [statusFilter, setStatusFilter] = useState("all");
-  const [roleFilter, setRoleFilter] = useState("all");
   const [searchInput, setSearchInput] = useState("");
 
   const { data, isLoading, isError, refetch } = useUsers(params);
@@ -75,15 +68,6 @@ export function UsersList() {
       ...prev,
       page: 1,
       status: value === "all" ? undefined : (value as UserStatusValue),
-    }));
-  }
-
-  function handleRoleFilter(value: string) {
-    setRoleFilter(value);
-    setParams((prev) => ({
-      ...prev,
-      page: 1,
-      role: value === "all" ? undefined : (value as UserRoleValue),
     }));
   }
 
@@ -170,19 +154,6 @@ export function UsersList() {
             </SelectTrigger>
             <SelectContent>
               {statusFilterOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={roleFilter} onValueChange={handleRoleFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              {roleFilterOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>

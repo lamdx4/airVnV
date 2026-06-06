@@ -1,17 +1,14 @@
-using FastEndpoints;
-using Mediator;
-using Airbnb.ServiceDefaults.Infrastructure;
-
 namespace Airbnb.UserService.Features.Admin.GetUserGrowthReport;
 
-public record Request(
-    [property: BindFrom("from")] DateOnly From,
-    [property: BindFrom("to")] DateOnly To,
-    [property: BindFrom("groupBy")] string GroupBy = "day"
-) : Mediator.IQuery<ApiResponse<List<UserGrowthPoint>>>;
+public record Request
+{
+    public string From { get; init; } = string.Empty;
+    public string To { get; init; } = string.Empty;
+    public string GroupBy { get; init; } = "day";
+}
 
-public record UserGrowthPoint(
-    string Date,
-    int Guests,
-    int Hosts
+public record Response(
+    string Label,
+    int NewUsers,
+    int TotalUsers
 );

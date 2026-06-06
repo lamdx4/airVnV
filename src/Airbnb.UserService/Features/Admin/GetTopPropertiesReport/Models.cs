@@ -1,19 +1,16 @@
-using FastEndpoints;
-using Mediator;
-using Airbnb.ServiceDefaults.Infrastructure;
-
 namespace Airbnb.UserService.Features.Admin.GetTopPropertiesReport;
 
-public record Request(
-    [property: BindFrom("from")] DateOnly From,
-    [property: BindFrom("to")] DateOnly To,
-    [property: BindFrom("limit")] int Limit = 10
-) : Mediator.IQuery<ApiResponse<List<TopPropertyItem>>>;
+public record Request
+{
+    public string From { get; init; } = string.Empty;
+    public string To { get; init; } = string.Empty;
+    public int Limit { get; init; } = 10;
+}
 
-public record TopPropertyItem(
-    Guid Id,
+public record Response(
+    string Id,
     string Title,
     decimal Revenue,
     int Bookings,
-    decimal OccupancyRate
+    double OccupancyRate
 );

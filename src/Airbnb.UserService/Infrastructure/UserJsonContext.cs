@@ -62,46 +62,23 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(ApiResponse<Features.Admin.ActivateUser.ActivateUserResponse>), TypeInfoPropertyName = "AdminActivateUserApiResponse")]
 [JsonSerializable(typeof(Features.Admin.ActivateUser.ActivateUserResponse), TypeInfoPropertyName = "AdminActivateUserResponseData")]
 
-// --- Admin: GetDashboardStats ---
-[JsonSerializable(typeof(ApiResponse<Features.Admin.GetDashboardStats.DashboardStatsResponse>), TypeInfoPropertyName = "AdminDashboardStatsApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetDashboardStats.DashboardStatsResponse), TypeInfoPropertyName = "AdminDashboardStatsResponseData")]
-
-// --- Admin: GetRevenueChart ---
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRevenueChart.RevenueChartPoint>>), TypeInfoPropertyName = "AdminRevenueChartApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetRevenueChart.RevenueChartPoint), TypeInfoPropertyName = "AdminRevenueChartPoint")]
-[JsonSerializable(typeof(Features.Admin.GetRevenueChart.Request), TypeInfoPropertyName = "AdminRevenueChartRequest")]
-
-// --- Admin: GetRecentActivity ---
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRecentActivity.ActivityItem>>), TypeInfoPropertyName = "AdminRecentActivityApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetRecentActivity.ActivityItem), TypeInfoPropertyName = "AdminActivityItem")]
-[JsonSerializable(typeof(Features.Admin.GetRecentActivity.Request), TypeInfoPropertyName = "AdminRecentActivityRequest")]
-
-// --- Admin: Reports (UC-E2) ---
-[JsonSerializable(typeof(ApiResponse<Features.Admin.GetReportSummary.ReportSummaryResponse>), TypeInfoPropertyName = "AdminReportSummaryApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetReportSummary.ReportSummaryResponse), TypeInfoPropertyName = "AdminReportSummaryResponseData")]
+// --- Admin: Reports ---
+[JsonSerializable(typeof(ApiResponse<Features.Admin.GetReportSummary.Response>), TypeInfoPropertyName = "AdminReportSummaryApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetReportSummary.Response), TypeInfoPropertyName = "AdminReportSummaryResponseData")]
 [JsonSerializable(typeof(Features.Admin.GetReportSummary.Request), TypeInfoPropertyName = "AdminReportSummaryRequest")]
-
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRevenueBreakdownReport.RevenueBreakdownItem>>), TypeInfoPropertyName = "AdminRevenueBreakdownApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetRevenueBreakdownReport.RevenueBreakdownItem), TypeInfoPropertyName = "AdminRevenueBreakdownItem")]
-[JsonSerializable(typeof(Features.Admin.GetRevenueBreakdownReport.Request), TypeInfoPropertyName = "AdminRevenueBreakdownRequest")]
-
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetTopPropertiesReport.TopPropertyItem>>), TypeInfoPropertyName = "AdminTopPropertiesReportApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetTopPropertiesReport.TopPropertyItem), TypeInfoPropertyName = "AdminTopPropertyItem")]
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetRevenueChart.Response>>), TypeInfoPropertyName = "AdminRevenueChartApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetRevenueChart.Response), TypeInfoPropertyName = "AdminRevenueChartPoint")]
+[JsonSerializable(typeof(Features.Admin.GetRevenueChart.Request), TypeInfoPropertyName = "AdminRevenueChartRequest")]
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetTopPropertiesReport.Response>>), TypeInfoPropertyName = "AdminTopPropertiesApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetTopPropertiesReport.Response), TypeInfoPropertyName = "AdminTopPropertyItem")]
 [JsonSerializable(typeof(Features.Admin.GetTopPropertiesReport.Request), TypeInfoPropertyName = "AdminTopPropertiesRequest")]
-
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetUserGrowthReport.UserGrowthPoint>>), TypeInfoPropertyName = "AdminUserGrowthApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetUserGrowthReport.UserGrowthPoint), TypeInfoPropertyName = "AdminUserGrowthPoint")]
+[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetUserGrowthReport.Response>>), TypeInfoPropertyName = "AdminUserGrowthApiResponse")]
+[JsonSerializable(typeof(Features.Admin.GetUserGrowthReport.Response), TypeInfoPropertyName = "AdminUserGrowthPoint")]
 [JsonSerializable(typeof(Features.Admin.GetUserGrowthReport.Request), TypeInfoPropertyName = "AdminUserGrowthRequest")]
 
 // --- Cross-service HttpClient DTOs (UC-E2 Reports) ---
 [JsonSerializable(typeof(BookingSummaryResponse))]
-[JsonSerializable(typeof(RevenueBreakdownPoint))]
-[JsonSerializable(typeof(List<RevenueBreakdownPoint>))]
-[JsonSerializable(typeof(TopPropertyBasic))]
-[JsonSerializable(typeof(List<TopPropertyBasic>))]
 [JsonSerializable(typeof(OccupancyMetricsResponse))]
-[JsonSerializable(typeof(PublishedCountResponse))]
-[JsonSerializable(typeof(NewPropertiesCountResponse))]
 [JsonSerializable(typeof(PropertyBasicInfo))]
 [JsonSerializable(typeof(List<PropertyBasicInfo>))]
 

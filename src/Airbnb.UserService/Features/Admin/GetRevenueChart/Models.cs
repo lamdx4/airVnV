@@ -1,14 +1,14 @@
-using System.Net.Http.Json;
-using FastEndpoints;
-using Mediator;
-using Airbnb.ServiceDefaults.Infrastructure;
-
 namespace Airbnb.UserService.Features.Admin.GetRevenueChart;
 
-public record Request([property: BindFrom("days")] int Days = 30) : Mediator.IQuery<ApiResponse<List<RevenueChartPoint>>>;
+public record Request
+{
+    public string From { get; init; } = string.Empty;
+    public string To { get; init; } = string.Empty;
+    public string GroupBy { get; init; } = "day";
+}
 
-public record RevenueChartPoint(
-    string Date,
+public record Response(
+    string Label,
     decimal Revenue,
     int Bookings
 );

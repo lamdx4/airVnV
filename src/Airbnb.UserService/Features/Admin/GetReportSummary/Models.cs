@@ -1,19 +1,22 @@
-using FastEndpoints;
-using Mediator;
-using Airbnb.ServiceDefaults.Infrastructure;
-
 namespace Airbnb.UserService.Features.Admin.GetReportSummary;
 
-public record Request(
-    [property: BindFrom("from")] DateOnly From,
-    [property: BindFrom("to")] DateOnly To
-) : Mediator.IQuery<ApiResponse<ReportSummaryResponse>>;
+public record Request
+{
+    public string From { get; init; } = string.Empty;
+    public string To { get; init; } = string.Empty;
+}
 
-public record ReportSummaryResponse(
+public record Response(
     decimal TotalRevenue,
     int TotalBookings,
     decimal AverageBookingValue,
-    decimal OccupancyRate,
+    double OccupancyRate,
     int NewUsers,
-    int NewProperties
+    int NewProperties,
+    int TotalUsers,
+    int ActiveUsers,
+    int SuspendedUsers,
+    int BannedUsers,
+    int UserCount,
+    int AdminCount
 );

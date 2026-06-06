@@ -1,20 +1,19 @@
-using Mediator;
+using FastEndpoints;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.GetRevenueChart;
 
-public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiResponse<List<RevenueChartPoint>>>
+public class Endpoint : Endpoint<Request, ApiResponse<List<Response>>>
 {
     public override void Configure()
     {
-        Get("/revenue-chart");
-        Group<DashboardGroup>();
+        Get("/revenue-breakdown");
+        Group<ReportsGroup>();
         Roles("Admin", "Moderator");
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
-        await Send.ResponseAsync(result, cancellation: ct);
+        Response = ApiResponse<List<Response>>.SuccessResult([], "Revenue breakdown retrieved");
     }
 }
