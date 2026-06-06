@@ -104,15 +104,7 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var callerIdObj) && callerIdObj is Guid callerId)
         {
-            // Kiểm tra xem 2 người đã từng có chung ít nhất 1 conversation chưa
-            var hasSharedConversation = await db.Conversations
-                .AnyAsync(c => c.Participants.Any(p => p.UserId == callerId) 
-                            && c.Participants.Any(p => p.UserId == targetUserId));
-
-            if (!hasSharedConversation)
-            {
-                throw new HubException("Forbidden: You must have an active conversation with this user to initiate a call.");
-            }
+            await EnsureSharedConversation(callerId, targetUserId);
 
             await Clients.Group($"user_{targetUserId}").SendAsync("IncomingCall", new 
             { 
@@ -127,6 +119,7 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var answererIdObj) && answererIdObj is Guid answererId)
         {
+            await EnsureSharedConversation(answererId, targetUserId);
             await Clients.Group($"user_{targetUserId}").SendAsync("CallAnswered", new 
             { 
                 AnswererId = answererId, 
@@ -139,6 +132,7 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var senderIdObj) && senderIdObj is Guid senderId)
         {
+            await EnsureSharedConversation(senderId, targetUserId);
             await Clients.Group($"user_{targetUserId}").SendAsync("ReceiveIceCandidate", new 
             { 
                 SenderId = senderId, 
@@ -151,6 +145,7 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var rejecterIdObj) && rejecterIdObj is Guid rejecterId)
         {
+            await EnsureSharedConversation(rejecterId, targetUserId);
             await Clients.Group($"user_{targetUserId}").SendAsync("CallRejected", new 
             { 
                 RejecterId = rejecterId 
@@ -162,10 +157,23 @@ public class ChatHub(AppDbContext db, IDistributedCache cache) : Hub
     {
         if (Context.Items.TryGetValue(UserIdKey, out var enderIdObj) && enderIdObj is Guid enderId)
         {
+            await EnsureSharedConversation(enderId, targetUserId);
             await Clients.Group($"user_{targetUserId}").SendAsync("CallEnded", new 
             { 
                 EnderId = enderId 
             });
+        }
+    }
+
+    private async Task EnsureSharedConversation(Guid userId1, Guid userId2)
+    {
+        var hasSharedConversation = await db.Conversations
+            .AnyAsync(c => c.Participants.Any(p => p.UserId == userId1) 
+                        && c.Participants.Any(p => p.UserId == userId2));
+
+        if (!hasSharedConversation)
+        {
+            throw new HubException("Forbidden: You must have an active conversation with this user.");
         }
     }
 
