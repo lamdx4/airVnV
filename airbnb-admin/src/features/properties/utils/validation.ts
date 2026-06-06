@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const rejectPropertySchema = z.object({
   reason: z.string().min(10, "Rejection reason must be at least 10 characters"),

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { z } from "zod/v4";
+import { z } from "zod";
 import Link from "next/link";
 
 import { authApi } from "@/lib/auth";

@@ -89,8 +89,10 @@ builder.Services.Configure<HostOptions>(opts =>
 {
     opts.ServicesStartConcurrently = true;
     opts.StartupTimeout = TimeSpan.FromSeconds(60);
-    opts.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+    opts.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.StopHost;
 });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddMemoryCache();
 
@@ -119,6 +121,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<Airbnb.ServiceDefaults.Infrastructure.ExceptionHandlingMiddleware>();
+app.UseAuthorization();
 
 app.UseFastEndpoints(c => {
     c.Serializer.Options.TypeInfoResolver = BookingJsonContext.Default;

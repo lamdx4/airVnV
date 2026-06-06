@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";

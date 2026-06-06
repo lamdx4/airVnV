@@ -3,7 +3,7 @@
   "mcpServers": {
     "aspire": {
       "type": "stdio",
-      "command": "C:\\Users\\anhkh\\.dotnet\\tools\\aspire.cmd",
+      "command": "aspire",
       "args": ["agent", "mcp"]
     }
   }
