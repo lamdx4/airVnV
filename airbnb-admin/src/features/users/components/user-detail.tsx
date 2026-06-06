@@ -5,14 +5,12 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Ban,
-  CheckCircle2,
   Mail,
   Phone,
   Shield,
   ShieldCheck,
   XCircle,
   RotateCcw,
-  ZoomIn,
 } from "lucide-react";
 import { ROUTES } from "@/config/constants";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/breadcrumbs";
@@ -25,19 +23,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import {
   useUser,
   useSuspendUser,
   useBanUser,
   useActivateUser,
-  useApproveVerification,
-  useRejectVerification,
 } from "../hooks";
 import { UserStatus, UserRole, type UserDetail as UserDetailType } from "../types";
 import { getUserStatusConfig, getUserRoleConfig } from "../utils/status";
@@ -57,18 +46,12 @@ export function UserDetail({ userId }: UserDetailProps) {
   const suspendMutation = useSuspendUser();
   const banMutation = useBanUser();
   const activateMutation = useActivateUser();
-  const approveVerificationMutation = useApproveVerification();
-  const rejectVerificationMutation = useRejectVerification();
 
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [showActivateDialog, setShowActivateDialog] = useState(false);
-  const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   if (isLoading) return <PageLoader text="Loading user..." />;
   if (isError || !user) {
@@ -77,14 +60,10 @@ export function UserDetail({ userId }: UserDetailProps) {
 
   const statusConfig = getUserStatusConfig(user.status);
   const roleConfig = getUserRoleConfig(user.role);
-  const isHost = user.role === UserRole.USER;
 
-  const canSuspend = user.status === UserStatus.ACTIVE || user.status === UserStatus.PENDING_VERIFICATION;
-  const canBan = user.status === UserStatus.ACTIVE || user.status === UserStatus.SUSPENDED || user.status === UserStatus.PENDING_VERIFICATION;
+  const canSuspend = user.status === UserStatus.ACTIVE;
+  const canBan = user.status === UserStatus.ACTIVE || user.status === UserStatus.SUSPENDED;
   const canActivate = user.status === UserStatus.SUSPENDED || user.status === UserStatus.BANNED;
-
-  const hasKycDocuments = user.kycDocuments && user.kycDocuments.length > 0;
-  const hasPendingKyc = hasKycDocuments && user.kycDocuments!.some((d) => d.status === "Submitted");
 
   const breadcrumbs: BreadcrumbItem[] = [
     { label: "Users", href: ROUTES.USERS },
@@ -135,34 +114,6 @@ export function UserDetail({ userId }: UserDetailProps) {
       },
       onError: (err) => toast.error(getApiErrorMessage(err)),
     });
-  }
-
-  function handleApproveVerification() {
-    approveVerificationMutation.mutate(userId, {
-      onSuccess: () => {
-        toast.success("Identity verified successfully");
-        setShowApproveDialog(false);
-      },
-      onError: (err) => toast.error(getApiErrorMessage(err)),
-    });
-  }
-
-  function handleRejectVerification() {
-    if (!rejectionReason.trim()) {
-      toast.error("Rejection reason is required");
-      return;
-    }
-    rejectVerificationMutation.mutate(
-      { id: userId, reason: rejectionReason },
-      {
-        onSuccess: () => {
-          toast.success("Verification rejected");
-          setShowRejectDialog(false);
-          setRejectionReason("");
-        },
-        onError: (err) => toast.error(getApiErrorMessage(err)),
-      },
-    );
   }
 
   return (
@@ -265,97 +216,6 @@ export function UserDetail({ userId }: UserDetailProps) {
         </Card>
       )}
 
-      {isHost && (
-        <Card>
-          <CardHeader>
-            <CardTitle>KYC Verification</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!hasKycDocuments && (
-              <p className="text-sm text-[#6a6a6a]">No identity documents submitted.</p>
-            )}
-            {hasKycDocuments && (
-              <>
-                {user.kycDocuments!.map((doc) => (
-                  <div key={doc.id} className="space-y-3 rounded-[8px] border border-[#dddddd] p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            doc.status === "Approved"
-                              ? "success"
-                              : doc.status === "Rejected"
-                                ? "destructive"
-                                : "secondary"
-                          }
-                        >
-                          {doc.status}
-                        </Badge>
-                        {doc.documentType && (
-                          <span className="text-sm text-[#6a6a6a]">
-                            {doc.documentType}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-[#6a6a6a]">
-                        Submitted {formatDate(doc.submittedAt)}
-                        {doc.reviewedAt && <> &middot; Reviewed {formatDate(doc.reviewedAt)}</>}
-                      </span>
-                    </div>
-                    {doc.rejectionReason && (
-                      <p className="text-sm text-[#c13515]">
-                        Reason: {doc.rejectionReason}
-                      </p>
-                    )}
-                    {doc.images.length > 0 && (
-                      <div className="flex flex-wrap gap-3">
-                        {doc.images.map((img) => (
-                          <button
-                            key={img.id}
-                            type="button"
-                            onClick={() => setZoomedImage(img.imageUrl)}
-                            className="group relative overflow-hidden rounded-[8px] border border-[#dddddd]"
-                          >
-                            <img
-                              src={img.imageUrl}
-                              alt={img.label ?? "Document"}
-                              className="h-24 w-40 object-cover transition-opacity group-hover:opacity-75"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <ZoomIn className="h-6 w-6 text-white drop-shadow" />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {hasPendingKyc && (
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="default"
-                      onClick={() => setShowApproveDialog(true)}
-                      disabled={approveVerificationMutation.isPending}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {approveVerificationMutation.isPending ? "Approving..." : "Approve Verification"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowRejectDialog(true)}
-                      disabled={rejectVerificationMutation.isPending}
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Suspend Dialog */}
       <ConfirmDialog
         open={showSuspendDialog}
@@ -416,61 +276,6 @@ export function UserDetail({ userId }: UserDetailProps) {
         onConfirm={handleActivate}
         isLoading={activateMutation.isPending}
       />
-
-      {/* Approve Verification Dialog */}
-      <ConfirmDialog
-        open={showApproveDialog}
-        onOpenChange={setShowApproveDialog}
-        title="Approve Identity Verification"
-        description={`Are you sure you want to approve identity verification for ${user.fullName}? They will receive a Verified badge.`}
-        confirmLabel="Approve"
-        onConfirm={handleApproveVerification}
-        isLoading={approveVerificationMutation.isPending}
-      />
-
-      {/* Reject Verification Dialog */}
-      <ConfirmDialog
-        open={showRejectDialog}
-        onOpenChange={(open) => {
-          setShowRejectDialog(open);
-          if (!open) setRejectionReason("");
-        }}
-        title="Reject Identity Verification"
-        description="Please provide a reason for rejecting this verification."
-        confirmLabel="Reject"
-        variant="destructive"
-        onConfirm={handleRejectVerification}
-        isLoading={rejectVerificationMutation.isPending}
-      >
-        <div className="space-y-2 py-2">
-          <Label htmlFor="rejection-reason">Rejection reason (required)</Label>
-          <Input
-            id="rejection-reason"
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="Enter rejection reason..."
-          />
-        </div>
-      </ConfirmDialog>
-
-      {/* Image Zoom Dialog */}
-      <AlertDialog open={!!zoomedImage} onOpenChange={(open) => !open && setZoomedImage(null)}>
-        <AlertDialogContent className="max-w-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Document Image</AlertDialogTitle>
-          </AlertDialogHeader>
-          {zoomedImage && (
-            <img
-              src={zoomedImage}
-              alt="Document"
-              className="w-full rounded-[8px]"
-            />
-          )}
-          <div className="flex justify-end">
-            <AlertDialogAction>Close</AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

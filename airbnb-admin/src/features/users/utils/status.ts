@@ -8,7 +8,6 @@ const statusConfig: Record<
   [UserStatus.ACTIVE]: { label: "Active", variant: "success" },
   [UserStatus.SUSPENDED]: { label: "Suspended", variant: "warning" },
   [UserStatus.BANNED]: { label: "Banned", variant: "destructive" },
-  [UserStatus.PENDING_VERIFICATION]: { label: "Pending Verification", variant: "info" },
 };
 
 const roleConfig: Record<UserRoleValue, { label: string }> = {

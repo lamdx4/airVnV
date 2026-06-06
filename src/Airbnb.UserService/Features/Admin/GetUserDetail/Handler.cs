@@ -13,8 +13,6 @@ public sealed class GetUserDetailHandler(UserDbContext db)
         var user = await db.Users
             .AsNoTracking()
             .Include(u => u.Profile)
-            .Include(u => u.KycDocuments)
-                .ThenInclude(d => d.Images)
             .Where(u => u.Id == req.Id)
             .Select(u => new UserDetailResponse(
                 u.Id,
@@ -29,16 +27,7 @@ public sealed class GetUserDetailHandler(UserDbContext db)
                 u.CreatedAt,
                 u.LastLoginAt,
                 u.SuspensionReason,
-                u.BanReason,
-                u.KycDocuments.Select(d => new KycDocumentSummary(
-                    d.Id,
-                    d.Status.ToString(),
-                    d.DocumentType,
-                    d.RejectionReason,
-                    d.SubmittedAt,
-                    d.ReviewedAt,
-                    d.Images.Select(i => new KycImageSummary(i.Id, i.ImageUrl, i.Label)).ToList()
-                )).ToList()
+                u.BanReason
             ))
             .FirstOrDefaultAsync(ct);
 

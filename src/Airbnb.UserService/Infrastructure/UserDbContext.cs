@@ -23,9 +23,6 @@ public class UserDbContext : AppDbContextBase
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
-    public DbSet<KycDocument> KycDocuments => Set<KycDocument>();
-    public DbSet<KycDocumentImage> KycDocumentImages => Set<KycDocumentImage>();
-
     // MassTransit Outbox Entities
     public DbSet<MassTransit.EntityFrameworkCoreIntegration.InboxState> InboxState => Set<MassTransit.EntityFrameworkCoreIntegration.InboxState>();
     public DbSet<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage> OutboxMessage => Set<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage>();
@@ -81,33 +78,6 @@ public class UserDbContext : AppDbContextBase
             .HasOne(x => x.User)
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // KYC Documents
-        modelBuilder.Entity<KycDocument>().ToTable("KycDocuments").HasKey(x => x.Id);
-        modelBuilder.Entity<KycDocument>().Property(x => x.Id).ValueGeneratedNever();
-        modelBuilder.Entity<KycDocument>().Property(x => x.Status).HasConversion<string>();
-        modelBuilder.Entity<KycDocument>().Property(x => x.DocumentType).HasMaxLength(50);
-        modelBuilder.Entity<KycDocument>().Property(x => x.RejectionReason).HasMaxLength(500);
-        modelBuilder.Entity<KycDocument>().Property(x => x.SubmittedAt).HasColumnType("timestamp with time zone");
-        modelBuilder.Entity<KycDocument>().Property(x => x.ReviewedAt).HasColumnType("timestamp with time zone");
-
-        modelBuilder.Entity<KycDocument>()
-            .HasOne(x => x.User)
-            .WithMany(u => u.KycDocuments)
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // KYC Document Images
-        modelBuilder.Entity<KycDocumentImage>().ToTable("KycDocumentImages").HasKey(x => x.Id);
-        modelBuilder.Entity<KycDocumentImage>().Property(x => x.Id).ValueGeneratedNever();
-        modelBuilder.Entity<KycDocumentImage>().Property(x => x.ImageUrl).IsRequired().HasMaxLength(500);
-        modelBuilder.Entity<KycDocumentImage>().Property(x => x.Label).HasMaxLength(100);
-
-        modelBuilder.Entity<KycDocumentImage>()
-            .HasOne(x => x.KycDocument)
-            .WithMany(d => d.Images)
-            .HasForeignKey(x => x.KycDocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.AddInboxStateEntity();

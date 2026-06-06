@@ -19,8 +19,7 @@ public enum UserStatus
 {
     Active,
     Suspended,
-    Banned,
-    PendingVerification
+    Banned
 }
 
 public enum AuthProvider
@@ -47,7 +46,6 @@ public class User : AggregateRoot
     public UserProfile Profile { get; private set; } = default!;
     public ICollection<UserLogin> Logins { get; private set; } = new List<UserLogin>();
     public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
-    public ICollection<KycDocument> KycDocuments { get; private set; } = new List<KycDocument>();
 
     public void SetPassword(string password)
     {
@@ -107,8 +105,8 @@ public class User : AggregateRoot
 
     public void Suspend(string reason)
     {
-        if (Status is not (UserStatus.Active or UserStatus.PendingVerification))
-            throw new BusinessException("Only active or pending-verification users can be suspended.", "INVALID_STATUS_TRANSITION");
+        if (Status is not UserStatus.Active)
+            throw new BusinessException("Only active users can be suspended.", "INVALID_STATUS_TRANSITION");
         if (string.IsNullOrWhiteSpace(reason))
             throw new BusinessException("Suspension reason is required.", "REASON_REQUIRED");
         Status = UserStatus.Suspended;
@@ -119,7 +117,7 @@ public class User : AggregateRoot
     {
         if (Status is UserStatus.Banned)
             throw new BusinessException("User is already banned.", "USER_ALREADY_BANNED");
-        if (Status is not (UserStatus.Active or UserStatus.Suspended or UserStatus.PendingVerification))
+        if (Status is not (UserStatus.Active or UserStatus.Suspended))
             throw new BusinessException("Cannot ban a user with current status.", "INVALID_STATUS_TRANSITION");
         if (string.IsNullOrWhiteSpace(reason))
             throw new BusinessException("Ban reason is required.", "REASON_REQUIRED");
@@ -136,32 +134,11 @@ public class User : AggregateRoot
         BanReason = null;
     }
 
-    public void ApproveVerification()
-    {
-        if (Role is not UserRole.User)
-            throw new BusinessException("KYC verification is only applicable to host users.", "INVALID_ROLE_FOR_KYC");
-        IsVerified = true;
-        Status = UserStatus.Active;
-    }
-
-    public void RejectVerification(string reason)
-    {
-        if (Role is not UserRole.User)
-            throw new BusinessException("KYC verification is only applicable to host users.", "INVALID_ROLE_FOR_KYC");
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new BusinessException("Rejection reason is required.", "REASON_REQUIRED");
-        IsVerified = false;
-    }
-
     public void SetLastLoginAt(DateTime lastLoginAt)
     {
         LastLoginAt = lastLoginAt;
     }
 
-    public void SetPendingVerification()
-    {
-        Status = UserStatus.PendingVerification;
-    }
 }
 
 public class UserProfile
@@ -244,72 +221,4 @@ public class UserRefreshToken
     }
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter<KycDocumentStatus>))]
-public enum KycDocumentStatus
-{
-    Submitted,
-    Approved,
-    Rejected,
-    Expired
-}
 
-public class KycDocument
-{
-    public Guid Id { get; private set; }
-    public Guid UserId { get; private set; }
-    public User User { get; private set; } = default!;
-    public KycDocumentStatus Status { get; private set; }
-    public string? DocumentType { get; private set; }
-    public string? RejectionReason { get; private set; }
-    public DateTime SubmittedAt { get; private set; }
-    public DateTime? ReviewedAt { get; private set; }
-    public ICollection<KycDocumentImage> Images { get; private set; } = new List<KycDocumentImage>();
-
-    private KycDocument() { }
-
-    public KycDocument(Guid userId, string? documentType)
-    {
-        Id = Guid.CreateVersion7();
-        UserId = userId;
-        DocumentType = documentType;
-        Status = KycDocumentStatus.Submitted;
-        SubmittedAt = DateTime.UtcNow;
-    }
-
-    public void Approve()
-    {
-        Status = KycDocumentStatus.Approved;
-        ReviewedAt = DateTime.UtcNow;
-    }
-
-    public void Reject(string reason)
-    {
-        Status = KycDocumentStatus.Rejected;
-        RejectionReason = reason;
-        ReviewedAt = DateTime.UtcNow;
-    }
-
-    public void AddImage(string imageUrl, string? label = null)
-    {
-        Images.Add(new KycDocumentImage(Id, imageUrl, label));
-    }
-}
-
-public class KycDocumentImage
-{
-    public Guid Id { get; private set; }
-    public Guid KycDocumentId { get; private set; }
-    public KycDocument KycDocument { get; private set; } = default!;
-    public string ImageUrl { get; private set; } = default!;
-    public string? Label { get; private set; }
-
-    private KycDocumentImage() { }
-
-    public KycDocumentImage(Guid kycDocumentId, string imageUrl, string? label = null)
-    {
-        Id = Guid.CreateVersion7();
-        KycDocumentId = kycDocumentId;
-        ImageUrl = imageUrl;
-        Label = label;
-    }
-}

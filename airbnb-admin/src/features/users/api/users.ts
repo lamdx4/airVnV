@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import type { BackendPage } from "@/types/api";
 
-import type { User, UserDetail, UserListParams, KycDocument } from "../types";
+import type { User, UserDetail, UserListParams } from "../types";
 
 export const UserRole = {
   USER: "User",
@@ -15,7 +15,6 @@ export const UserStatus = {
   ACTIVE: "Active",
   SUSPENDED: "Suspended",
   BANNED: "Banned",
-  PENDING_VERIFICATION: "PendingVerification",
 } as const;
 
 export type UserStatusValue = (typeof UserStatus)[keyof typeof UserStatus];
@@ -41,13 +40,4 @@ export const usersApi = {
 
   delete: (id: string) =>
     api.delete<null>(`/admin/users/${id}`),
-
-  getKycDocuments: (id: string) =>
-    api.get<KycDocument[]>(`/admin/users/${id}/kyc-documents`),
-
-  approveVerification: (id: string) =>
-    api.patch<{ id: string; isVerified: boolean; status: string }>(`/admin/users/${id}/verify`),
-
-  rejectVerification: (id: string, reason: string) =>
-    api.patch<{ id: string; isVerified: boolean }>(`/admin/users/${id}/reject-verification`, { reason }),
 };

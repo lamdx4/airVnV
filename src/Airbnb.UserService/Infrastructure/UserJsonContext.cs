@@ -47,8 +47,6 @@ namespace Airbnb.UserService.Infrastructure;
 // --- Admin: GetUserDetail ---
 [JsonSerializable(typeof(ApiResponse<Features.Admin.GetUserDetail.UserDetailResponse>), TypeInfoPropertyName = "AdminGetUserDetailApiResponse")]
 [JsonSerializable(typeof(Features.Admin.GetUserDetail.UserDetailResponse), TypeInfoPropertyName = "AdminUserDetailResponseData")]
-[JsonSerializable(typeof(Features.Admin.GetUserDetail.KycDocumentSummary), TypeInfoPropertyName = "AdminKycDocumentSummary")]
-[JsonSerializable(typeof(Features.Admin.GetUserDetail.KycImageSummary), TypeInfoPropertyName = "AdminKycImageSummary")]
 
 // --- Admin: SuspendUser ---
 [JsonSerializable(typeof(ApiResponse<Features.Admin.SuspendUser.UserActionResponse>), TypeInfoPropertyName = "AdminSuspendUserApiResponse")]
@@ -63,20 +61,6 @@ namespace Airbnb.UserService.Infrastructure;
 // --- Admin: ActivateUser ---
 [JsonSerializable(typeof(ApiResponse<Features.Admin.ActivateUser.ActivateUserResponse>), TypeInfoPropertyName = "AdminActivateUserApiResponse")]
 [JsonSerializable(typeof(Features.Admin.ActivateUser.ActivateUserResponse), TypeInfoPropertyName = "AdminActivateUserResponseData")]
-
-// --- Admin: GetKycDocuments ---
-[JsonSerializable(typeof(ApiResponse<List<Features.Admin.GetKycDocuments.KycDocumentDetailResponse>>), TypeInfoPropertyName = "AdminGetKycDocumentsApiResponse")]
-[JsonSerializable(typeof(Features.Admin.GetKycDocuments.KycDocumentDetailResponse), TypeInfoPropertyName = "AdminKycDocumentDetailResponse")]
-[JsonSerializable(typeof(Features.Admin.GetKycDocuments.KycImageDetailResponse), TypeInfoPropertyName = "AdminKycImageDetailResponse")]
-
-// --- Admin: ApproveVerification ---
-[JsonSerializable(typeof(ApiResponse<Features.Admin.ApproveVerification.VerificationResponse>), TypeInfoPropertyName = "AdminApproveVerificationApiResponse")]
-[JsonSerializable(typeof(Features.Admin.ApproveVerification.VerificationResponse), TypeInfoPropertyName = "AdminApproveVerificationResponseData")]
-
-// --- Admin: RejectVerification ---
-[JsonSerializable(typeof(ApiResponse<Features.Admin.RejectVerification.RejectVerificationResponse>), TypeInfoPropertyName = "AdminRejectVerificationApiResponse")]
-[JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationResponse), TypeInfoPropertyName = "AdminRejectVerificationResponseData")]
-[JsonSerializable(typeof(Features.Admin.RejectVerification.RejectVerificationRequest), TypeInfoPropertyName = "AdminRejectVerificationRequest")]
 
 // --- Admin: GetDashboardStats ---
 [JsonSerializable(typeof(ApiResponse<Features.Admin.GetDashboardStats.DashboardStatsResponse>), TypeInfoPropertyName = "AdminDashboardStatsApiResponse")]

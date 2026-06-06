@@ -8,7 +8,7 @@ export default function UsersPage() {
       <div>
         <h1 className="text-[28px] font-bold text-[#222222]">Users</h1>
         <p className="text-sm text-[#6a6a6a] mt-1">
-          Manage user accounts, review KYC documents, and handle account status.
+          Manage user accounts and handle account status.
         </p>
       </div>
       <UsersList />

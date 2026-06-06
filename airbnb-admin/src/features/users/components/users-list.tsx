@@ -35,7 +35,6 @@ const statusFilterOptions: { value: string; label: string }[] = [
   { value: UserStatus.ACTIVE, label: "Active" },
   { value: UserStatus.SUSPENDED, label: "Suspended" },
   { value: UserStatus.BANNED, label: "Banned" },
-  { value: UserStatus.PENDING_VERIFICATION, label: "Pending Verification" },
 ];
 
 const roleFilterOptions: { value: string; label: string }[] = [

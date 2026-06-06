@@ -19,22 +19,5 @@ public record UserDetailResponse(
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     string? SuspensionReason,
-    string? BanReason,
-    List<KycDocumentSummary>? KycDocuments
-);
-
-public record KycDocumentSummary(
-    Guid Id,
-    string Status,
-    string? DocumentType,
-    string? RejectionReason,
-    DateTime SubmittedAt,
-    DateTime? ReviewedAt,
-    List<KycImageSummary> Images
-);
-
-public record KycImageSummary(
-    Guid Id,
-    string ImageUrl,
-    string? Label
+    string? BanReason
 );
