@@ -24,12 +24,18 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
         if (senderParticipant == null)
             throw new BusinessException("You are not a participant in this conversation.", "CHAT_ACCESS_DENIED");
 
+        if (!Enum.TryParse<MessageType>(req.MessageType, true, out var parsedMessageType))
+            throw new BusinessException($"Invalid message type: {req.MessageType}", "CHAT_INVALID_MESSAGE_TYPE");
+
+        if (parsedMessageType == MessageType.System)
+            throw new BusinessException("Users cannot send system messages.", "CHAT_SYSTEM_MESSAGE_FORBIDDEN");
+
         // 2. Tạo Message (dùng UUIDv7 nên tự sort theo time)
         var message = new Message
         {
             ConversationId = req.ConversationId,
             SenderId = req.SenderId,
-            MessageType = Enum.Parse<MessageType>(req.MessageType, true),
+            MessageType = parsedMessageType,
             Content = req.Content
         };
 
