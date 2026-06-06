@@ -76,9 +76,7 @@ namespace Airbnb.UserService.Infrastructure;
 [JsonSerializable(typeof(Features.Admin.GetUserGrowthReport.Response), TypeInfoPropertyName = "AdminUserGrowthPoint")]
 [JsonSerializable(typeof(Features.Admin.GetUserGrowthReport.Request), TypeInfoPropertyName = "AdminUserGrowthRequest")]
 
-// --- Cross-service HttpClient DTOs (UC-E2 Reports) ---
-[JsonSerializable(typeof(BookingSummaryResponse))]
-[JsonSerializable(typeof(OccupancyMetricsResponse))]
+// --- Cross-service HttpClient DTOs ---
 [JsonSerializable(typeof(PropertyBasicInfo))]
 [JsonSerializable(typeof(List<PropertyBasicInfo>))]
 
