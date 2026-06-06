@@ -34,5 +34,17 @@ namespace Airbnb.BookingService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.BookingService.Features.GetOccupancyMetrics.OccupancyMetricsResponse))]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.BookingService.Features.GetOccupancyMetrics.OccupancyMetricsResponse>))]
 
+// --- Admin: GetAdminBookings ---
+[JsonSerializable(typeof(Airbnb.BookingService.Features.GetAdminBookings.AdminBookingResponse))]
+[JsonSerializable(typeof(Airbnb.BookingService.Features.GetAdminBookings.AdminBookingListResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.BookingService.Features.GetAdminBookings.AdminBookingListResponse>))]
+
+// --- Admin: GetAdminBookingById ---
+[JsonSerializable(typeof(Airbnb.BookingService.Features.GetAdminBookingById.AdminBookingDetailResponse))]
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<Airbnb.BookingService.Features.GetAdminBookingById.AdminBookingDetailResponse>))]
+
+// --- Admin: AdminCancelBooking / AdminConfirmBooking ---
+[JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<bool>))]
+
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class BookingJsonContext : JsonSerializerContext { }

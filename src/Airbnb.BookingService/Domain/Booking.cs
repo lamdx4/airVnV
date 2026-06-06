@@ -136,9 +136,20 @@ public class Booking : AggregateRoot
             throw new BusinessException("Unauthorized cancellation.", "BOOKING_UNAUTHORIZED_CANCEL");
         if (Status == BookingStatus.Cancelled)
              throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
-             
+
         Status = BookingStatus.Cancelled;
         CancelledBy = cancelledBy;
+        Version++;
+        Raise(new BookingCancelledDomainEvent(Id, Version));
+    }
+
+    /// <summary>Admin override — bypasses guest/host ownership check.</summary>
+    public void AdminCancel()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
+
+        Status = BookingStatus.Cancelled;
         Version++;
         Raise(new BookingCancelledDomainEvent(Id, Version));
     }

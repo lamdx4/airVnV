@@ -1,7 +1,10 @@
-export default function BookingDetailPage() {
-  return (
-    <div className="flex items-center justify-center h-[40vh] rounded-[14px] border border-[#dddddd] bg-white">
-      <p className="text-sm text-[#6a6a6a]">Booking detail coming soon</p>
-    </div>
-  );
+import { BookingDetail } from "@/features/bookings/components/booking-detail";
+
+interface BookingDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
+  const { id } = await params;
+  return <BookingDetail bookingId={id} />;
 }

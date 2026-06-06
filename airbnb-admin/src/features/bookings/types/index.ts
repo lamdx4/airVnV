@@ -1,10 +1,11 @@
 export const BookingStatus = {
-  PENDING: "Pending",
-  CONFIRMED: "Confirmed",
-  CHECKED_IN: "CheckedIn",
-  CHECKED_OUT: "CheckedOut",
-  CANCELLED: "Cancelled",
-  REFUNDED: "Refunded",
+  PENDING:      "Pending",
+  CONFIRMED:    "Confirmed",
+  AWAITING:     "AwaitingApproval",
+  CHECKED_IN:   "CheckedIn",
+  CHECKED_OUT:  "CheckedOut",
+  CANCELLED:    "Cancelled",
+  REFUNDED:     "Refunded",
 } as const;
 
 export type BookingStatusValue = (typeof BookingStatus)[keyof typeof BookingStatus];
@@ -12,17 +13,25 @@ export type BookingStatusValue = (typeof BookingStatus)[keyof typeof BookingStat
 export interface Booking {
   id: string;
   propertyId: string;
-  propertyTitle: string;
-  guestId: string;
-  guestName: string;
   hostId: string;
-  hostName: string;
+  guestId: string;
+  countryCode: string;
+  bookingMode: string;
   checkIn: string;
   checkOut: string;
-  guests: number;
+  guestCount: number;
+  nightCount: number;
   totalPrice: number;
+  currencyCode: string;
   status: BookingStatusValue;
   createdAt: string;
+}
+
+export interface BookingDetail extends Booking {
+  basePricePerNight: number;
+  cleaningFee: number;
+  serviceFee: number;
+  taxAmount: number;
 }
 
 export interface BookingListParams {

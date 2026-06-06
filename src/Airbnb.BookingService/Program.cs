@@ -20,7 +20,9 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("bookdb"));
     options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
-builder.EnrichNpgsqlDbContext<BookingDbContext>();
+// builder.EnrichNpgsqlDbContext<BookingDbContext>();
+// NOTE: Commented out — NpgsqlHealthCheck hangs on DCP proxy port
+// because proxy does not forward PostgreSQL protocol → health check timeout
 
 // Saga DbContext
 builder.Services.AddDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>(options =>
@@ -28,13 +30,12 @@ builder.Services.AddDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingS
     options.UseNpgsql(builder.Configuration.GetConnectionString("bookdb"));
     options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
-builder.EnrichNpgsqlDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>();
+// builder.EnrichNpgsqlDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingSagaDbContext>();
+// NOTE: Same reason as above
 
 
-builder.AddKafkaConsumer<string, string>("kafka", options =>
-{
-    options.Config.GroupId = "booking-service-group";
-});
+// NOTE: AddKafkaConsumer removed — no actual Kafka consumers exist in BookingService.
+// All events are handled via MassTransit/RabbitMQ (MasterDataCacheInvalidationConsumer etc.)
 
 // Removed old polling-based timeout worker in favor of Saga timeouts
 // builder.Services.AddHostedService<Airbnb.BookingService.Infrastructure.Workers.BookingTimeoutWorker>();
@@ -79,6 +80,16 @@ builder.Services.AddMassTransit(x =>
         cfg.UsePublishMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
+});
+
+// Allow HTTP to start accepting requests before MassTransit/Kafka finish connecting.
+// BackgroundServiceExceptionBehavior defaults to StopHost in .NET 6+ — a single
+// background service failure (e.g. Kafka consumer) would silently kill the whole host.
+builder.Services.Configure<HostOptions>(opts =>
+{
+    opts.ServicesStartConcurrently = true;
+    opts.StartupTimeout = TimeSpan.FromSeconds(60);
+    opts.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
 });
 
 builder.Services.AddMemoryCache();
