@@ -11,7 +11,7 @@ public abstract class AggregateRoot
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
     public long Version { get; protected set; } = 1;
 
-    protected void Raise(IDomainEvent @event) => _domainEvents.Add(@event);
+    protected void  Raise(IDomainEvent @event) => _domainEvents.Add(@event);
 
     public void ClearDomainEvents() => _domainEvents.Clear();
 }

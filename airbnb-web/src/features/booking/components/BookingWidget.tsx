@@ -207,6 +207,14 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-xs text-gray-500 italic">
         Price shown in {currencyCode || 'VND'} for reference. You will be charged the exact equivalent amount by your local bank if this is not your native currency.
       </div>
+
+      <Button 
+        variant="outline" 
+        className="w-full mt-4 font-semibold border-gray-400"
+        onClick={() => navigate(`/messages?propertyId=${propertyId}`)}
+      >
+        Contact Host
+      </Button>
     </div>
   );
 };

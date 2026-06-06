@@ -24,12 +24,18 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
         if (senderParticipant == null)
             throw new BusinessException("You are not a participant in this conversation.", "CHAT_ACCESS_DENIED");
 
+        if (!Enum.TryParse<MessageType>(req.MessageType, true, out var parsedMessageType))
+            throw new BusinessException($"Invalid message type: {req.MessageType}", "CHAT_INVALID_MESSAGE_TYPE");
+
+        if (parsedMessageType == MessageType.System)
+            throw new BusinessException("Users cannot send system messages.", "CHAT_SYSTEM_MESSAGE_FORBIDDEN");
+
         // 2. Tạo Message (dùng UUIDv7 nên tự sort theo time)
         var message = new Message
         {
             ConversationId = req.ConversationId,
             SenderId = req.SenderId,
-            MessageType = MessageType.Text,
+            MessageType = parsedMessageType,
             Content = req.Content
         };
 
@@ -42,14 +48,27 @@ public sealed class Handler(AppDbContext db, IHubContext<ChatHub> hubContext) : 
         await db.SaveChangesAsync(ct);
 
         // 4. Push SignalR tới những người trong Group conversation
-        await hubContext.Clients.Group($"conv_{req.ConversationId}").SendAsync("ReceiveMessage", new 
+        var messagePayload = new 
         {
             message.Id,
             message.ConversationId,
             message.SenderId,
             message.Content,
-            message.CreatedAt
-        }, ct);
+            message.CreatedAt,
+            MessageType = message.MessageType.ToString()
+        };
+
+        await hubContext.Clients.Group($"conv_{req.ConversationId}").SendAsync("ReceiveMessage", messagePayload, ct);
+
+        // 5. Push SignalR tới user id group của tất cả những người tham gia
+        var allUserGroups = conversation.Participants
+            .Select(p => $"user_{p.UserId}")
+            .ToList();
+
+        if (allUserGroups.Count > 0)
+        {
+            await hubContext.Clients.Groups(allUserGroups).SendAsync("NewMessage", messagePayload, ct);
+        }
 
         return new Response(message.Id, message.CreatedAt);
     }

@@ -1,18 +1,28 @@
 import React from 'react';
+import * as signalR from '@microsoft/signalr';
 import { useChat } from '../context/ChatContext';
 import { useInbox } from '../hooks/useInbox';
+import { usePresence } from '../hooks/usePresence';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronLeft, Info, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Icon } from '@iconify/react';
 
-export const ChatHeader: React.FC = () => {
-  const { activeConversationId, setActiveConversationId, toggleSidebar } = useChat();
+
+export const ChatHeader: React.FC<{ 
+  connection?: signalR.HubConnection | null;
+  onStartCall?: (video: boolean) => void;
+}> = ({ connection, onStartCall }) => {
+  const { activeConversationId, setActiveConversationId, toggleSidebar, toggleInfoSidebar } = useChat();
   const { data, isLoading } = useInbox();
 
   const conversation = data?.pages
     .flatMap(page => page.items)
     .find(c => c.id === activeConversationId);
+
+  const { data: presence } = usePresence(conversation?.otherParticipantId);
+  const isOnline = presence?.isOnline;
 
   if (!activeConversationId) return null;
 
@@ -38,7 +48,7 @@ export const ChatHeader: React.FC = () => {
           size="icon" 
           aria-label="Back to conversations"
           onClick={() => setActiveConversationId(null)}
-          className="md:hidden h-10 w-10 rounded-full hover:bg-[#f7f7f7]"
+          className="md:hidden h-10 w-10 rounded-full hover:bg-[#f7f7f7] cursor-pointer"
         >
           <ChevronLeft className="h-5 w-5 text-[#222222]" />
         </Button>
@@ -50,25 +60,48 @@ export const ChatHeader: React.FC = () => {
                     {conversation.otherParticipantName.charAt(0)}
                 </AvatarFallback>
             </Avatar>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            {isOnline && (
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00a699] border-2 border-white rounded-full z-10 shadow-sm transition-all duration-300 scale-in-center"></div>
+            )}
         </div>
 
         <div className="flex flex-col min-w-0">
           <h2 className="text-[16px] font-semibold text-[#222222] truncate leading-tight">
             {conversation.otherParticipantName}
           </h2>
-          <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
-            {conversation.propertyTitle || 'Guest'}
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {conversation.propertyId && conversation.propertyId !== '00000000-0000-0000-0000-000000000000' ? (
+              <a 
+                href={`/properties/${conversation.propertyId}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[13px] text-[#6a6a6a] hover:text-[#222222] hover:underline truncate font-normal transition-colors"
+                title="View property details"
+              >
+                {conversation.propertyTitle || 'Property details'}
+              </a>
+            ) : (
+              <p className="text-[13px] text-[#6a6a6a] truncate font-normal">
+                {conversation.propertyTitle || 'Guest'}
+              </p>
+            )}
+            <span className="text-[10px] text-[#dddddd]">•</span>
+            <p className={`text-[13px] font-medium ${isOnline ? 'text-[#00a699]' : 'text-[#717171]'}`}>
+              {isOnline ? 'Online' : 'Offline'}
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#222222] hover:bg-[#f7f7f7]" aria-label="Conversation info">
-          <Info className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Phone Call" onClick={() => onStartCall?.(false)}>
+          <Icon icon="fluent:call-24-filled" className="size-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#222222] hover:bg-[#f7f7f7]" aria-label="More options">
-          <MoreHorizontal className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Video Call" onClick={() => onStartCall?.(true)}>
+          <Icon icon="fluent:video-24-filled" className="size-6" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors cursor-pointer" aria-label="Conversation info" onClick={toggleInfoSidebar}>
+          <Icon icon="fluent:info-24-filled" className="size-6" />
         </Button>
       </div>
     </header>

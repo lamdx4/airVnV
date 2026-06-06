@@ -1,124 +1,292 @@
-import { useEffect, useState } from 'react';
-import * as signalR from '@microsoft/signalr';
-import { useQueryClient } from '@tanstack/react-query';
-import type { ChatMessage, Conversation } from '../types/model';
-import type { MessageDto } from '../types/dto';
-import { mapMessageDtoToModel } from '../utils/mapper';
+import { useEffect, useState, useRef } from "react";
+import * as signalR from "@microsoft/signalr";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Conversation } from "../types/model";
+import { mapMessageDtoToModel, mapAttachmentDtoToModel } from "../utils/mapper";
+import { useAuthStore } from "../../../store/authStore";
+import { jwtDecode } from "jwt-decode";
+import { chatApi } from "../api/chatApi";
 
-const HUB_URL = import.meta.env.VITE_CHAT_HUB_URL || 'http://localhost:5004/hubs/chat';
+const HUB_URL =
+  import.meta.env.VITE_CHAT_HUB_URL || "http://localhost:5136/hubs/chat";
 
 export const useChatHub = (activeConversationId: string | null) => {
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null,
+  );
+  const [isConnected, setIsConnected] = useState(false);
   const queryClient = useQueryClient();
+  const currentUserId = useAuthStore((state) => state.userId);
+
+  // Dùng Ref để lưu lại các giá trị có thể thay đổi, tránh bị Stale Closure trong callback nhận tin nhắn
+  const activeConversationIdRef = useRef(activeConversationId);
+  const currentUserIdRef = useRef(currentUserId);
 
   useEffect(() => {
-    const token = localStorage.getItem('airbnb_access_token');
-    if (!token) return;
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
+
+  // 1. Khởi tạo Connection duy nhất 1 lần khi Component Mount
+  useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => token,
+        accessTokenFactory: async () => {
+          let token = useAuthStore.getState().accessToken;
+          if (!token) return "";
+
+          try {
+            const decoded = jwtDecode<{ exp: number }>(token);
+            const expTime = decoded.exp * 1000;
+            const now = Date.now();
+
+            // Nếu token sắp hết hạn (dưới 1 phút), chủ động đi lấy token mới
+            if (expTime - now < 1 * 60 * 1000) {
+              const refreshToken = useAuthStore.getState().refreshToken;
+              if (refreshToken) {
+                const result = await chatApi.refreshSignalRToken(refreshToken);
+
+                if (result.success && result.data?.accessToken) {
+                  token = result.data.accessToken;
+                  // Hàm login của store sẽ cập nhật cả localStorage và state
+                  useAuthStore
+                    .getState()
+                    .login(result.data.accessToken, result.data.refreshToken);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Lỗi khi kiểm tra token cho SignalR:", e);
+          }
+
+          return token;
+        },
       })
       .withAutomaticReconnect()
       .build();
 
     setConnection(newConnection);
+
+    // Cleanup: Ngắt kết nối khi thoát hẳn màn hình Chat
+    return () => {
+      newConnection.stop().catch(console.error);
+    };
   }, []);
 
+  // 2. Thiết lập Lắng nghe Sự kiện và Start Connection
   useEffect(() => {
     if (!connection) return;
 
     const startConnection = async () => {
       try {
         await connection.start();
-        console.log('SignalR Connected.');
-
-        // Khi kết nối thành công, join vào group của conversation hiện tại (nếu có)
-        if (activeConversationId) {
-          await connection.invoke('JoinConversation', activeConversationId);
-        }
-
-        // Lắng nghe tin nhắn mới
-        connection.on('ReceiveMessage', (messageDto: MessageDto) => {
-          const currentUserId = localStorage.getItem('airbnb_user_id');
-          // Bỏ qua message do chính mình gửi vì Optimistic update trong useSendMessage đã thêm rồi
-          if (messageDto.senderId === currentUserId) return;
-
-          const newMsg = mapMessageDtoToModel(messageDto);
-          
-          // 1. Cập nhật cache của Messages list (nếu đang mở đúng conversation đó)
-          queryClient.setQueryData(['chat', 'messages', newMsg.conversationId], (old: any) => {
-            if (!old) return old;
-            const newPages = [...old.pages];
-            if (newPages.length > 0) {
-              // Tránh duplicate nếu optimistic UI đã add
-              const exists = newPages[0].items.some((m: ChatMessage) => m.id === newMsg.id || m.id.startsWith('temp-'));
-              if (!exists) {
-                newPages[0] = { ...newPages[0], items: [newMsg, ...newPages[0].items] };
-              }
-            }
-            return { ...old, pages: newPages };
-          });
-
-          // 2. Cập nhật cache của Inbox (đẩy conversation lên đầu, tăng unread, đổi last message)
-          queryClient.setQueryData(['chat', 'inbox'], (old: any) => {
-            if (!old) return old;
-            const newPages = [...old.pages];
-            
-            // Tìm và sửa conversation
-            let found = false;
-            for (let i = 0; i < newPages.length; i++) {
-              const items = [...newPages[i].items];
-              const idx = items.findIndex((c: Conversation) => c.id === newMsg.conversationId);
-              if (idx !== -1) {
-                const conv = { ...items[idx] };
-                conv.lastMessageAt = newMsg.sentAt;
-                // Nếu tin nhắn mới không phải ở conversation đang mở thì tăng unread count
-                if (activeConversationId !== newMsg.conversationId) {
-                  conv.unreadCount += 1;
-                }
-                
-                // Đẩy lên đầu danh sách của page 0
-                items.splice(idx, 1);
-                newPages[0].items = [conv, ...newPages[0].items];
-                
-                // Cập nhật lại các item còn lại cho đúng page (logic này có thể phức tạp, 
-                // đơn giản nhất là invalidate lại inbox nếu muốn chính xác tuyệt đối)
-                found = true;
-                break;
-              }
-            }
-            
-            // Nếu không tìm thấy trong cache (chưa load tới), invalidate
-            if (!found) {
-              queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
-            }
-
-            return { ...old, pages: newPages };
-          });
-        });
-
-        // Lắng nghe sự kiện Read
-        connection.on('MessageRead', (_conversationId: string, _messageId: string) => {
-           // Có thể trigger cập nhật trạng thái "Đã xem" ở UI
-           // (Tùy thuộc model có lưu trường isRead hay không)
-           queryClient.invalidateQueries({ queryKey: ['chat', 'inbox'] });
-        });
-
+        console.log("SignalR Connected.");
+        setIsConnected(true);
+        // Ép React Query gọi API lấy dữ liệu mới nhất để bù đắp các tin nhắn/trạng thái bị lỡ trong lúc ngắt kết nối
+        queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
+        queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["presence"] });
       } catch (e) {
-        console.error('SignalR Connection Error: ', e);
+        console.error("SignalR Connection Error: ", e);
       }
     };
+
+    // ReceiveMessage listener is moved to useMessages hook
+
+    // Bắt sự kiện khi tự động kết nối lại thành công sau khi rớt mạng
+    connection.onreconnected(() => {
+      console.log("SignalR Reconnected. Invalidating all chat caches...");
+      queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
+      queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["presence"] });
+    });
+    // Lắng nghe sự kiện Read realtime từ SignalR
+    connection.on("MessageRead", (data: any) => {
+      const conversationId = data?.conversationId || data?.ConversationId;
+      const readerId = data?.readerId || data?.ReaderId;
+      const lastReadMessageId =
+        data?.lastReadMessageId || data?.LastReadMessageId;
+
+      if (readerId?.toLowerCase() !== currentUserIdRef.current?.toLowerCase()) {
+        queryClient.setQueryData(["chat", "inbox"], (old: any) => {
+          if (!old) return old;
+          const newPages = old.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((c: Conversation) => {
+              if (c.id?.toLowerCase() === conversationId?.toLowerCase()) {
+                return {
+                  ...c,
+                  otherLastReadMessageId: lastReadMessageId,
+                };
+              }
+              return c;
+            }),
+          }));
+          return { ...old, pages: newPages };
+        });
+      }
+    });
+
+    // Lắng nghe sự kiện NewMessage (từ SignalR gửi qua user_ group)
+    connection.on("NewMessage", (messageDto: any) => {
+      const newMsg = mapMessageDtoToModel(messageDto);
+      const currentActiveId = activeConversationIdRef.current;
+      const isMyMessage =
+        newMsg.senderId?.toLowerCase() ===
+        currentUserIdRef.current?.toLowerCase();
+
+      queryClient.setQueryData(["chat", "inbox"], (old: any) => {
+        if (!old) return old;
+        const newPages = [...old.pages];
+
+        let targetConv: Conversation | null = null;
+
+        for (let i = 0; i < newPages.length; i++) {
+          const items = [...newPages[i].items];
+          const idx = items.findIndex(
+            (c: Conversation) =>
+              c.id?.toLowerCase() === newMsg.conversationId?.toLowerCase(),
+          );
+          if (idx !== -1) {
+            targetConv = { ...items[idx] };
+            items.splice(idx, 1);
+            newPages[i] = { ...newPages[i], items };
+            break;
+          }
+        }
+
+        if (targetConv) {
+          targetConv.lastMessageAt = newMsg.sentAt;
+          targetConv.latestMessageContent = newMsg.content;
+          targetConv.latestMessageId = newMsg.id;
+          targetConv.latestMessageType = newMsg.messageType;
+
+          if (newMsg.messageType === "System") {
+            targetConv.latestSystemMessageContent = newMsg.content;
+          }
+
+          // CHỈ TĂNG BADGE NẾU: Tin nhắn đó KHÔNG phải do mình gửi VÀ mình đang KHÔNG mở phòng chat đó
+          const isCurrentlyActive =
+            currentActiveId?.toLowerCase() ===
+            newMsg.conversationId?.toLowerCase();
+          if (!isCurrentlyActive) {
+            if (!isMyMessage) {
+              targetConv.unreadCount += 1;
+            }
+
+            queryClient.setQueryData(
+              ["chat", "messages", newMsg.conversationId],
+              (oldMsgs: any) => {
+                if (!oldMsgs) return oldMsgs;
+                const newMsgsPages = [...oldMsgs.pages];
+                if (newMsgsPages.length > 0) {
+                  const msgItems = [...newMsgsPages[0].items];
+                  const exists = msgItems.some((m: any) => m.id === newMsg.id);
+                  if (!exists) {
+                    newMsgsPages[0] = {
+                      ...newMsgsPages[0],
+                      items: [newMsg, ...msgItems],
+                    };
+                  }
+                }
+                return { ...oldMsgs, pages: newMsgsPages };
+              },
+            );
+          }
+
+          if (newPages.length > 0) {
+            newPages[0] = {
+              ...newPages[0],
+              items: [targetConv, ...newPages[0].items],
+            };
+          }
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["chat", "inbox"] });
+        }
+
+        return { ...old, pages: newPages };
+      });
+
+      // Bất kể user có đang mở conversation hay không, cập nhật luôn cache của Attachments Sidebar (nếu type là Image hoặc File)
+      if (newMsg.messageType === "Image" || newMsg.messageType === "File") {
+        const newAtt = mapAttachmentDtoToModel(messageDto);
+        queryClient.setQueryData(
+          ["chat", "attachments", newMsg.conversationId, newAtt.messageType],
+          (oldAtts: any) => {
+            if (!oldAtts) return oldAtts; // Nếu chưa từng fetch (cache rỗng) thì ko làm gì cả
+            const newAttPages = [...oldAtts.pages];
+            if (newAttPages.length > 0) {
+              const attItems = [...newAttPages[0].items];
+              const attExists = attItems.some(
+                (a: any) => a.messageId === newAtt.messageId,
+              );
+              if (!attExists) {
+                newAttPages[0] = {
+                  ...newAttPages[0],
+                  items: [newAtt, ...attItems],
+                };
+              }
+            }
+            return { ...oldAtts, pages: newAttPages };
+          },
+        );
+      }
+    });
+
+    // UserStatusChanged event listener is moved to usePresence hook
 
     startConnection();
 
     return () => {
-      if (activeConversationId) {
-        connection.invoke('LeaveConversation', activeConversationId).catch(console.error);
-      }
-      connection.stop();
+      // Khi component unmount hoặc connection thay đổi, gỡ bỏ lắng nghe sự kiện
+      connection.off("MessageRead");
+      connection.off("NewMessage");
+      setIsConnected(false);
     };
-  }, [connection, activeConversationId, queryClient]);
+  }, [connection, queryClient]);
+
+  // 3. Xử lý Join/Leave phòng chat mỗi khi đổi Conversation mà không ngắt Socket
+  useEffect(() => {
+    if (!connection || !isConnected || !activeConversationId) return;
+
+    // Vào phòng mới
+    connection
+      .invoke("JoinConversation", activeConversationId)
+      .then(() =>
+        console.log(`Joined conversation group: ${activeConversationId}`),
+      )
+      .catch((err) => console.error("Error joining conversation group:", err));
+
+    // Cleanup: Ra khỏi phòng khi đổi phòng hoặc đóng khung chat
+    return () => {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection
+          .invoke("LeaveConversation", activeConversationId)
+          .then(() =>
+            console.log(`Left conversation group: ${activeConversationId}`),
+          )
+          .catch((err) =>
+            console.error("Error leaving conversation group:", err),
+          );
+      }
+    };
+  }, [connection, isConnected, activeConversationId]);
+
+  // 4. Gửi Heartbeat định kỳ để gia hạn Redis TTL
+  useEffect(() => {
+    if (!connection || !isConnected) return;
+
+    const interval = setInterval(() => {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.invoke("Heartbeat").catch(console.error);
+      }
+    }, 45000); // Mỗi 45 giây
+
+    return () => clearInterval(interval);
+  }, [connection, isConnected]);
 
   return connection;
 };

@@ -104,6 +104,8 @@ var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
     .WithReference(chatDb)
     .WithReference(rabbit)
     .WithReference(redis)
+    .WithReference(propSvc)
+    .WithReference(userSvc)
     .WaitFor(chatDb)
     .WaitFor(rabbit)
     .WaitFor(redis);

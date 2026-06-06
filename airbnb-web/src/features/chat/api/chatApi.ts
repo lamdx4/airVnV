@@ -1,60 +1,125 @@
-import { api } from '../../../lib/api';
-import type { 
-  ConversationDto, 
-  CreateConversationRequestDto, 
-  MessageDto, 
-  PaginatedCursorResponseDto, 
-  SendMessageRequestDto 
-} from '../types/dto';
+import axios from "axios";
+import { api } from "../../../lib/api";
+import type {
+  ConversationDto,
+  CreateConversationRequestDto,
+  MessageDto,
+  PaginatedCursorResponseDto,
+  SendMessageRequestDto,
+  AttachmentDto,
+} from "../types/dto";
 
 export const chatApi = {
   /**
    * Lấy danh sách Inbox (Conversations)
    */
-  getInbox: async (before?: string): Promise<PaginatedCursorResponseDto<ConversationDto>> => {
+  getInbox: async (
+    before?: string,
+  ): Promise<PaginatedCursorResponseDto<ConversationDto>> => {
     const params = new URLSearchParams();
-    if (before) params.append('before', before);
-    
+    if (before) params.append("before", before);
+
     // axios interceptor đã tự extract response.data.data
-    return api.get<any, PaginatedCursorResponseDto<ConversationDto>>(`/api/conversations?${params.toString()}`);
+    return api.get<any, PaginatedCursorResponseDto<ConversationDto>>(
+      `/api/conversations?${params.toString()}`,
+    );
   },
 
   /**
    * Lấy lịch sử tin nhắn của một Conversation
    */
-  getMessages: async (conversationId: string, before?: string): Promise<PaginatedCursorResponseDto<MessageDto>> => {
+  getMessages: async (
+    conversationId: string,
+    before?: string,
+  ): Promise<PaginatedCursorResponseDto<MessageDto>> => {
     const params = new URLSearchParams();
-    if (before) params.append('before', before);
+    if (before) params.append("before", before);
 
-    return api.get<any, PaginatedCursorResponseDto<MessageDto>>(`/api/conversations/${conversationId}/messages?${params.toString()}`);
+    return api.get<any, PaginatedCursorResponseDto<MessageDto>>(
+      `/api/conversations/${conversationId}/messages?${params.toString()}`,
+    );
+  },
+
+  /**
+   * Lấy danh sách file/ảnh đính kèm của một Conversation
+   */
+  getAttachments: async (
+    conversationId: string,
+    type: 'Image' | 'File',
+    before?: string,
+  ): Promise<PaginatedCursorResponseDto<AttachmentDto>> => {
+    const params = new URLSearchParams({ type });
+    if (before) params.append("before", before);
+
+    return api.get<any, PaginatedCursorResponseDto<AttachmentDto>>(
+      `/api/conversations/${conversationId}/attachments?${params.toString()}`,
+    );
   },
 
   /**
    * Tạo hội thoại mới
    */
-  createConversation: async (data: CreateConversationRequestDto): Promise<ConversationDto> => {
-    return api.post<any, ConversationDto>('/api/conversations', data);
+  createConversation: async (
+    data: CreateConversationRequestDto,
+  ): Promise<{ conversationId: string }> => {
+    return api.post<any, { conversationId: string }>("/api/conversations", data);
   },
 
   /**
    * Gửi tin nhắn
    */
-  sendMessage: async (conversationId: string, content: string): Promise<MessageDto> => {
-    const payload: SendMessageRequestDto = { content };
-    return api.post<any, MessageDto>(`/api/conversations/${conversationId}/messages`, payload);
+  sendMessage: async (
+    conversationId: string,
+    content: string,
+    messageType: string = 'Text'
+  ): Promise<MessageDto> => {
+    const payload: SendMessageRequestDto = { content, messageType };
+    return api.post<any, MessageDto>(
+      `/api/conversations/${conversationId}/messages`,
+      payload,
+    );
   },
 
   /**
    * Đánh dấu đã đọc
    */
-  markAsRead: async (conversationId: string, lastReadMessageId: string): Promise<boolean> => {
-    return api.post<any, boolean>(`/api/conversations/${conversationId}/read`, { lastReadMessageId });
+  markAsRead: async (
+    conversationId: string,
+    lastReadMessageId: string,
+  ): Promise<boolean> => {
+    return api.post<any, boolean>(`/api/conversations/${conversationId}/read`, {
+      lastReadMessageId,
+    });
   },
 
   /**
    * Lưu trữ (Archive) hội thoại
    */
   archiveConversation: async (conversationId: string): Promise<boolean> => {
-    return api.patch<any, boolean>(`/api/conversations/${conversationId}/archive`);
-  }
+    return api.patch<any, boolean>(
+      `/api/conversations/${conversationId}/archive`,
+    );
+  },
+
+  /**
+   * Lấy trạng thái online của user
+   */
+  getUserStatus: async (userId: string): Promise<{ isOnline: boolean }> => {
+    return api.get<any, { isOnline: boolean }>(`/api/conversations/users/${userId}/status`);
+  },
+
+  /**
+   * Chủ động lấy token mới (dành riêng cho SignalR)
+   */
+  refreshSignalRToken: async (
+    refreshToken: string,
+  ): Promise<{ success: boolean; data?: { accessToken: string; refreshToken: string } }> => {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    const response = await axios.post(`${API_URL}/api/users/refresh-token`, {
+      refreshToken,
+    });
+    
+    return response.data;
+  },
 };
