@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Search01Icon } from 'hugeicons-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Calendar } from '@/components/ui/calendar';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProvinces } from '@/features/search/api/locations';
 import { useSearchConsoleStore } from '@/store/searchConsoleStore';
@@ -12,7 +11,7 @@ export function SearchConsole({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [openWhere, setOpenWhere] = useState(false);
   
-  const { location, setLocation, guestCount, dateRange } = useSearchConsoleStore();
+  const { location, setLocation, guestCount, setGuestCount } = useSearchConsoleStore();
 
   const { data: provinces, isLoading } = useQuery({
     queryKey: ['provinces'],

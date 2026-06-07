@@ -149,7 +149,7 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
       {isCalendarOpen && (
         <div className="absolute z-10 bg-white border border-gray-200 shadow-xl rounded-xl mt-1 -ml-6 p-4">
           <Calendar
-            initialFocus
+            autoFocus
             mode="range"
             defaultMonth={date?.from}
             selected={date}
