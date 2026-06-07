@@ -4,8 +4,8 @@ using Airbnb.ServiceDefaults.Infrastructure;
 namespace Airbnb.SearchService.Features.SearchProperties;
 
 public record Request(
-    double Latitude,
-    double Longitude,
+    double? Latitude,
+    double? Longitude,
     double RadiusKm = 10,
     int? PropertyType = null,
     int Page = 1,

@@ -236,15 +236,18 @@ export default function PropertyDetail() {
         <div className="w-full lg:w-[380px] shrink-0">
           {isPreview ? (
             <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 shadow-sm sticky top-6">
-              <div className="text-3xl font-extrabold text-slate-800 mb-2">${property.pricing.basePrice} <span className="text-sm text-slate-400 font-medium">/ night</span></div>
+              <div className="text-3xl font-extrabold text-slate-800 mb-2">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: property.pricing.currencyCode || 'VND' }).format(property.pricing.basePrice)} 
+                <span className="text-sm text-slate-400 font-medium"> {t('bookingWidget.perNight')}</span>
+              </div>
               <div className="border-t border-slate-200 my-4 pt-4 space-y-3">
                 <div className="flex justify-between text-sm text-slate-500">
-                  <span>Cleaning fee</span>
-                  <span>${property.pricing.cleaningFee}</span>
+                  <span>{t('bookingWidget.cleaningFee')}</span>
+                  <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: property.pricing.currencyCode || 'VND' }).format(property.pricing.cleaningFee)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-500">
-                  <span>Service fee</span>
-                  <span>${property.pricing.serviceFee}</span>
+                  <span>{t('bookingWidget.serviceFee')}</span>
+                  <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: property.pricing.currencyCode || 'VND' }).format(property.pricing.serviceFee)}</span>
                 </div>
               </div>
               <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl text-xs leading-relaxed mb-6 font-medium">

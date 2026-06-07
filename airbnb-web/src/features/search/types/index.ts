@@ -1,16 +1,25 @@
+export interface AddressVODto {
+  countryCode: string;
+  admin1Code?: string;
+  admin2Code?: string;
+  displayAddress: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface PropertyDocDto {
   id: string;
   hostId: string;
   title: string;
+  description: string;
   slug: string;
   location: string; // "lat, lon"
+  propertyType: number;
   basePrice: number;
-  currencyCode: string;
-  rating: number;
+  averageRating: number;
   reviewCount: number;
-  thumbnailUrl?: string;
-  propertyType?: string;
-  distanceKm?: number;
+  address: AddressVODto;
+  createdAt: string;
 }
 
 export interface SearchResponseDto {
@@ -28,7 +37,9 @@ export interface PropertyMapMarker {
   price: number;
   currency: string;
   rating: number;
+  displayAddress: string;
   thumbnail?: string;
+  images?: string[];
 }
 
 export interface PagedSearchModel {

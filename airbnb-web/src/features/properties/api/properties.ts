@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { Property, PropertySummary, Amenity, EditPropertyInput, CreatePropertyRequest, UpdateLocationRequest } from '../types';
+import type { Property, PropertySummary, Amenity, EditPropertyInput, CreatePropertyRequest, UpdateLocationRequest, PropertyBasicInfo } from '../types';
 
 export const propertiesApi = {
   // Get all properties for current host
@@ -20,6 +20,22 @@ export const propertiesApi = {
   // Get single property details
   getProperty: (id: string): Promise<Property> => 
     api.get(`/api/properties/${id}`) as any,
+
+  // Get multiple properties by IDs
+  getPropertiesByIds: (ids: string[]): Promise<PropertyBasicInfo[]> => {
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append('ids', id));
+    return api.get(`/api/properties/bulk?${params.toString()}`) as any;
+  },
+
+  // Get public properties
+  getPublicProperties: (page = 1, pageSize = 20, propertyType?: number): Promise<{ items: PropertyBasicInfo[], totalCount: number }> => {
+    const params = new URLSearchParams({ page: page.toString(), pageSize: pageSize.toString() });
+    if (propertyType) {
+      params.append('propertyType', propertyType.toString());
+    }
+    return api.get(`/api/properties/public?${params.toString()}`) as any;
+  },
 
   // Update core info
   updateProperty: (id: string, data: EditPropertyInput): Promise<void> => {

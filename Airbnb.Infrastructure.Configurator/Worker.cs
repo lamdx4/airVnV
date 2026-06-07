@@ -30,7 +30,7 @@ public class Worker(
                 logger.LogInformation("Debezium Connect is active! Configuring connectors...");
 
                 // Cấu hình danh sách Connector cho từng Database
-                await ConfigureConnector(client, "property-connector", "propdb", "public.Properties", stoppingToken);
+                await ConfigureConnector(client, "property-connector-v2", "propdb", "public.properties,public.property_images", stoppingToken);
                 
                 logger.LogInformation("Debezium Configurator completed successfully.");
                 break; // Exit loop on success
@@ -57,20 +57,21 @@ public class Worker(
         var config = new
         {
             name = name,
-            config = new
+            config = new Dictionary<string, string>
             {
-                connector_class = "io.debezium.connector.postgresql.PostgresConnector",
-                tasks_max = "1",
-                database_hostname = "postgres", 
-                database_port = "5432",
-                database_user = "postgres",
-                database_password = "password",
-                database_dbname = dbName,
-                topic_prefix = "airbnb", // Dùng chung prefix
-                plugin_name = "pgoutput",
-                table_include_list = tableList,
-                key_converter = "org.apache.kafka.connect.json.JsonConverter",
-                value_converter = "org.apache.kafka.connect.json.JsonConverter",
+                { "connector.class", "io.debezium.connector.postgresql.PostgresConnector" },
+                { "tasks.max", "1" },
+                { "database.hostname", "postgres" },
+                { "database.port", "5432" },
+                { "database.user", "postgres" },
+                { "database.password", Environment.GetEnvironmentVariable("PG_PASSWORD") ?? "password" },
+                { "database.dbname", dbName },
+                { "topic.prefix", "airbnb" },
+                { "plugin.name", "pgoutput" },
+                { "table.include.list", tableList },
+                { "key.converter", "org.apache.kafka.connect.json.JsonConverter" },
+                { "value.converter", "org.apache.kafka.connect.json.JsonConverter" },
+                { "decimal.handling.mode", "double" }
             }
         };
 

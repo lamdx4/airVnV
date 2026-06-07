@@ -1,42 +1,44 @@
-import { useState, useEffect } from 'react'
-import { Star, Heart, Map as MapIcon, List as ListIcon } from 'lucide-react'
+import { Link } from 'react-router';
+import { useState } from 'react'
+import { Star, Heart } from 'lucide-react'
 import { Icon } from '@iconify/react'
-import { useSearchProperties } from '../features/search/hooks/useSearchProperties'
-import { MapView } from '../features/search/components/MapView'
-import { Skeleton } from '@/components/ui/skeleton'
+import { usePublicProperties } from '../features/properties/hooks/usePublicProperties'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslation } from 'react-i18next'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export default function Home() {
   const [likedPlaces, setLikedPlaces] = useState<string[]>([])
-  const [showMap, setShowMap] = useState(false)
   const { t } = useTranslation()
-  
-  // Default coordinates (HCMC, Vietnam)
-  const [location, setLocation] = useState({ latitude: 10.762622, longitude: 106.660172 })
   const [propertyType, setPropertyType] = useState<number | null>(null)
+  const [page, setPage] = useState(1)
 
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        });
-      }, () => {
-        console.warn("Geolocation denied or failed. Using default location.");
-      });
-    }
-  }, []);
+  const handlePropertyTypeChange = (id: number | null) => {
+    setPropertyType(id)
+    setPage(1)
+  }
 
-  const { data: searchData, isLoading, isError } = useSearchProperties({
-    latitude: location.latitude,
-    longitude: location.longitude,
-    radiusKm: 50,
-    propertyType: propertyType !== null ? propertyType : undefined,
-    page: 1,
-    pageSize: 20
-  })
+  const { data: searchData, isLoading, isError } = usePublicProperties(
+    page,
+    20,
+    propertyType !== null ? propertyType : undefined
+  )
 
   const toggleLike = (id: string) => {
     setLikedPlaces(prev =>
@@ -47,7 +49,7 @@ export default function Home() {
   return (
     <div className="space-y-6 pb-24 relative">
       {/* Category Bar */}
-      <div className="flex items-center gap-8 overflow-x-auto no-scrollbar py-4 px-2 border-b border-slate-100">
+      <div className="flex items-center justify-start md:justify-center gap-8 overflow-x-auto no-scrollbar py-4 px-2 border-b border-slate-100">
         {[
           { id: null, key: 'all', icon: 'hugeicons:earth' },
           { id: 1, key: 'apartment', icon: 'hugeicons:building-04' },
@@ -57,10 +59,11 @@ export default function Home() {
           { id: 5, key: 'hotel', icon: 'hugeicons:hotel-01' },
           { id: 6, key: 'resort', icon: 'hugeicons:swimming-pool' },
         ].map((category) => (
-          <button
+          <Button
+            variant="ghost"
             key={category.id || 'all'}
-            onClick={() => setPropertyType(category.id)}
-            className={`flex flex-col items-center gap-2 min-w-max pb-3 border-b-2 transition-all ${
+            onClick={() => handlePropertyTypeChange(category.id)}
+            className={`flex flex-col items-center justify-center gap-2 h-auto px-4 py-3 rounded-none border-b-2 transition-all hover:bg-transparent bg-transparent ${
               propertyType === category.id
                 ? 'border-slate-900 text-slate-900'
                 : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
@@ -68,7 +71,7 @@ export default function Home() {
           >
             <Icon icon={category.icon} className="text-2xl" />
             <span className="text-sm font-semibold">{t(`home.categories.${category.key}`)}</span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -86,21 +89,39 @@ export default function Home() {
         <div className="text-center py-20 text-red-500 font-medium">
           {t('home.failedToLoad')}
         </div>
-      ) : showMap ? (
-        <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden mt-4">
-          <MapView 
-            latitude={location.latitude} 
-            longitude={location.longitude} 
-            markers={searchData?.items || []} 
-          />
-        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-6 gap-y-10 pt-2">
           {searchData?.items.map((place) => (
-            <div key={place.id} className="group flex flex-col cursor-pointer transition-all">
+            <Link key={place.id} to={`/properties/${place.id}`} className="group flex flex-col cursor-pointer transition-all">
               {/* Image Wrapper */}
-              <div className="relative w-full aspect-[20/19] rounded-xl overflow-hidden bg-slate-100 mb-3 shadow-sm hover:shadow-md transition-shadow">
-                {place.thumbnail ? (
+              <div className="relative w-full aspect-[20/19] rounded-xl overflow-hidden bg-slate-100 mb-3 shadow-sm hover:shadow-md transition-shadow group/carousel">
+                {place.images && place.images.length > 0 ? (
+                  <Carousel className="w-full h-full">
+                    <CarouselContent className="h-full ml-0">
+                      {place.images.map((img, idx) => (
+                        <CarouselItem key={idx} className="pl-0 h-full w-full relative">
+                          <img
+                            src={img}
+                            alt={`${place.title} - Image ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {place.images.length > 1 && (
+                      <div className="opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">
+                        <CarouselPrevious 
+                          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 border-none hover:bg-white text-slate-900" 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+                        />
+                        <CarouselNext 
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 border-none hover:bg-white text-slate-900" 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+                        />
+                      </div>
+                    )}
+                  </Carousel>
+                ) : place.thumbnail ? (
                   <img
                     src={place.thumbnail}
                     alt={place.title}
@@ -113,12 +134,15 @@ export default function Home() {
                 )}
                 
                 {/* Heart Icon */}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
+                    e.preventDefault()
                     e.stopPropagation()
                     toggleLike(place.id)
                   }}
-                  className="absolute top-3 right-3 p-2 transition-transform active:scale-90 z-10"
+                  className="absolute top-2 right-2 h-10 w-10 rounded-full bg-transparent hover:bg-white/20 transition-transform active:scale-90 z-10"
                 >
                   <Heart
                     className={`h-6 w-6 transition-all drop-shadow-md ${
@@ -127,7 +151,7 @@ export default function Home() {
                         : 'text-white/90 stroke-[2.5]'
                     }`}
                   />
-                </button>
+                </Button>
               </div>
 
               {/* Details */}
@@ -136,10 +160,10 @@ export default function Home() {
                   <h3 className="font-semibold text-slate-900 text-[15px] truncate">{place.title}</h3>
                   <div className="flex items-center gap-1 text-[14px] shrink-0">
                     <Star className="h-3 w-3 fill-slate-900 text-slate-900" />
-                    <span className="font-normal text-slate-900">{place.rating.toFixed(2)}</span>
+                    <span className="font-normal text-slate-900">{(place.rating ?? 0).toFixed(2)}</span>
                   </div>
                 </div>
-                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{(place as any).displayAddress || t('home.within50km')}</p>
+                <p className="text-[15px] text-slate-500 font-normal leading-tight truncate">{place.displayAddress || t('home.within50km')}</p>
                 <div className="pt-1.5">
                   <span className="text-[15px] text-slate-900 font-semibold">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: place.currency }).format(place.price)}
@@ -147,7 +171,7 @@ export default function Home() {
                   <span className="text-[15px] text-slate-900 font-normal"> / {t('home.night')}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
           {searchData?.items.length === 0 && (
             <div className="col-span-full text-center py-20 text-slate-500">
@@ -157,23 +181,69 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating Map Toggle Button */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40">
-        <Button
-          onClick={() => setShowMap(!showMap)}
-          className="bg-slate-950 hover:bg-slate-800 text-white px-6 py-6 rounded-full font-semibold shadow-lg hover:scale-105 transition-all flex items-center gap-2 h-auto"
-        >
-          {showMap ? (
-            <>
-              {t('home.showList')} <ListIcon className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              {t('home.showMap')} <MapIcon className="w-5 h-5" />
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Pagination Controls */}
+      {!isLoading && !isError && searchData && searchData.totalCount > 20 && (
+        <div className="py-12 mt-8 border-t border-slate-100">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => {
+                    if (page > 1) {
+                      setPage(p => p - 1)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }
+                  }}
+                  className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.ceil(searchData.totalCount / 20) }).map((_, i) => {
+                const pageNum = i + 1;
+                // Only show current page, first, last, and pages around current
+                if (pageNum === 1 || pageNum === Math.ceil(searchData.totalCount / 20) || Math.abs(pageNum - page) <= 1) {
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink 
+                        isActive={pageNum === page}
+                        onClick={() => {
+                          setPage(pageNum)
+                          window.scrollTo({ top: 0, behavior: 'smooth' })
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                }
+                
+                // Show ellipsis if there's a gap
+                if (pageNum === 2 && page > 3) {
+                  return <PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>
+                }
+                if (pageNum === Math.ceil(searchData.totalCount / 20) - 1 && page < Math.ceil(searchData.totalCount / 20) - 2) {
+                  return <PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>
+                }
+                
+                return null;
+              })}
+
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => {
+                    if (page < Math.ceil(searchData.totalCount / 20)) {
+                      setPage(p => p + 1)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }
+                  }}
+                  className={page >= Math.ceil(searchData.totalCount / 20) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   )
 }

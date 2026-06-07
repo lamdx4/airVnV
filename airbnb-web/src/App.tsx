@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router';
 import { Toaster } from 'sonner';
 import Layout from './components/common/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import Search from './pages/Search';
 import HostDashboard from './pages/HostDashboard';
 import EditProperty from './pages/EditProperty';
 import { AirbnbLogin } from './features/auth/components/AirbnbLogin';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/messages/:conversationId" element={<Messages />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/host/homes" element={<HostDashboard />} />
             <Route path="/host/homes/:id/edit" element={<EditProperty />} />

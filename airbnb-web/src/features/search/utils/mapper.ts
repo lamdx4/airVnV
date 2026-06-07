@@ -15,12 +15,12 @@ export const mapPropertyDocToModel = (dto: PropertyDocDto): PropertyMapMarker =>
   return {
     id: dto.id,
     title: dto.title,
-    latitude: lat,
-    longitude: lon,
+    latitude: dto.address?.latitude || lat,
+    longitude: dto.address?.longitude || lon,
     price: dto.basePrice,
-    currency: dto.currencyCode || 'VND',
-    rating: dto.rating,
-    thumbnail: dto.thumbnailUrl,
+    currency: 'VND', // SearchService does not return currency, use default VND
+    rating: dto.averageRating,
+    displayAddress: dto.address?.displayAddress || '',
   };
 };
 

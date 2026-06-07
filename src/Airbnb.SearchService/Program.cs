@@ -14,6 +14,7 @@ builder.AddKafkaConsumer<string, string>("kafka", options =>
 {
     options.Config.GroupId = "search-service-group";
     options.Config.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+    options.Config.EnableAutoOffsetStore = false; // Tắt tự động lưu offset để xử lý At-Least-Once
 });
 
 builder.Services.AddHostedService<CdcConsumer>();

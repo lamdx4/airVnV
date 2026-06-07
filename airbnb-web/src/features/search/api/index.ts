@@ -2,8 +2,8 @@ import { api } from '@/lib/api';
 import type { SearchResponseDto } from '../types';
 
 export interface SearchQueryParams {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   radiusKm?: number;
   propertyType?: number;
   page?: number;
@@ -12,12 +12,15 @@ export interface SearchQueryParams {
 
 export const searchProperties = async (params: SearchQueryParams): Promise<SearchResponseDto> => {
   const query = new URLSearchParams({
-    Latitude: params.latitude.toString(),
-    Longitude: params.longitude.toString(),
-    RadiusKm: (params.radiusKm || 50).toString(),
     Page: (params.page || 1).toString(),
     PageSize: (params.pageSize || 20).toString()
   });
+
+  if (params.latitude !== undefined && params.longitude !== undefined) {
+    query.append('Latitude', params.latitude.toString());
+    query.append('Longitude', params.longitude.toString());
+    query.append('RadiusKm', (params.radiusKm || 50).toString());
+  }
 
   if (params.propertyType) {
     query.append('PropertyType', params.propertyType.toString());

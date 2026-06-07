@@ -14,26 +14,28 @@ public class Handler(ElasticsearchClient elasticClient) : IQueryHandler<Request,
         var pageSize = Math.Clamp(req.PageSize, 1, 100);
         var from = (page - 1) * pageSize;
 
-        var geoPoint = new LatLonGeoLocation
-        {
-            Lat = req.Latitude,
-            Lon = req.Longitude
-        };
+        var hasLocation = req.Latitude.HasValue && req.Longitude.HasValue;
+        LatLonGeoLocation? geoPoint = hasLocation 
+            ? new LatLonGeoLocation { Lat = req.Latitude!.Value, Lon = req.Longitude!.Value }
+            : null;
 
-        var searchResponse = await elasticClient.SearchAsync<PropertyDoc>(s => s
-            .Indices("properties")
-            .TrackTotalHits(new TrackHits(true))
-            .From(from)
-            .Size(pageSize)
-            .Query(q => q
+        var searchResponse = await elasticClient.SearchAsync<PropertyDoc>(s => {
+            s.Indices("properties")
+             .TrackTotalHits(new TrackHits(true))
+             .From(from)
+             .Size(pageSize)
+             .Query(q => q
                 .Bool(b => {
-                    b.Filter(f => f
-                        .GeoDistance(g => g
-                            .Field(p => p.Location)
-                            .Distance($"{req.RadiusKm}km")
-                            .Location(geoPoint)
-                        )
-                    );
+                    if (hasLocation)
+                    {
+                        b.Filter(f => f
+                            .GeoDistance(g => g
+                                .Field(p => p.Location)
+                                .Distance($"{req.RadiusKm}km")
+                                .Location(geoPoint!)
+                            )
+                        );
+                    }
                     if (req.PropertyType.HasValue)
                     {
                         b.Must(m => m
@@ -44,15 +46,26 @@ public class Handler(ElasticsearchClient elasticClient) : IQueryHandler<Request,
                         );
                     }
                 })
-            )
-            .Sort(so => so
-                .GeoDistance(gd => gd
-                    .Field(p => p.Location)
-                    .Location(geoPoint)
-                    .Order(SortOrder.Asc)
-                    .Unit(DistanceUnit.Kilometers)
-                )
-            ), ct);
+             );
+
+            if (hasLocation)
+            {
+                s.Sort(so => so
+                    .GeoDistance(gd => gd
+                        .Field(p => p.Location)
+                        .Location(geoPoint!)
+                        .Order(SortOrder.Asc)
+                        .Unit(DistanceUnit.Kilometers)
+                    )
+                );
+            }
+            else
+            {
+                s.Sort(so => so
+                    .Field(f => f.CreatedAt, fsd => fsd.Order(SortOrder.Desc))
+                );
+            }
+        }, ct);
 
         if (!searchResponse.IsValidResponse)
         {

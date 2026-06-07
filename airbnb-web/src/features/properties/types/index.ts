@@ -117,6 +117,18 @@ export interface PropertySummary {
   updatedAt?: string;
 }
 
+export interface PropertyBasicInfo {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  rating: number;
+  displayAddress: string;
+  latitude: number;
+  longitude: number;
+  images: string[];
+}
+
 export interface Amenity {
   id: string;
   name: string;

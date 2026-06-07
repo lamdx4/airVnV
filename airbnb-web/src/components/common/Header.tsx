@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { SearchConsole } from './SearchConsole';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,20 +49,52 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Standard Search Console */}
-        <div className="hidden md:flex items-center border border-slate-200 rounded-full shadow-sm hover:shadow-md transition-all duration-200 pl-6 pr-2 py-2 gap-0 cursor-pointer min-w-[320px] bg-white group">
-          <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors rounded-l-full">
-            Anywhere
-          </button>
-          <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors">
-            Any week
-          </button>
-          <button className="text-[14px] font-medium text-slate-500 px-4 hover:bg-slate-50 h-full transition-colors rounded-r-full flex-grow text-left">
-            Add guests
-          </button>
-          <div className="bg-[#FF5A5F] text-white p-2 rounded-full ml-auto group-hover:scale-105 transition-transform">
-            <Search01Icon className="h-4 w-4 stroke-[3]" />
-          </div>
+        {/* Search Console */}
+        <div className="hidden md:block flex-1 max-w-[850px] mx-auto px-6 relative z-50">
+          <AnimatePresence mode="popLayout">
+            {!isSearchExpanded ? (
+              <motion.div 
+                key="pill"
+                initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setIsSearchExpanded(true)}
+                className="flex items-center border border-slate-200 rounded-full shadow-sm hover:shadow-md transition-all duration-200 pl-6 pr-2 py-2 gap-0 cursor-pointer w-max mx-auto bg-white group"
+              >
+                <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors rounded-l-full">
+                  Anywhere
+                </button>
+                <button className="text-[14px] font-semibold text-slate-900 px-4 border-r border-slate-200 hover:bg-slate-50 h-full transition-colors">
+                  Any week
+                </button>
+                <button className="text-[14px] font-medium text-slate-500 px-4 hover:bg-slate-50 h-full transition-colors rounded-r-full flex-grow text-left">
+                  Add guests
+                </button>
+                <div className="bg-[#FF5A5F] text-white p-2 rounded-full ml-auto group-hover:scale-105 transition-transform">
+                  <Search01Icon className="h-4 w-4 stroke-[3]" />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="expanded"
+                initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="absolute top-0 left-0 right-0"
+              >
+                {/* Search Overlay */}
+                <div 
+                  className="fixed inset-0 bg-black/20 z-[-1] top-[80px]" 
+                  onClick={() => setIsSearchExpanded(false)}
+                />
+                
+                {/* Expanded Search Bar */}
+                <SearchConsole onClose={() => setIsSearchExpanded(false)} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Control Center */}

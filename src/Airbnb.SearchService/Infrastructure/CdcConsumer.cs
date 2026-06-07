@@ -12,28 +12,25 @@ public class CdcConsumer(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Topic name convention from Debezium: [topic_prefix].[schema].[table]
-        // In our configurator we set topic_prefix = "airbnb"
-        const string topic = "airbnb.public.Properties";
+        var topics = new[] { "airbnb.public.properties" };
         
-        consumer.Subscribe(topic);
-        logger.LogInformation("Subscribed to CDC topic: {topic}", topic);
+        consumer.Subscribe(topics);
+        logger.LogInformation("Subscribed to CDC topics: {topics}", string.Join(", ", topics));
 
         bool isConnected = false;
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            ConsumeResult<string, string>? result = null;
             try
             {
-                ConsumeResult<string, string>? result = null;
-
                 if (!isConnected)
                 {
                     // Lần đầu: Dùng timeout 2s để test xem Topic đã tồn tại chưa mà không bị block vĩnh viễn
                     result = consumer.Consume(TimeSpan.FromSeconds(2));
                     
                     // Nếu Consume(2s) không ném ConsumeException, nghĩa là Topic đã tồn tại!
-                    logger.LogInformation("Successfully connected and listening to CDC topic '{topic}'.", topic);
+                    logger.LogInformation("Successfully connected and listening to CDC topics.");
                     isConnected = true; // Đánh dấu để từ vòng lặp sau sẽ dùng Blocking call native
                 }
                 else
@@ -45,22 +42,39 @@ public class CdcConsumer(
                 if (result == null) continue;
 
                 await ProcessMessageAsync(result, stoppingToken);
+                
+                // Processed successfully -> Store offset (At-Least-Once)
+                consumer.StoreOffset(result);
             }
             catch (OperationCanceledException) { break; }
             catch (ConsumeException ex) when (ex.Error.Reason.Contains("Unknown topic", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning("CDC topic '{topic}' is not ready yet. Waiting for Debezium to create it...", topic);
+                logger.LogWarning("CDC topics are not ready yet. Waiting for Debezium to create them...");
                 await Task.Delay(5000, stoppingToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error processing CDC message");
+                logger.LogError(ex, "Error processing CDC message. Seeking back to retry...");
                 await Task.Delay(5000, stoppingToken); // Backoff
+                
+                // Seek back to the failed offset so we retry processing this message instead of skipping it
+                if (result != null)
+                {
+                    consumer.Seek(result.TopicPartitionOffset);
+                }
             }
         }
     }
 
     private async Task ProcessMessageAsync(ConsumeResult<string, string> result, CancellationToken stoppingToken)
+    {
+        if (result.Topic == "airbnb.public.properties")
+        {
+            await ProcessPropertyMessageAsync(result, stoppingToken);
+        }
+    }
+
+    private async Task ProcessPropertyMessageAsync(ConsumeResult<string, string> result, CancellationToken stoppingToken)
     {
         logger.LogInformation("Received CDC message from Kafka: {key}", result.Message.Key);
 
@@ -98,9 +112,10 @@ public class CdcConsumer(
                 CreatedAt = DateTime.Parse(after.GetProperty("CreatedAt").GetString()!)
             };
 
-            // Staff-level SOP: Upsert (Idempotency)
-            await elasticClient.IndexAsync(propertyDoc, i => i.Index("properties"), stoppingToken);
-            logger.LogInformation("Synced property {id} to Elasticsearch", propertyDoc.Id);
+            // We use IndexAsync because we no longer need to partially update ThumbnailUrl via DocAsUpsert
+            await elasticClient.IndexAsync(propertyDoc, i => i.Index("properties").Id(propertyDoc.Id), stoppingToken);
+                
+            logger.LogInformation("✅ Synced property {id} - '{title}' to Elasticsearch", propertyDoc.Id, propertyDoc.Title);
         }
         else if (op == "d")
         {

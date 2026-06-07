@@ -10,7 +10,7 @@ public class PropertyServiceClient(HttpClient httpClient)
         if (ids is null || ids.Length == 0) return new List<PropertyBasicInfo>();
 
         var query = string.Join("&", ids.Select(id => $"ids={id}"));
-        var response = await httpClient.GetAsync($"/api/properties/admin/by-ids?{query}", ct);
+        var response = await httpClient.GetAsync($"/api/properties/bulk?{query}", ct);
         if (!response.IsSuccessStatusCode) return null;
 
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<PropertyBasicInfo>>>(cancellationToken: ct);

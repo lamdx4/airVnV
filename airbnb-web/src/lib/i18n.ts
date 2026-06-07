@@ -440,6 +440,26 @@ const resources = {
           "of": "of",
           "results": "results"
         }
+      },
+      "bookingWidget": {
+        "perNight": "/ night",
+        "checkIn": "Check-in",
+        "checkOut": "Checkout",
+        "addDate": "Add date",
+        "guests": "Guests",
+        "guest": "guest",
+        "guestsPlural": "guests",
+        "close": "Close",
+        "reserve": "Reserve",
+        "reserving": "Reserving...",
+        "notChargedYet": "You won't be charged yet",
+        "nights": "nights",
+        "weekendPremium": "Weekend Premium",
+        "cleaningFee": "Cleaning fee",
+        "serviceFee": "Service fee",
+        "total": "Total",
+        "priceReference": "Price shown in {{currency}} for reference. You will be charged the exact equivalent amount by your local bank if this is not your native currency.",
+        "contactHost": "Contact Host"
       }
     }
   },
@@ -880,6 +900,26 @@ const resources = {
           "of": "trên tổng",
           "results": "kết quả"
         }
+      },
+      "bookingWidget": {
+        "perNight": "/ đêm",
+        "checkIn": "Nhận phòng",
+        "checkOut": "Trả phòng",
+        "addDate": "Thêm ngày",
+        "guests": "Khách",
+        "guest": "khách",
+        "guestsPlural": "khách",
+        "close": "Đóng",
+        "reserve": "Đặt phòng",
+        "reserving": "Đang giữ chỗ...",
+        "notChargedYet": "Bạn vẫn chưa bị trừ tiền",
+        "nights": "đêm",
+        "weekendPremium": "Phụ thu cuối tuần",
+        "cleaningFee": "Phí dọn dẹp",
+        "serviceFee": "Phí dịch vụ Airbnb",
+        "total": "Tổng cộng",
+        "priceReference": "Giá hiển thị bằng {{currency}} chỉ mang tính tham khảo. Bạn sẽ bị tính phí theo số tiền tương đương từ ngân hàng địa phương nếu đây không phải là loại tiền tệ của bạn.",
+        "contactHost": "Liên hệ Chủ nhà"
       }
     }
   }

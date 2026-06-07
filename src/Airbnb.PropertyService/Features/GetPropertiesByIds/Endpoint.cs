@@ -8,12 +8,12 @@ public class Endpoint(IMediator mediator)
 {
     public override void Configure()
     {
-        Get("/api/properties/admin/by-ids");
+        Get("/api/properties/bulk");
         AllowAnonymous();
         Summary(s =>
         {
-            s.Summary = "Admin: get basic info (id, title) for a list of property ids";
-            s.Description = "Used by UserService Reports to enrich TopProperties with titles.";
+            s.Summary = "Get rich property data for a list of property ids";
+            s.Description = "Used to hydrate Search results with full images, prices, and ratings.";
         });
     }
 

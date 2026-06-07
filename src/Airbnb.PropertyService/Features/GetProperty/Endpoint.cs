@@ -8,7 +8,7 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
 {
     public override void Configure()
     {
-        Get("/api/properties/{PropertyId}");
+        Get("/api/properties/{PropertyId:guid}");
         AllowAnonymous();
     }
 
