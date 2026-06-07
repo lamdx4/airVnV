@@ -43,9 +43,9 @@ export default function Header() {
           className="flex items-center gap-1.5 cursor-pointer text-[#FF5A5F] shrink-0 active:scale-95 transition-transform" 
           onClick={() => navigate('/')}
         >
-          <Icon icon="logos:airbnb-icon" className="text-[32px]" />
+          <img src="/logo.png" alt="airVnV Logo" className="h-8 w-8 object-contain" />
           <span className="font-semibold text-[22px] hidden lg:block tracking-tighter -mt-0.5">
-            airbnb
+            airVnV
           </span>
         </div>
 
