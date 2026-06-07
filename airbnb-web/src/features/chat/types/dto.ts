@@ -20,6 +20,9 @@ export interface ConversationDto {
   isArchived: boolean;
   participants: ConversationParticipantDto[];
   unreadCount: number;
+  otherLastReadMessageId?: string;
+  latestMessageContent?: string;
+  latestMessageId?: string;
 }
 
 export interface MessageDto {
@@ -28,14 +31,23 @@ export interface MessageDto {
   senderId: string;
   content: string;
   sentAt: string;
-  isSystemMessage: boolean;
+  messageType: string;
 }
 
 export interface CreateConversationRequestDto {
   propertyId: string;
-  hostId: string;
+  reservationId?: string;
 }
 
 export interface SendMessageRequestDto {
   content: string;
+  messageType?: string;
+}
+
+export interface AttachmentDto {
+  messageId: string;
+  senderId?: string;
+  content: string;
+  messageType: string;
+  createdAt: string;
 }

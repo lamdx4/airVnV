@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Airbnb.ChatService.Infrastructure;
 using Airbnb.ChatService.Infrastructure.HttpClients;
+using Airbnb.ChatService.Features.Consumers;
+using Airbnb.ChatService.Features.Hubs;
 using System.Text.Json.Serialization.Metadata;
 
 [assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
@@ -51,11 +53,19 @@ var redisConnection = builder.Configuration.GetConnectionString("redis");
 if (!string.IsNullOrEmpty(redisConnection))
 {
     builder.Services.AddSignalR().AddStackExchangeRedis(redisConnection);
+    builder.Services.AddStackExchangeRedisCache(options => 
+    {
+        options.Configuration = redisConnection;
+        options.InstanceName = "AirVnV:Chat:";
+    });
 }
 else
 {
     builder.Services.AddSignalR(); // Fallback if no redis string (e.g., local tests)
+    builder.Services.AddDistributedMemoryCache(); // Fallback
 }
+
+
 
 // 4. MassTransit + RabbitMQ + EF Core Outbox
 builder.Services.AddMassTransit(x =>
@@ -68,8 +78,8 @@ builder.Services.AddMassTransit(x =>
     });
 
     // Register Consumers
-    x.AddConsumer<Airbnb.ChatService.Features.Consumers.BookingConfirmedEventConsumer>();
-    x.AddConsumer<Airbnb.ChatService.Features.Consumers.UserProfileUpdatedEventConsumer>();
+    x.AddConsumer<BookingConfirmedEventConsumer>();
+    x.AddConsumer<UserProfileUpdatedEventConsumer>();
 
         x.UsingRabbitMq((ctx, cfg) =>
         {
@@ -120,7 +130,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map Hubs
-app.MapHub<Airbnb.ChatService.Features.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<ChatHub>("/hubs/chat");
 
 // Map Aspire defaults
 app.MapDefaultEndpoints();

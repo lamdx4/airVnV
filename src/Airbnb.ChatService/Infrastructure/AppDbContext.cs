@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<ChatUser> ChatUsers => Set<ChatUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,18 +29,24 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
-            // Partial Unique Indexes chống duplicate
-            // Khi không có reservation
-            entity.HasIndex(e => e.PropertyId)
-                  .IsUnique()
-                  .HasFilter("\"ReservationId\" IS NULL")
-                  .HasDatabaseName("uq_conversation_property_no_res");
-                  
-            // Khi có reservation
+            // Đảm bảo không tạo 2 conversation cho cùng 1 booking (property + reservation)
             entity.HasIndex(e => new { e.PropertyId, e.ReservationId })
                   .IsUnique()
                   .HasFilter("\"ReservationId\" IS NOT NULL")
-                  .HasDatabaseName("uq_conversation_property_res");
+                  .HasDatabaseName("idx_conversation_property_reservation_unique");
+            
+            // Vẫn giữ lại Index thông thường để query cho nhanh
+            entity.HasIndex(e => e.PropertyId)
+                  .HasDatabaseName("idx_conversation_property");
+                  
+            entity.HasIndex(e => e.ReservationId)
+                  .HasDatabaseName("idx_conversation_reservation");
+        });
+
+        // ------------------ ChatUsers ------------------
+        modelBuilder.Entity<ChatUser>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
         });
 
         // ------------------ ConversationParticipants ------------------
@@ -55,6 +62,11 @@ public class AppDbContext : DbContext
                   .HasDatabaseName("idx_participants_user_id");
 
             entity.Property(e => e.Role).HasConversion<string>();
+
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Participations)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ------------------ Messages ------------------
@@ -62,10 +74,9 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
-            // Index để phân trang
-            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt })
-                  .IsDescending(false, true) // Mặc định là ASC, ta cấu hình DESC cho CreatedAt khi query
-                  .HasDatabaseName("idx_messages_conversation_created");
+            // Index để phân trang và tính unread count nhanh bằng cách so sánh Id (UUIDv7)
+            entity.HasIndex(e => new { e.ConversationId, e.Id })
+                  .HasDatabaseName("idx_messages_conversation_id");
                   
             entity.Property(e => e.MessageType).HasConversion<string>();
         });

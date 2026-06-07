@@ -119,6 +119,8 @@ var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
     .WithReference(chatDb)
     .WithReference(rabbit)
     .WithReference(redis)
+    .WithReference(propSvc)
+    .WithReference(userSvc)
     .WaitFor(chatDb)
     .WaitFor(rabbit)
     .WaitFor(redis);
@@ -132,17 +134,6 @@ var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
     .WithReference(paySvc)
     .WithReference(searchSvc)
     .WithReference(chatSvc);
-
-// 6. Frontend (React Vite)
-builder.AddViteApp("frontend", "../airbnb-web")
-    .WithEndpoint("http", e => {
-        e.Port = 5173;
-        e.TargetPort = 5173;
-        e.IsProxied = false;
-    })
-    .WithReference(gateway)
-    .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"))
-    .WithEnvironment("VITE_CHAT_HUB_URL", $"{gateway.GetEndpoint("http")}/hubs/chat");
 
 
 builder.Build().Run();

@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Airbnb.ChatService.Infrastructure.HttpClients;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
+using Airbnb.ChatService.Features.Hubs;
 
 namespace Airbnb.ChatService.Features.Consumers;
 
@@ -13,6 +15,7 @@ public class BookingConfirmedEventConsumer(
     AppDbContext db,
     PropertyServiceClient propertyClient,
     UserServiceClient userClient,
+    IHubContext<ChatHub> hubContext,
     ILogger<BookingConfirmedEventConsumer> logger) : IConsumer<BookingConfirmedEvent>
 {
     public async Task Consume(ConsumeContext<BookingConfirmedEvent> context)
@@ -39,14 +42,43 @@ public class BookingConfirmedEventConsumer(
                 return;
             }
 
-            // 2. Fetch User Profiles
-            var guestProfile = await userClient.GetPublicProfileAsync(message.UserId, context.CancellationToken);
-            var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, context.CancellationToken);
-
-            if (guestProfile == null || hostProfile == null)
+            // 2. Fetch User Profiles if they don't exist in ChatUsers
+            var guestUser = await db.ChatUsers.FindAsync(new object[] { message.UserId }, context.CancellationToken);
+            if (guestUser == null)
             {
-                logger.LogWarning("Cannot fetch user profiles. Aborting conversation creation.");
-                return;
+                var guestProfile = await userClient.GetPublicProfileAsync(message.UserId, context.CancellationToken);
+                if (guestProfile == null)
+                {
+                    logger.LogWarning("Cannot fetch guest profile for {UserId}. Aborting conversation creation.", message.UserId);
+                    return;
+                }
+                
+                guestUser = new ChatUser
+                {
+                    UserId = message.UserId,
+                    DisplayName = guestProfile.FullName,
+                    AvatarUrl = guestProfile.AvatarUrl
+                };
+                db.ChatUsers.Add(guestUser);
+            }
+
+            var hostUser = await db.ChatUsers.FindAsync(new object[] { propertyInfo.HostId }, context.CancellationToken);
+            if (hostUser == null)
+            {
+                var hostProfile = await userClient.GetPublicProfileAsync(propertyInfo.HostId, context.CancellationToken);
+                if (hostProfile == null)
+                {
+                    logger.LogWarning("Cannot fetch host profile for {HostId}. Aborting conversation creation.", propertyInfo.HostId);
+                    return;
+                }
+                
+                hostUser = new ChatUser
+                {
+                    UserId = propertyInfo.HostId,
+                    DisplayName = hostProfile.FullName,
+                    AvatarUrl = hostProfile.AvatarUrl
+                };
+                db.ChatUsers.Add(hostUser);
             }
 
             // 3. Create Conversation
@@ -60,16 +92,12 @@ public class BookingConfirmedEventConsumer(
                     new ConversationParticipant
                     {
                         UserId = message.UserId,
-                        Role = ParticipantRole.Guest,
-                        DisplayName = guestProfile.FullName,
-                        AvatarUrl = guestProfile.AvatarUrl
+                        Role = ParticipantRole.Guest
                     },
                     new ConversationParticipant
                     {
                         UserId = propertyInfo.HostId,
-                        Role = ParticipantRole.Host,
-                        DisplayName = hostProfile.FullName,
-                        AvatarUrl = hostProfile.AvatarUrl
+                        Role = ParticipantRole.Host
                     }
                 }
             };
@@ -77,7 +105,14 @@ public class BookingConfirmedEventConsumer(
             db.Conversations.Add(conversation);
         }
 
-        // Cập nhật ReservationId cho Conversation này
+        // Kiểm tra tránh trùng lặp event (Idempotency)
+        if (conversation.ReservationId == message.BookingId)
+        {
+            logger.LogInformation("Booking {BookingId} already confirmed for conversation {ConversationId}. Skipping duplicate event.", message.BookingId, conversation.Id);
+            return;
+        }
+
+        // Cập nhật hoặc ghi đè ReservationId cho Conversation này
         conversation.ReservationId = message.BookingId;
 
         // Tạo system message
@@ -86,7 +121,7 @@ public class BookingConfirmedEventConsumer(
             ConversationId = conversation.Id,
             SenderId = null, // System Message
             MessageType = MessageType.System,
-            Content = $"Booking confirmed! Check-in: {message.CheckIn:d}. Total: ${message.TotalPrice}",
+            Content = $" Booking confirmed! {message.CheckIn:MMM dd} - {message.CheckOut:MMM dd, yyyy} • ${message.TotalPrice} 🎉",
         };
 
         db.Messages.Add(systemMsg);
@@ -95,6 +130,27 @@ public class BookingConfirmedEventConsumer(
 
         await db.SaveChangesAsync(context.CancellationToken);
 
-        // TODO: Push SignalR update to Participants
+        // 4. Push SignalR tới những người trong Group conversation
+        var messagePayload = new 
+        {
+            systemMsg.Id,
+            systemMsg.ConversationId,
+            systemMsg.SenderId,
+            systemMsg.Content,
+            systemMsg.CreatedAt,
+            MessageType = systemMsg.MessageType.ToString()
+        };
+
+        await hubContext.Clients.Group($"conv_{conversation.Id}").SendAsync("ReceiveMessage", messagePayload, context.CancellationToken);
+
+        // 5. Push SignalR tới user id group của tất cả những người tham gia
+        var allUserGroups = conversation.Participants
+            .Select(p => $"user_{p.UserId}")
+            .ToList();
+
+        if (allUserGroups.Count > 0)
+        {
+            await hubContext.Clients.Groups(allUserGroups).SendAsync("NewMessage", messagePayload, context.CancellationToken);
+        }
     }
 }

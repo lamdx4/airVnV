@@ -18,6 +18,12 @@ export interface Conversation {
   // Computed fields for UI convenience
   otherParticipantName: string;
   otherParticipantAvatar?: string;
+  otherLastReadMessageId?: string;
+  latestMessageContent?: string;
+  latestMessageId?: string;
+  latestMessageType?: string;
+  latestSystemMessageContent?: string;
+  otherParticipantId?: string;
 }
 
 export interface ChatMessage {
@@ -26,5 +32,13 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   sentAt: Date;
-  isSystemMessage: boolean;
+  messageType: string;
+}
+
+export interface AttachmentItem {
+  messageId: string;
+  senderId?: string;
+  content: string;
+  messageType: string;
+  createdAt: Date;
 }

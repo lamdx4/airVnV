@@ -10,6 +10,7 @@ export const uploadToCloudinary = async (
   file: File, 
   sig: SignatureResponse
 ): Promise<CloudinaryUploadResponse> => {
+  console.log('Uploading file to Cloudinary with signature:', sig);
   const formData = new FormData();
   formData.append('file', file);
   formData.append('api_key', sig.apiKey);
@@ -21,7 +22,7 @@ export const uploadToCloudinary = async (
   }
 
   const res = await axios.post<CloudinaryUploadResponse>(
-    `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`,
     formData
   );
 
