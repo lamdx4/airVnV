@@ -89,3 +89,17 @@ public record PricingUpdatedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     Guid IDomainEvent.AggregateId => PropertyId;
 }
+
+/// <summary>
+/// Khi bị admin reject – Host nhận notification kèm lý do.
+/// </summary>
+public record PropertyRejectedEvent(
+    Guid PropertyId,
+    Guid HostId,
+    string Reason,
+    long AggregateVersion) : IDomainEvent
+{
+    public Guid EventId { get; } = Guid.CreateVersion7();
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PropertyId;
+}

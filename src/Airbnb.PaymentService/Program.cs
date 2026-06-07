@@ -33,6 +33,12 @@ builder.Services.AddHttpClient<Airbnb.PaymentService.Infrastructure.HttpClients.
     client.BaseAddress = new Uri("http://propertyservice");
 });
 
+builder.Services.AddHttpClient<Airbnb.PaymentService.Infrastructure.HttpClients.UserServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://userservice");
+    client.Timeout = TimeSpan.FromSeconds(2); // fail fast if UserService unavailable
+});
+
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.IPaymentProvider, Airbnb.PaymentService.Infrastructure.PaymentGateways.VnpayProvider>();
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.PaymentProviderResolver>();
 
@@ -76,17 +82,15 @@ builder.Services.SwaggerDocument();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    if (builder.Environment.IsDevelopment())
-        options.SerializerOptions.TypeInfoResolver = PaymentJsonContext.Default;
-    else
-        options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
-            PaymentJsonContext.Default, new DefaultJsonTypeInfoResolver());
+    options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+        PaymentJsonContext.Default, new DefaultJsonTypeInfoResolver());
 });
 
 var app = builder.Build();
 
 app.UseFastEndpoints(c => {
-    c.Serializer.Options.TypeInfoResolver = PaymentJsonContext.Default;
+    c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+        PaymentJsonContext.Default, new DefaultJsonTypeInfoResolver());
 });
 
 if (app.Environment.IsDevelopment())
@@ -102,6 +106,13 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<PaymentDbContext>();
         await context.Database.MigrateAsync();
+
+        // Seed default PlatformSettings singleton if missing.
+        if (!await context.PlatformSettings.AnyAsync())
+        {
+            context.PlatformSettings.Add(Airbnb.PaymentService.Domain.PlatformSetting.CreateDefault());
+            await context.SaveChangesAsync();
+        }
     }
     catch (Exception ex)
     {

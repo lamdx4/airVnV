@@ -23,7 +23,6 @@ public class UserDbContext : AppDbContextBase
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
-
     // MassTransit Outbox Entities
     public DbSet<MassTransit.EntityFrameworkCoreIntegration.InboxState> InboxState => Set<MassTransit.EntityFrameworkCoreIntegration.InboxState>();
     public DbSet<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage> OutboxMessage => Set<MassTransit.EntityFrameworkCoreIntegration.OutboxMessage>();
@@ -40,6 +39,10 @@ public class UserDbContext : AppDbContextBase
         
         // Enum to String
         modelBuilder.Entity<User>().Property(x => x.Role).HasConversion<string>();
+        modelBuilder.Entity<User>().Property(x => x.Status).HasConversion<string>();
+        modelBuilder.Entity<User>().Property(x => x.LastLoginAt).HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<User>().Property(x => x.SuspensionReason).HasMaxLength(500);
+        modelBuilder.Entity<User>().Property(x => x.BanReason).HasMaxLength(500);
 
         modelBuilder.Entity<UserProfile>().ToTable("UserProfiles").HasKey(x => x.UserId);
         modelBuilder.Entity<UserProfile>().Property(x => x.UserId).ValueGeneratedNever();

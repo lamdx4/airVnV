@@ -14,5 +14,6 @@ public static class PropertyTopics
     public const string Suspended      = $"{Prefix}.suspended";
     public const string Reinstated     = $"{Prefix}.reinstated";
     public const string Archived       = $"{Prefix}.archived";
+    public const string Rejected       = $"{Prefix}.rejected";
     public const string PricingUpdated = $"{Prefix}.pricing-updated";
 }

@@ -20,6 +20,7 @@ public class DomainEventPublisher(IPublishEndpoint publishEndpoint)
         [typeof(PropertySuspendedEvent)]  = PropertyTopics.Suspended,
         [typeof(PropertyReinstatedEvent)] = PropertyTopics.Reinstated,
         [typeof(PropertyArchivedEvent)]   = PropertyTopics.Archived,
+        [typeof(PropertyRejectedEvent)]   = PropertyTopics.Rejected,
         [typeof(PricingUpdatedEvent)]     = PropertyTopics.PricingUpdated,
     };
 

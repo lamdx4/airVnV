@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/reinstate");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Admin reinstates property (Suspended → Published)";
             s.Description = "Possible Error Codes: \n" +

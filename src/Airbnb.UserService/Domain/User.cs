@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using Airbnb.ServiceDefaults.Infrastructure;
 using Airbnb.SharedKernel.Domain;
 using Airbnb.UserService.Domain.Events;
@@ -11,6 +12,14 @@ public enum UserRole
     User,
     Moderator,
     Admin
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<UserStatus>))]
+public enum UserStatus
+{
+    Active,
+    Suspended,
+    Banned
 }
 
 public enum AuthProvider
@@ -26,7 +35,12 @@ public class User : AggregateRoot
     public string Email { get; private set; } = default!;
     public string? HashedPassword { get; private set; } 
     public UserRole Role { get; private set; }
+    public UserStatus Status { get; private set; }
+    public bool IsVerified { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime? LastLoginAt { get; private set; }
+    public string? SuspensionReason { get; private set; }
+    public string? BanReason { get; private set; }
 
     // Relationships
     public UserProfile Profile { get; private set; } = default!;
@@ -50,6 +64,8 @@ public class User : AggregateRoot
         Email = email;
         HashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
         Role = role;
+        Status = UserStatus.Active;
+        IsVerified = false;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
     }
@@ -64,6 +80,8 @@ public class User : AggregateRoot
         Email = email;
         HashedPassword = null;
         Role = role;
+        Status = UserStatus.Active;
+        IsVerified = false;
         CreatedAt = DateTime.UtcNow;
         Profile = new UserProfile(Id, fullName);
         AddLogin(provider, providerKey);
@@ -84,6 +102,43 @@ public class User : AggregateRoot
         Profile.UpdateInfo(fullName, avatarUrl, phoneNumber, bio);
         Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl));
     }
+
+    public void Suspend(string reason)
+    {
+        if (Status is not UserStatus.Active)
+            throw new BusinessException("Only active users can be suspended.", "INVALID_STATUS_TRANSITION");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessException("Suspension reason is required.", "REASON_REQUIRED");
+        Status = UserStatus.Suspended;
+        SuspensionReason = reason;
+    }
+
+    public void Ban(string reason)
+    {
+        if (Status is UserStatus.Banned)
+            throw new BusinessException("User is already banned.", "USER_ALREADY_BANNED");
+        if (Status is not (UserStatus.Active or UserStatus.Suspended))
+            throw new BusinessException("Cannot ban a user with current status.", "INVALID_STATUS_TRANSITION");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessException("Ban reason is required.", "REASON_REQUIRED");
+        Status = UserStatus.Banned;
+        BanReason = reason;
+    }
+
+    public void Activate()
+    {
+        if (Status is not (UserStatus.Suspended or UserStatus.Banned))
+            throw new BusinessException("Only suspended or banned users can be activated.", "INVALID_STATUS_TRANSITION");
+        Status = UserStatus.Active;
+        SuspensionReason = null;
+        BanReason = null;
+    }
+
+    public void SetLastLoginAt(DateTime lastLoginAt)
+    {
+        LastLoginAt = lastLoginAt;
+    }
+
 }
 
 public class UserProfile
@@ -165,3 +220,5 @@ public class UserRefreshToken
         RevokedAt = DateTime.UtcNow;
     }
 }
+
+

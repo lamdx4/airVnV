@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+
+  /* Airbnb brand colors mapped to Shadcn semantic slots */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Airbnb custom semantic colors */
+  --color-rausch: #ff385c;
+  --color-rausch-active: #e00b41;
+  --color-rausch-disabled: #ffd1da;
+  --color-ink: #222222;
+  --color-body: #3f3f3f;
+  --color-muted-text: #6a6a6a;
+  --color-muted-soft: #929292;
+  --color-hairline: #dddddd;
+  --color-hairline-soft: #ebebeb;
+  --color-border-strong: #c1c1c1;
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-card: #ffffff;
+  --color-surface-strong: #f2f2f2;
+  --color-error-text: #c13515;
+  --color-error-text-hover: #b32505;
+  --color-legal-link: #428bff;
+  --color-luxe: #460479;
+  --color-plus: #92174d;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-star-rating: #222222;
+  --color-scrim: #000000;
+
+  /* Airbnb radius system: none=0, xs=4, sm=8, md=14, lg=20, xl=32, full=9999 */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Shadcn radius variables mapped to Airbnb */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-2xl: 32px;
+  --radius-3xl: 32px;
+  --radius-4xl: 32px;
+
+  /* Airbnb elevation — single shadow tier */
+  --shadow-airbnb: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px, rgba(0, 0, 0, 0.1) 0 4px 8px;
+}
+
+:root {
+  /* Airbnb design tokens mapped through Shadcn CSS variables */
+  --background: #ffffff;
+  --foreground: #222222;
+  --card: #ffffff;
+  --card-foreground: #222222;
+  --popover: #ffffff;
+  --popover-foreground: #222222;
+  --primary: #ff385c;
+  --primary-foreground: #ffffff;
+  --secondary: #f7f7f7;
+  --secondary-foreground: #222222;
+  --muted: #f7f7f7;
+  --muted-foreground: #6a6a6a;
+  --accent: #f7f7f7;
+  --accent-foreground: #222222;
+  --destructive: #c13515;
+  --border: #dddddd;
+  --input: #dddddd;
+  --ring: #ff385c;
+  --chart-1: #ff385c;
+  --chart-2: #222222;
+  --chart-3: #6a6a6a;
+  --chart-4: #f7f7f7;
+  --chart-5: #929292;
+  --radius: 0.875rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #222222;
+  --sidebar-primary: #ff385c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f7f7f7;
+  --sidebar-accent-foreground: #222222;
+  --sidebar-border: #dddddd;
+  --sidebar-ring: #ff385c;
+}
+
+.dark {
+  --background: #1a1a1a;
+  --foreground: #f7f7f7;
+  --card: #222222;
+  --card-foreground: #f7f7f7;
+  --popover: #222222;
+  --popover-foreground: #f7f7f7;
+  --primary: #ff385c;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #f7f7f7;
+  --muted: #2a2a2a;
+  --muted-foreground: #929292;
+  --accent: #2a2a2a;
+  --accent-foreground: #f7f7f7;
+  --destructive: #e04848;
+  --border: rgba(255, 255, 255, 10%);
+  --input: rgba(255, 255, 255, 15%);
+  --ring: #ff385c;
+  --chart-1: #ff385c;
+  --chart-2: #f7f7f7;
+  --chart-3: #929292;
+  --chart-4: #2a2a2a;
+  --chart-5: #6a6a6a;
+  --sidebar: #222222;
+  --sidebar-foreground: #f7f7f7;
+  --sidebar-primary: #ff385c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #f7f7f7;
+  --sidebar-border: rgba(255, 255, 255, 10%);
+  --sidebar-ring: #ff385c;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

@@ -9,7 +9,7 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     public override void Configure()
     {
         Post("/api/bookings");
-        // Bỏ AllowAnonymous() vì yêu cầu JWT
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

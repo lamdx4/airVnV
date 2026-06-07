@@ -21,6 +21,93 @@ namespace Airbnb.PaymentService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.BalanceEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AvailableDelta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PayoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PendingDelta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId")
+                        .HasDatabaseName("ix_balance_entries_host");
+
+                    b.HasIndex("PaymentId")
+                        .HasDatabaseName("ix_balance_entries_payment");
+
+                    b.HasIndex("PayoutId")
+                        .HasDatabaseName("ix_balance_entries_payout");
+
+                    b.ToTable("BalanceEntries", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.HostBalance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AvailableBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PendingBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId", "Currency")
+                        .IsUnique()
+                        .HasDatabaseName("ix_host_balances_host_currency");
+
+                    b.ToTable("HostBalances", (string)null);
+                });
+
             modelBuilder.Entity("Airbnb.PaymentService.Domain.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -67,6 +154,139 @@ namespace Airbnb.PaymentService.Migrations
                         .HasFilter("\"Status\" = 'Pending'");
 
                     b.ToTable("Payments", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.Payout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PayoutAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalEarnings")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId")
+                        .HasDatabaseName("ix_payouts_host_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_payouts_status");
+
+                    b.ToTable("Payouts", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.PayoutItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("BookingTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("CheckIn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("CheckOut")
+                        .HasColumnType("date");
+
+                    b.Property<string>("GuestName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("HostEarning")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PayoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PropertyTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("ServiceFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .HasDatabaseName("ix_payout_items_booking_id");
+
+                    b.HasIndex("PayoutId")
+                        .HasDatabaseName("ix_payout_items_payout_id");
+
+                    b.ToTable("PayoutItems", (string)null);
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.PlatformSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DefaultCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<decimal>("MinPayoutAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PlatformFeePercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlatformSettings", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
@@ -237,6 +457,20 @@ namespace Airbnb.PaymentService.Migrations
                     b.HasIndex("Created");
 
                     b.ToTable("OutboxState");
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.PayoutItem", b =>
+                {
+                    b.HasOne("Airbnb.PaymentService.Domain.Payout", null)
+                        .WithMany("Items")
+                        .HasForeignKey("PayoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Airbnb.PaymentService.Domain.Payout", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

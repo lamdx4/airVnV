@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     public override void Configure()
     {
         Get("/api/bookings/guest");
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

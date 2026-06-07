@@ -363,6 +363,9 @@ namespace Airbnb.PropertyService.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("text");
+
                     b.Property<int>("ReviewCount")
                         .HasColumnType("integer");
 

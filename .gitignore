@@ -18,6 +18,13 @@ dist-ssr/
 # IDEs
 .idea/
 .agent/
+.gitnexus
+AGENTS.md
+CLAUDE.md
+.gitnexusrc
+specs
+.factory
+.claude
 
 # Logs
 *.txt
@@ -25,6 +32,3 @@ dist-ssr/
 log.txt
 # Secrets
 firebase-service-account.json
-
-# UserService Settings
-src/Airbnb.UserService/appsettings*.json

@@ -41,9 +41,19 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 
 builder.Services.AddMediaServices(builder.Configuration);
 
-builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration."));
+builder.Services.AddAuthenticationJwtBearer(s =>
+{
+    s.SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("JWT Signing Key is missing from configuration.");
+});
 builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
+
+// HTTP Clients for inter-service calls
+builder.Services.AddHttpClient<Airbnb.UserService.Infrastructure.HttpClients.PropertyServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://propertyservice");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 // Thêm Mediator
 builder.Services.AddMediator();

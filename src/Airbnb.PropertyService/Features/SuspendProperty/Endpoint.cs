@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/suspend");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Admin suspends property (Published → Suspended)";
             s.Description = "Possible Error Codes: \n" +

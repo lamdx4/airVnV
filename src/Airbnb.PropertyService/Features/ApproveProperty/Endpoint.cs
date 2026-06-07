@@ -9,6 +9,7 @@ public class Endpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/api/properties/{PropertyId}/approve");
+        AllowAnonymous();
         Summary(s => {
             s.Summary = "Admin approve property (PendingReview → Published)";
             s.Description = "Possible Error Codes: \n" +

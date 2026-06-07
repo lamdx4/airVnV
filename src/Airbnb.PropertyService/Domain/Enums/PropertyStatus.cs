@@ -6,5 +6,6 @@ public enum PropertyStatus
     PendingReview = 1,
     Published = 2,
     Suspended = 3,
-    Archived = 4
+    Archived = 4,
+    Rejected = 5
 }
