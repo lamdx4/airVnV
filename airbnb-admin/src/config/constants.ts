@@ -17,6 +17,12 @@ export const ROUTES = {
   PAYMENTS: "/payments",
   PAYMENT_DETAIL: (id: string) => `/payments/${id}`,
 
+  PAYOUTS: "/payouts",
+  PAYOUT_DETAIL: (id: string) => `/payouts/${id}`,
+
+  HOST_BALANCES: "/host-balances",
+  HOST_BALANCE_DETAIL: (id: string) => `/host-balances/${id}`,
+
   SETTINGS: "/settings",
 } as const;
 

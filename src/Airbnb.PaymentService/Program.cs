@@ -33,6 +33,12 @@ builder.Services.AddHttpClient<Airbnb.PaymentService.Infrastructure.HttpClients.
     client.BaseAddress = new Uri("http://propertyservice");
 });
 
+builder.Services.AddHttpClient<Airbnb.PaymentService.Infrastructure.HttpClients.UserServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://userservice");
+    client.Timeout = TimeSpan.FromSeconds(2); // fail fast if UserService unavailable
+});
+
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.IPaymentProvider, Airbnb.PaymentService.Infrastructure.PaymentGateways.VnpayProvider>();
 builder.Services.AddScoped<Airbnb.PaymentService.Infrastructure.PaymentGateways.PaymentProviderResolver>();
 

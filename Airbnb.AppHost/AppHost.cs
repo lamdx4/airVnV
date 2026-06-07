@@ -100,6 +100,7 @@ var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice"
     .WithEnvironment("DOTNET_gcServer", "0")
     .WithReference(payDb)
     .WithReference(rabbit)
+    .WithReference(userSvc)   // for host basic info lookup
     .WaitFor(payDb)
     .WaitFor(rabbit);
 
