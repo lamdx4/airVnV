@@ -101,6 +101,7 @@ var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice"
     .WithReference(payDb)
     .WithReference(rabbit)
     .WithReference(userSvc)   // for host basic info lookup
+    .WithReference(bookSvc)   // for booking → guest lookup on admin payments
     .WaitFor(payDb)
     .WaitFor(rabbit);
 

@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PaymentService.Domain;
+using Airbnb.PaymentService.Infrastructure.HttpClients;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PaymentService.Features.Admin.GetAdminPaymentDetail;
@@ -13,6 +14,10 @@ public record Request
 public record Response(
     Guid Id,
     Guid BookingId,
+    Guid? GuestId,
+    string? GuestName,
+    string? GuestEmail,
+    string? GuestAvatarUrl,
     decimal Amount,
     string Currency,
     PaymentStatus Status,
@@ -22,7 +27,8 @@ public record Response(
     DateTimeOffset? ExpiresAt
 );
 
-public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(PaymentDbContext db, BookingServiceClient bookingClient, UserServiceClient userClient)
+    : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -40,8 +46,25 @@ public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<Respo
             return;
         }
 
+        Guid? guestId = null;
+        string? guestName = null, guestEmail = null, guestAvatarUrl = null;
+
+        var booking = await bookingClient.GetBookingBasicInfoAsync(p.BookingId, ct);
+        if (booking is not null)
+        {
+            guestId = booking.GuestId;
+            var users = await userClient.GetBasicInfosAsync(new[] { booking.GuestId }, ct);
+            if (users.TryGetValue(booking.GuestId, out var u))
+            {
+                guestName = u.FullName;
+                guestEmail = u.Email;
+                guestAvatarUrl = u.AvatarUrl;
+            }
+        }
+
         var response = new Response(
-            p.Id, p.BookingId, p.Amount, p.Currency, p.Status,
+            p.Id, p.BookingId, guestId, guestName, guestEmail, guestAvatarUrl,
+            p.Amount, p.Currency, p.Status,
             p.TransactionId, p.PaymentUrl, p.CreatedAt, p.ExpiresAt
         );
         await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(response), cancellation: ct);

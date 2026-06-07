@@ -12,6 +12,10 @@ export type PaymentStatusValue = (typeof PaymentStatus)[keyof typeof PaymentStat
 export interface AdminPaymentItem {
   id: string;
   bookingId: string;
+  guestId: string | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  guestAvatarUrl: string | null;
   amount: number;
   currency: string;
   status: PaymentStatusValue;

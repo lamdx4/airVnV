@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PaymentService.Domain;
+using Airbnb.PaymentService.Infrastructure.HttpClients;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PaymentService.Features.Admin.GetAdminPayments;
@@ -19,6 +20,10 @@ public record Request
 public record AdminPaymentItem(
     Guid Id,
     Guid BookingId,
+    Guid? GuestId,
+    string? GuestName,
+    string? GuestEmail,
+    string? GuestAvatarUrl,
     decimal Amount,
     string Currency,
     PaymentStatus Status,
@@ -37,7 +42,7 @@ public record PagedResponse<T>(
     public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
 }
 
-public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<PagedResponse<AdminPaymentItem>>>
+public class Endpoint(PaymentDbContext db, BookingServiceClient bookingClient, UserServiceClient userClient) : Endpoint<Request, ApiResponse<PagedResponse<AdminPaymentItem>>>
 {
     public override void Configure()
     {
@@ -89,20 +94,38 @@ public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<Paged
 
         var total = await query.CountAsync(ct);
 
-        var items = await query
+        var rows = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new AdminPaymentItem(
-                p.Id,
-                p.BookingId,
-                p.Amount,
-                p.Currency,
-                p.Status,
-                p.TransactionId,
-                p.CreatedAt,
-                p.ExpiresAt
-            ))
+            .Select(p => new {
+                p.Id, p.BookingId, p.Amount, p.Currency, p.Status,
+                p.TransactionId, p.CreatedAt, p.ExpiresAt
+            })
             .ToListAsync(ct);
+
+        var bookingInfos = await bookingClient.GetBasicInfosAsync(rows.Select(r => r.BookingId), ct);
+        var guestIds = bookingInfos.Values.Select(b => b.GuestId).Distinct().ToList();
+        var guestInfos = await userClient.GetBasicInfosAsync(guestIds, ct);
+
+        var items = rows.Select(p =>
+        {
+            Guid? guestId = null;
+            string? guestName = null, guestEmail = null, guestAvatarUrl = null;
+            if (bookingInfos.TryGetValue(p.BookingId, out var b))
+            {
+                guestId = b.GuestId;
+                if (guestInfos.TryGetValue(b.GuestId, out var u))
+                {
+                    guestName = u.FullName;
+                    guestEmail = u.Email;
+                    guestAvatarUrl = u.AvatarUrl;
+                }
+            }
+            return new AdminPaymentItem(
+                p.Id, p.BookingId, guestId, guestName, guestEmail, guestAvatarUrl,
+                p.Amount, p.Currency, p.Status, p.TransactionId, p.CreatedAt, p.ExpiresAt
+            );
+        }).ToList();
 
         var response = new PagedResponse<AdminPaymentItem>(items, total, page, pageSize);
         await Send.ResponseAsync(ApiResponse<PagedResponse<AdminPaymentItem>>.SuccessResult(response), cancellation: ct);

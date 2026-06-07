@@ -117,6 +117,21 @@ export function PaymentsList() {
       ),
     },
     {
+      accessorKey: "guestName",
+      header: "Guest",
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-[#222222]">
+            {row.original.guestName ?? "Unknown guest"}
+          </span>
+          <span className="text-[10px] text-[#6a6a6a]">
+            {row.original.guestEmail ??
+              (row.original.guestId ? shortenId(row.original.guestId) : "—")}
+          </span>
+        </div>
+      ),
+    },
+    {
       accessorKey: "amount",
       header: () => <div className="text-right">Amount</div>,
       cell: ({ row }) => (

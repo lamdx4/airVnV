@@ -86,6 +86,21 @@ export function PaymentDetail({ paymentId }: PaymentDetailProps) {
 
         <Card>
           <CardHeader>
+            <CardTitle>Guest</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <Row label="Name" value={data.guestName ?? "Unknown guest"} />
+            <Row label="Email" value={data.guestEmail ?? "—"} />
+            <Row
+              label="Guest ID"
+              value={data.guestId ?? "—"}
+              mono={Boolean(data.guestId)}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Amount</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
