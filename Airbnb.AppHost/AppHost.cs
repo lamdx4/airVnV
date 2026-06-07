@@ -30,22 +30,38 @@ var kafka = builder.AddKafka("kafka")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_kafka_data")
     .WithKafkaUI()
-    .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
+    .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap)
+    .WithEndpoint("tcp", e => {
+        e.Port = 29092;
+        e.TargetPort = 9092;
+    });
 
 // RabbitMQ – Domain Events + MassTransit Saga (PropertyService, BookingService, v.v.)
 var rabbit = builder.AddRabbitMQ("rabbit")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_rabbit_data")
+    .WithEndpoint("tcp", e => {
+        e.Port = 5672;
+        e.TargetPort = 5672;
+    })
     .WithManagementPlugin(); // UI: http://localhost:15672
 
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_es_data")
-    .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
+    .WithEnvironment("ES_JAVA_OPTS", elasticHeap)
+    .WithEndpoint("tcp", e => {
+        e.Port = 9200;
+        e.TargetPort = 9200;
+    });
 
 var redis = builder.AddRedis("redis")
     .WithLifetime(ContainerLifetime.Persistent)
-    .WithDataVolume("airbnb_redis_data");
+    .WithDataVolume("airbnb_redis_data")
+    .WithEndpoint("tcp", e => {
+        e.Port = 6379;
+        e.TargetPort = 6379;
+    });
 
 // 2. Debezium (CDC)
 // Note: On Docker Desktop for Windows, containers run in a VM. The confluent-local Kafka image
