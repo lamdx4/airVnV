@@ -27,7 +27,7 @@ export interface BookingDto {
   id: string;
   propertyId: string;
   hostId: string;
-  guestId?: string; // included in some endpoints
+  guestId: string;
   checkIn: string; // YYYY-MM-DD
   checkOut: string; // YYYY-MM-DD
   guestCount: number;

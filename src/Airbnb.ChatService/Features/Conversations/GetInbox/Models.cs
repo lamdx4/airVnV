@@ -8,9 +8,16 @@ public record Response(List<InboxItem> Items, DateTimeOffset? NextCursor);
 
 public record InboxItem(
     Guid ConversationId,
+    Guid PropertyId,
     string PropertyTitle,
     string OtherParticipantName,
     string? OtherParticipantAvatar,
+    Guid? OtherParticipantId,
     int UnreadCount,
-    DateTimeOffset LastMessageAt
+    DateTimeOffset LastMessageAt,
+    Guid? OtherLastReadMessageId,
+    string? LatestMessageContent,
+    Guid? LatestMessageId,
+    string? LatestMessageType,
+    string? LatestSystemMessageContent
 );

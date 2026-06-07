@@ -7,16 +7,16 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Loading03Icon } from '@/components/common/Icons';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
 
 export const ConversationList: React.FC = () => {
   const { activeConversationId, setActiveConversationId, closeSidebar } = useChat();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInbox();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const bottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop === e.currentTarget.clientHeight;
@@ -25,7 +25,29 @@ export const ConversationList: React.FC = () => {
     }
   };
 
-  const conversations = data?.pages.flatMap(page => page.items) || [];
+  const rawConversations = data?.pages.flatMap(page => page.items) || [];
+
+  const conversations = React.useMemo(() => {
+    let result = rawConversations;
+
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(conv => 
+        (conv.otherParticipantName && conv.otherParticipantName.toLowerCase().includes(lowerQuery)) ||
+        (conv.propertyTitle && conv.propertyTitle.toLowerCase().includes(lowerQuery))
+      );
+    }
+
+    // Sort: Unread first, then by latest message date
+    return [...result].sort((a, b) => {
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+      
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [rawConversations, searchQuery]);
 
   if (isLoading) {
     return (
@@ -56,7 +78,7 @@ export const ConversationList: React.FC = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => navigate('/')}
-            className="h-8 w-8 rounded-full hover:bg-[#ebebeb] -ml-2"
+            className="h-8 w-8 rounded-full hover:bg-[#ebebeb] -ml-2 cursor-pointer"
           >
             <ChevronLeft className="h-5 w-5 text-[#222222]" />
           </Button>
@@ -66,6 +88,8 @@ export const ConversationList: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#b0b0b0] group-focus-within:text-[#222222] transition-colors" />
           <Input 
             placeholder="Search messages" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-11 h-[48px] bg-[#f7f7f7] border-transparent focus:bg-white focus:border-[#222222] transition-all rounded-full text-[14px]"
           />
         </div>
@@ -86,44 +110,37 @@ export const ConversationList: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-1 pb-4">
+          <div className="divide-y divide-[#ebebeb] pb-4">
             {conversations.map((conv: Conversation) => (
-              <Button 
+              <button 
                 key={conv.id}
-                variant="ghost"
-                aria-label={`Chat with ${conv.otherParticipantName} about ${conv.propertyTitle}`}
                 onClick={() => {
                   setActiveConversationId(conv.id);
+                  setSearchQuery('');
                   if (window.innerWidth < 768) closeSidebar();
                 }}
                 className={`
-                  w-[calc(100%-1.5rem)] h-auto group mx-3 my-1 rounded-2xl px-4 py-4
-                  transition-all duration-200 text-left flex items-start gap-4 justify-start whitespace-normal hover:bg-white hover:shadow-xs border border-transparent
+                  relative group w-full px-6 py-4 text-left flex items-start gap-4 transition-all duration-150 cursor-pointer
                   ${activeConversationId === conv.id 
-                    ? 'bg-white shadow-sm border border-[#efefef] hover:border-[#efefef]' 
-                    : ''
+                    ? 'bg-[#f0f4ff]' 
+                    : 'bg-transparent hover:bg-[#f5f5f5]'
                   }
                 `}
               >
                 <div className="relative shrink-0">
-                  <Avatar className="h-14 w-14 ring-1 ring-black/5">
+                  <Avatar className="h-16 w-16 ring-1 ring-black/5">
                     <AvatarImage src={conv.otherParticipantAvatar || ''} alt={conv.otherParticipantName} />
-                    <AvatarFallback className="bg-[#f2f2f2] text-[#222222] font-semibold text-lg">
+                    <AvatarFallback className="bg-[#f2f2f2] text-[#222222] font-semibold text-xl">
                         {conv.otherParticipantName.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  {conv.unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
-                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FF5A5F] border-2 border-white"></span>
-                    </span>
-                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-1">
                     <h3 className={`text-[15px] truncate transition-colors ${
                         conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'font-semibold text-[#222222]'
-                     }`}>
+                    }`}>
                       {conv.otherParticipantName}
                     </h3>
                     <span className="text-[12px] text-[#b0b0b0] font-normal">
@@ -132,16 +149,24 @@ export const ConversationList: React.FC = () => {
                   </div>
                   
                   <p className={`text-[14px] truncate leading-snug mb-1 ${
-                      conv.unreadCount > 0 ? 'font-semibold text-[#222222]' : 'text-[#6a6a6a] font-normal'
+                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#6a6a6a] font-medium'
                   }`}>
-                    {conv.propertyTitle}
+                    {conv.propertyTitle?.length > 30 ? `${conv.propertyTitle.slice(0, 30)}...` : conv.propertyTitle}
                   </p>
                   
-                  <p className="text-[12px] text-[#b0b0b0] truncate font-normal">
-                    Tap to view message history
+                  <p className={`text-[13px] truncate flex items-center gap-1.5 ${
+                      conv.unreadCount > 0 ? 'font-bold text-[#222222]' : 'text-[#8a8a8a] font-medium'
+                  }`}>
+                    {conv.latestMessageType === 'Image' ? (
+                      <><Icon icon="fluent:image-24-regular" className="size-4 shrink-0" /> <span className="truncate">Sent an image</span></>
+                    ) : conv.latestMessageType === 'File' ? (
+                      <><Icon icon="fluent:document-24-regular" className="size-4 shrink-0" /> <span className="truncate">Sent a file</span></>
+                    ) : (
+                      <span className="truncate">{conv.latestMessageContent || 'Tap to view message history'}</span>
+                    )}
                   </p>
                 </div>
-              </Button>
+              </button>
             ))}
           </div>
         )}

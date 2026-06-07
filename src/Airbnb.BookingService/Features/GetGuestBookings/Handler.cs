@@ -16,6 +16,7 @@ public sealed class Handler(BookingDbContext db) : IQueryHandler<Request, List<B
                 b.Id,
                 b.PropertyId,
                 b.HostId,
+                b.GuestId,
                 b.CheckIn,
                 b.CheckOut,
                 b.GuestCount,

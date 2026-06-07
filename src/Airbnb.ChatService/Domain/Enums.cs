@@ -10,5 +10,7 @@ public enum ParticipantRole
 public enum MessageType
 {
     Text,
-    System
+    System,
+    Image,
+    File
 }

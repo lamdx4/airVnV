@@ -18,64 +18,69 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, Response>
             query = query.Where(c => c.LastMessageAt < req.Before.Value);
         }
 
-        // Lấy danh sách conversation
+        // Lấy danh sách conversation kèm theo đếm số tin nhắn chưa đọc trong cùng 1 câu query
+        // Sử dụng Select trung gian để cache CurrentParticipant, giúp EF Core không phải lặp lại subquery
         var rawConversations = await query
             .OrderByDescending(c => c.LastMessageAt)
             .Take(req.Limit + 1)
             .Select(c => new
             {
-                c.Id,
-                c.PropertyTitle,
-                c.LastMessageAt,
-                // Lấy thông tin Participant khác
-                OtherParticipant = c.Participants.FirstOrDefault(p => p.UserId != req.UserId),
-                // Lấy ID tin nhắn cuối cùng mình đã đọc
-                MyLastReadId = c.Participants.Where(p => p.UserId == req.UserId).Select(p => p.LastReadMessageId).FirstOrDefault()
+                Conversation = c,
+                CurrentParticipant = c.Participants.FirstOrDefault(p => p.UserId == req.UserId),
+                OtherParticipant = c.Participants
+                    .Where(p => p.UserId != req.UserId)
+                    .Select(p => new 
+                    { 
+                        p.UserId, 
+                        DisplayName = p.User.DisplayName, 
+                        AvatarUrl = p.User.AvatarUrl, 
+                        p.LastReadMessageId 
+                    })
+                    .FirstOrDefault(),
+                LatestMessage = c.Messages.OrderByDescending(m => m.Id)
+                                          .Select(m => new { m.Id, m.Content, m.MessageType })
+                                          .FirstOrDefault(),
+                LatestSystemMessage = c.Messages.Where(m => m.MessageType == MessageType.System)
+                                                .OrderByDescending(m => m.Id)
+                                                .Select(m => m.Content)
+                                                .FirstOrDefault()
+            })
+            .Select(x => new
+            {
+                x.Conversation.Id,
+                x.Conversation.PropertyId,
+                x.Conversation.PropertyTitle,
+                x.Conversation.LastMessageAt,
+                x.OtherParticipant,
+                UnreadCount = x.Conversation.Messages.Count(m => 
+                    x.CurrentParticipant == null ||
+                    x.CurrentParticipant.LastReadMessageId == null ||
+                    m.Id.CompareTo(x.CurrentParticipant.LastReadMessageId.Value) > 0
+                ),
+                LatestMessageContent = x.LatestMessage != null ? x.LatestMessage.Content : null,
+                LatestMessageId = x.LatestMessage != null ? (Guid?)x.LatestMessage.Id : null,
+                LatestMessageType = x.LatestMessage != null ? x.LatestMessage.MessageType.ToString() : null,
+                LatestSystemMessageContent = x.LatestSystemMessage
             })
             .ToListAsync(ct);
 
         var hasMore = rawConversations.Count > req.Limit;
         var results = rawConversations.Take(req.Limit).ToList();
 
-        // Tính UnreadCount (realtime count, không dùng cột counter để tránh drift)
-        // Vì EF Core chưa support lateral join tốt cho count dynamic, ta query riêng cho N records (vì N chỉ là 20)
-        // Hoặc optimize bằng 1 query group by nếu cần. Dưới đây là cách group by 1 lần.
-        
-        var convIds = results.Select(r => r.Id).ToList();
-        var myLastReads = results.ToDictionary(r => r.Id, r => r.MyLastReadId);
-
-        // Đếm số message > last read cho từng conversation
-        // Vì UUIDv7 sortable, ta có thể so sánh > string (nếu lưu dạng string) hoặc > Guid. 
-        // Trong Postgres, so sánh 2 cột UUID > < là hợp lệ nếu driver hỗ trợ. 
-        // Tuy nhiên Npgsql có hỗ trợ UUIDv7 từ v8+, so sánh < > có thể cần cast hoặc dùng CreatedAt.
-        // Cách an toàn nhất là so sánh CreatedAt (Message.Id sinh ra theo thời gian).
-        // Vì ta không có CreatedAt của LastReadMessageId ở đây, ta có thể dùng trực tiếp e.Id.CompareTo(...)
-        // Cách thực dụng: load CreatedAt của message cuối cùng, hoặc Npgsql cho phép `e.Id.CompareTo(lastReadId) > 0`
-        
-        // Đoạn này dùng LINQ client eval một phần hoặc chạy từng câu query nếu EF báo lỗi.
-        // Để chuẩn xác và tránh N+1, ta query danh sách messages chưa đọc dựa theo điều kiện đơn giản:
-        var unreadCounts = new Dictionary<Guid, int>();
-        foreach(var conv in results)
-        {
-            if (conv.MyLastReadId == null)
-            {
-                unreadCounts[conv.Id] = await db.Messages.CountAsync(m => m.ConversationId == conv.Id, ct);
-            }
-            else
-            {
-                var lastReadId = conv.MyLastReadId.Value;
-                // Npgsql support so sánh > cho UUIDv7
-                unreadCounts[conv.Id] = await db.Messages.CountAsync(m => m.ConversationId == conv.Id && m.Id.CompareTo(lastReadId) > 0, ct);
-            }
-        }
-
         var items = results.Select(r => new InboxItem(
             r.Id,
+            r.PropertyId,
             r.PropertyTitle,
             r.OtherParticipant?.DisplayName ?? "Unknown",
             r.OtherParticipant?.AvatarUrl,
-            unreadCounts.GetValueOrDefault(r.Id, 0),
-            r.LastMessageAt
+            r.OtherParticipant?.UserId,
+            r.UnreadCount,
+            r.LastMessageAt,
+            r.OtherParticipant?.LastReadMessageId,
+            r.LatestMessageContent,
+            r.LatestMessageId,
+            r.LatestMessageType,
+            r.LatestSystemMessageContent
         )).ToList();
 
         DateTimeOffset? nextCursor = hasMore ? items.Last().LastMessageAt : null;

@@ -1,17 +1,36 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
 import type { ChatMessage } from '../types/model';
+import { useAuthStore } from '../../../store/authStore';
+import { getUploadSignature, uploadToCloudinary } from '../../media/api/media';
 
 export const useSendMessage = (conversationId: string | null) => {
   const queryClient = useQueryClient();
-  const currentUserId = localStorage.getItem('airbnb_user_id') || '';
+  const currentUserId = useAuthStore(state => state.userId) || '';
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, messageType = 'Text', file }: { content: string, messageType?: string, file?: File }) => {
       if (!conversationId) throw new Error('No conversation selected');
-      return await chatApi.sendMessage(conversationId, content);
+      
+      let finalContent = content;
+      if (file && (messageType === 'Image' || messageType === 'File')) {
+        const sig = await getUploadSignature(messageType === 'Image' ? 'chat_images' : 'chat_files');
+        const res = await uploadToCloudinary(file, sig);
+        
+        if (messageType === 'File') {
+          finalContent = JSON.stringify({
+            url: res.secure_url,
+            name: file.name,
+            size: file.size
+          });
+        } else {
+          finalContent = res.secure_url;
+        }
+      }
+      
+      return await chatApi.sendMessage(conversationId, finalContent, messageType);
     },
-    onMutate: async (newContent) => {
+    onMutate: async ({ content, messageType = 'Text' }) => {
       if (!conversationId) return;
 
       // Cancel any outgoing refetches
@@ -27,10 +46,10 @@ export const useSendMessage = (conversationId: string | null) => {
         const optimisticMsg: ChatMessage = {
           id: `temp-${Date.now()}`,
           conversationId,
-          content: newContent,
+          content,
           senderId: currentUserId,
           sentAt: new Date(),
-          isSystemMessage: false,
+          messageType,
         };
 
         const newPages = [...old.pages];

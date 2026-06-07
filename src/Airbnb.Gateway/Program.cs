@@ -20,6 +20,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretKeyThatIsAtLeast32CharsLong!!"))
         };
+
+        // Hướng dẫn Middleware lấy token từ Query String (Cho WebSockets / SignalR)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // Nếu có token trong URL, giao cho Middleware để Validate (Xác thực)
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -53,7 +69,7 @@ builder.Services.AddReverseProxy()
                 userId = user.FindFirst("UserId")?.Value;
             }
 
-            // 2. Giải mã thủ công để hỗ trợ các Anonymous Routes có gửi kèm token
+            // 2. Giải mã thủ công để hỗ trợ các Anonymous Routes có gửi kèm token qua Header
             if (string.IsNullOrEmpty(userId) && httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
                 var authStr = authHeader.ToString();
@@ -76,11 +92,31 @@ builder.Services.AddReverseProxy()
                 }
             }
 
+
             if (!string.IsNullOrEmpty(userId))
             {
                 // Chuyển UserId vào Header để các Microservice phía dưới sử dụng
                 transformContext.ProxyRequest.Headers.Remove("X-User-Id");
                 transformContext.ProxyRequest.Headers.Add("X-User-Id", userId);
+            }
+
+            // 3. Xóa access_token khỏi Query String để bảo mật Log
+            if (transformContext.ProxyRequest.RequestUri != null)
+            {
+                var queryStr = transformContext.ProxyRequest.RequestUri.Query;
+                if (!string.IsNullOrEmpty(queryStr) && queryStr.Contains("access_token="))
+                {
+                    // Xóa tham số access_token khỏi chuỗi query để chống lộ JWT trong log
+                    var newQuery = System.Text.RegularExpressions.Regex.Replace(queryStr, @"([?&])access_token=[^&]*", "$1");
+                    // Chuẩn hóa lại dấu ? và &
+                    newQuery = newQuery.Replace("?&", "?").TrimEnd('?', '&');
+                    
+                    var uriBuilder = new UriBuilder(transformContext.ProxyRequest.RequestUri)
+                    {
+                        Query = newQuery
+                    };
+                    transformContext.ProxyRequest.RequestUri = uriBuilder.Uri;
+                }
             }
 
             return ValueTask.CompletedTask;

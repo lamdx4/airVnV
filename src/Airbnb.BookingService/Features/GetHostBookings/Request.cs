@@ -5,6 +5,7 @@ namespace Airbnb.BookingService.Features.GetHostBookings;
 public record BookingDto(
     Guid Id, 
     Guid PropertyId, 
+    Guid HostId,
     Guid GuestId,
     DateOnly CheckIn, 
     DateOnly CheckOut, 

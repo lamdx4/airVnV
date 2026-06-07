@@ -1,4 +1,5 @@
 #pragma warning disable ASPIREMCP001, ASPIREPOSTGRES001 // Experimental MCP server & Postgres MCP APIs
+using Airbnb.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -29,22 +30,38 @@ var kafka = builder.AddKafka("kafka")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_kafka_data")
     .WithKafkaUI()
-    .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap);
+    .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap)
+    .WithEndpoint("tcp", e => {
+        e.Port = 29092;
+        e.TargetPort = 9092;
+    });
 
 // RabbitMQ – Domain Events + MassTransit Saga (PropertyService, BookingService, v.v.)
 var rabbit = builder.AddRabbitMQ("rabbit")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_rabbit_data")
+    .WithEndpoint("tcp", e => {
+        e.Port = 5672;
+        e.TargetPort = 5672;
+    })
     .WithManagementPlugin(); // UI: http://localhost:15672
 
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("airbnb_es_data")
-    .WithEnvironment("ES_JAVA_OPTS", elasticHeap);
+    .WithEnvironment("ES_JAVA_OPTS", elasticHeap)
+    .WithEndpoint("tcp", e => {
+        e.Port = 9200;
+        e.TargetPort = 9200;
+    });
 
 var redis = builder.AddRedis("redis")
     .WithLifetime(ContainerLifetime.Persistent)
-    .WithDataVolume("airbnb_redis_data");
+    .WithDataVolume("airbnb_redis_data")
+    .WithEndpoint("tcp", e => {
+        e.Port = 6379;
+        e.TargetPort = 6379;
+    });
 
 // 2. Debezium (CDC)
 // Note: On Docker Desktop for Windows, containers run in a VM. The confluent-local Kafka image
@@ -72,14 +89,14 @@ builder.AddProject<Projects.Airbnb_Infrastructure_Configurator>("debezium-config
 
 // 4. Microservices (VSA Architecture)
 var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(propDb)
     .WithReference(rabbit)
     .WaitFor(propDb)
     .WaitFor(rabbit);
 
 var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(bookDb)
     .WithReference(rabbit)
     .WithReference(kafka)
@@ -88,7 +105,7 @@ var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice
     .WaitFor(kafka);
 
 var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
-    .WithEnvironment("DOTNET_gcServer", "0") // Workstation GC giúp tiết kiệm RAM tối đa cho local
+    .WithDefaultServiceConfig()
     .WithReference(userDb)
     .WithReference(rabbit)
     .WithReference(propSvc)   // needed for dashboard: property stats + recent activity
@@ -97,7 +114,7 @@ var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
     .WaitFor(rabbit);
 
 var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(payDb)
     .WithReference(rabbit)
     .WithReference(userSvc)   // for host basic info lookup
@@ -106,7 +123,7 @@ var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice"
     .WaitFor(rabbit);
 
 var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(elasticsearch)
     .WithReference(kafka)
     .WithReference(redis)
@@ -115,34 +132,25 @@ var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice
     .WaitFor(redis);
 
 var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(chatDb)
     .WithReference(rabbit)
     .WithReference(redis)
+    .WithReference(propSvc)
+    .WithReference(userSvc)
     .WaitFor(chatDb)
     .WaitFor(rabbit)
     .WaitFor(redis);
 
 // 5. API Gateway (YARP)
 var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(userSvc)
     .WithReference(propSvc)
     .WithReference(bookSvc)
     .WithReference(paySvc)
     .WithReference(searchSvc)
     .WithReference(chatSvc);
-
-// 6. Frontend (React Vite)
-builder.AddViteApp("frontend", "../airbnb-web")
-    .WithEndpoint("http", e => {
-        e.Port = 5173;
-        e.TargetPort = 5173;
-        e.IsProxied = false;
-    })
-    .WithReference(gateway)
-    .WithEnvironment("VITE_API_URL", gateway.GetEndpoint("http"))
-    .WithEnvironment("VITE_CHAT_HUB_URL", $"{gateway.GetEndpoint("http")}/hubs/chat");
 
 
 builder.Build().Run();
