@@ -1,4 +1,5 @@
 #pragma warning disable ASPIREMCP001, ASPIREPOSTGRES001 // Experimental MCP server & Postgres MCP APIs
+using Airbnb.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -72,14 +73,14 @@ builder.AddProject<Projects.Airbnb_Infrastructure_Configurator>("debezium-config
 
 // 4. Microservices (VSA Architecture)
 var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(propDb)
     .WithReference(rabbit)
     .WaitFor(propDb)
     .WaitFor(rabbit);
 
 var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(bookDb)
     .WithReference(rabbit)
     .WithReference(kafka)
@@ -88,7 +89,7 @@ var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice
     .WaitFor(kafka);
 
 var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
-    .WithEnvironment("DOTNET_gcServer", "0") // Workstation GC giúp tiết kiệm RAM tối đa cho local
+    .WithDefaultServiceConfig()
     .WithReference(userDb)
     .WithReference(rabbit)
     .WithReference(propSvc)   // needed for dashboard: property stats + recent activity
@@ -97,7 +98,7 @@ var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
     .WaitFor(rabbit);
 
 var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(payDb)
     .WithReference(rabbit)
     .WithReference(userSvc)   // for host basic info lookup
@@ -106,7 +107,7 @@ var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice"
     .WaitFor(rabbit);
 
 var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(elasticsearch)
     .WithReference(kafka)
     .WithReference(redis)
@@ -115,7 +116,7 @@ var searchSvc = builder.AddProject<Projects.Airbnb_SearchService>("searchservice
     .WaitFor(redis);
 
 var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(chatDb)
     .WithReference(rabbit)
     .WithReference(redis)
@@ -127,7 +128,7 @@ var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
 
 // 5. API Gateway (YARP)
 var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
-    .WithEnvironment("DOTNET_gcServer", "0")
+    .WithDefaultServiceConfig()
     .WithReference(userSvc)
     .WithReference(propSvc)
     .WithReference(bookSvc)
