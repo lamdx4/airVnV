@@ -18,3 +18,14 @@ public record PaymentFailedEvent(Guid PaymentId, Guid BookingId, string? ErrorCo
 }
 
 public record RefundPaymentCommand(Guid BookingId, string Reason);
+
+public record PaymentRefundedEvent(
+    Guid PaymentId,
+    Guid BookingId,
+    decimal RefundAmount,
+    string Currency,
+    bool IsFullRefund,
+    string Reason)
+{
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+}

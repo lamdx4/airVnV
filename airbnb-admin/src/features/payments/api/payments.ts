@@ -14,9 +14,26 @@ interface BackendPagedPayments {
   totalPages: number;
 }
 
+export interface RefundRequest {
+  amount: number;
+  reason: string;
+  ticketId?: string;
+}
+
+export interface RefundResponse {
+  refundId: string;
+  paymentId: string;
+  refundedNow: number;
+  totalRefunded: number;
+  isFullRefund: boolean;
+}
+
 export const paymentsApi = {
   getAll: (params?: PaymentListParams) =>
     api.get<BackendPagedPayments>("/admin/payments", { params }),
 
   getById: (id: string) => api.get<AdminPaymentDetail>(`/admin/payments/${id}`),
+
+  refund: (id: string, body: RefundRequest) =>
+    api.post<RefundResponse>(`/admin/payments/${id}/refund`, body),
 };

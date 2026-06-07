@@ -14,6 +14,7 @@ public class PaymentDbContext(
     public DbSet<PayoutItem> PayoutItems => Set<PayoutItem>();
     public DbSet<HostBalance> HostBalances => Set<HostBalance>();
     public DbSet<BalanceEntry> BalanceEntries => Set<BalanceEntry>();
+    public DbSet<RefundRecord> RefundRecords => Set<RefundRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +96,14 @@ public class PaymentDbContext(
                .IsUnique()
                .HasFilter("\"Status\" = 'Pending'")
                .HasDatabaseName("ix_payments_booking_pending");
+
+        var refund = modelBuilder.Entity<RefundRecord>();
+        refund.ToTable("RefundRecords").HasKey(x => x.Id);
+        refund.Property(x => x.Id).ValueGeneratedNever();
+        refund.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+        refund.Property(x => x.Reason).HasMaxLength(1000).IsRequired();
+        refund.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
+        refund.HasIndex(x => x.PaymentId).HasDatabaseName("ix_refund_records_payment");
 
         // MassTransit Inbox/Outbox configuration
         modelBuilder.AddInboxStateEntity();

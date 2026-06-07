@@ -10,8 +10,9 @@ import {
   YAxis,
   Bar,
   BarChart,
+  Legend,
 } from "recharts";
-import { Users, Building2, Clock, AlertTriangle } from "lucide-react";
+import { Users, Building2, Clock, AlertTriangle, Wallet, TrendingUp } from "lucide-react";
 
 import { StatCard } from "@/components/common/stat-card";
 import { ErrorDisplay } from "@/components/common/error-display";
@@ -20,10 +21,12 @@ import {
   useNewListings,
   usePendingBacklog,
   useReportSummary,
+  useRevenueOverview,
+  useRevenueSeries,
   useStatusFunnel,
   useUserGrowth,
 } from "../hooks";
-import type { GroupBy } from "../types";
+import type { CurrencyAmount, GroupBy } from "../types";
 import { ChartCard } from "./chart-card";
 import { SummaryViewSkeleton } from "./skeletons";
 
@@ -39,6 +42,8 @@ export function OverviewView({ from, to, groupBy }: OverviewViewProps) {
   const newListings = useNewListings(from, to, groupBy);
   const funnel = useStatusFunnel();
   const backlog = usePendingBacklog();
+  const revenue = useRevenueOverview(from, to);
+  const revenueSeries = useRevenueSeries(from, to, groupBy, "VND");
 
   if (summary.isLoading) return <SummaryViewSkeleton />;
   if (summary.isError || !summary.data) {
@@ -81,6 +86,62 @@ export function OverviewView({ from, to, groupBy }: OverviewViewProps) {
           }
         />
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="GMV (Total Volume)"
+          value={formatCurrencyList(revenue.data?.gmv)}
+          icon={Wallet}
+          description={
+            revenue.data ? `${revenue.data.successCount.toLocaleString()} successful txns` : undefined
+          }
+        />
+        <StatCard
+          title="Net Revenue"
+          value={formatCurrencyList(revenue.data?.netRevenue)}
+          icon={TrendingUp}
+          description="Platform fee from completed payouts"
+        />
+        <StatCard
+          title="Refunded Txns"
+          value={(revenue.data?.refundedCount ?? 0).toLocaleString()}
+          icon={Wallet}
+          description="Fully or partially refunded"
+        />
+        <StatCard
+          title="Avg Txn Value"
+          value={formatAverage(revenue.data?.gmv, revenue.data?.successCount)}
+          icon={Wallet}
+        />
+      </div>
+
+      <ChartCard title="Revenue Overview (VND)" subtitle="GMV vs Net Revenue over time">
+        {revenueSeries.isLoading ? (
+          <div className="h-[300px] animate-pulse rounded-[8px] bg-[#f7f7f7]" />
+        ) : !revenueSeries.data || revenueSeries.data.length === 0 ? (
+          <EmptyChart />
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={revenueSeries.data} margin={{ left: 10, right: 8, top: 8, bottom: 0 }}>
+              <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6a6a6a" }} tickLine={false} axisLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#6a6a6a" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => compactVnd(v)}
+              />
+              <Tooltip
+                {...tooltipProps}
+                formatter={(value: number, name: string) => [formatVnd(value), name]}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line type="monotone" dataKey="gmv" name="GMV" stroke="#ff385c" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="netRevenue" name="Net Revenue" stroke="#3a8b56" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </ChartCard>
 
       {backlog.data && backlog.data.overdueCount > 0 && (
         <div className="flex items-start gap-3 rounded-[14px] border border-[#fde2e1] bg-[#fff6f6] p-4">
@@ -150,3 +211,41 @@ const tooltipProps = {
   },
   labelStyle: { color: "#222222", fontWeight: 600 },
 };
+
+function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: currency === "VND" ? 0 : 2,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
+
+function formatCurrencyList(list: CurrencyAmount[] | undefined) {
+  if (!list || list.length === 0) return "—";
+  return list.map((c) => formatMoney(c.amount, c.currency)).join(" · ");
+}
+
+function formatAverage(gmv: CurrencyAmount[] | undefined, count: number | undefined) {
+  if (!gmv || gmv.length === 0 || !count) return "—";
+  const vnd = gmv.find((c) => c.currency === "VND") ?? gmv[0];
+  return formatMoney(vnd.amount / count, vnd.currency);
+}
+
+function formatVnd(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function compactVnd(value: number) {
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+  return value.toString();
+}

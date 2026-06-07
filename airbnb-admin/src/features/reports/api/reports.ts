@@ -7,6 +7,8 @@ import type {
   PriceDistribution,
   PropertyStatusFunnel,
   ReportSummary,
+  RevenueOverview,
+  RevenuePoint,
   TypeCount,
   UserActivityReport,
   UserGrowthPoint,
@@ -40,4 +42,14 @@ export const reportsApi = {
 
   getPriceDistribution: () =>
     api.get<PriceDistribution>("/properties/admin/reports/price-distribution"),
+
+  getRevenueOverview: (from: string, to: string) =>
+    api.get<RevenueOverview>("/admin/payments/reports/revenue-overview", {
+      params: { from, to },
+    }),
+
+  getRevenueSeries: (from: string, to: string, groupBy: GroupBy = "day", currency?: string) =>
+    api.get<RevenuePoint[]>("/admin/payments/reports/revenue-series", {
+      params: { from, to, groupBy, currency },
+    }),
 };

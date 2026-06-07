@@ -7,7 +7,7 @@ namespace Airbnb.BookingService.Features.GetBookingBasicInfos;
 
 public record Request(List<Guid> Ids);
 
-public record BookingBasicInfoItem(Guid BookingId, decimal TotalPrice, string CurrencyCode, string CountryCode, Guid GuestId);
+public record BookingBasicInfoItem(Guid BookingId, decimal TotalPrice, string CurrencyCode, string CountryCode, Guid GuestId, Guid HostId);
 
 public record Response(List<BookingBasicInfoItem> Items);
 
@@ -32,7 +32,7 @@ public class Endpoint(BookingDbContext db) : Endpoint<Request, ApiResponse<Respo
         var items = await db.Bookings
             .AsNoTracking()
             .Where(b => ids.Contains(b.Id))
-            .Select(b => new BookingBasicInfoItem(b.Id, b.TotalPrice, b.CurrencyCode, b.CountryCode, b.GuestId))
+            .Select(b => new BookingBasicInfoItem(b.Id, b.TotalPrice, b.CurrencyCode, b.CountryCode, b.GuestId, b.HostId))
             .ToListAsync(ct);
 
         await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(new Response(items)), cancellation: ct);

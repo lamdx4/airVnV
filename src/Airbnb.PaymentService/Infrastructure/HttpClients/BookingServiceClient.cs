@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 
 namespace Airbnb.PaymentService.Infrastructure.HttpClients;
 
-public record BookingBasicInfoResponse(Guid BookingId, decimal TotalPrice, string CurrencyCode, string CountryCode, Guid GuestId);
+public record BookingBasicInfoResponse(Guid BookingId, decimal TotalPrice, string CurrencyCode, string CountryCode, Guid GuestId, Guid HostId);
 
 public class BookingServiceClient(HttpClient httpClient, ILogger<BookingServiceClient> logger)
 {
