@@ -17,10 +17,11 @@ public sealed class Handler(BookingDbContext db)
             throw new Airbnb.ServiceDefaults.Infrastructure.NotFoundException("Booking not found");
 
         return new Response(
-            booking.Id, 
-            booking.TotalPrice, 
-            booking.CurrencyCode, 
-            booking.CountryCode, 
-            booking.GuestId);
+            booking.Id,
+            booking.TotalPrice,
+            booking.CurrencyCode,
+            booking.CountryCode,
+            booking.GuestId,
+            booking.HostId);
     }
 }

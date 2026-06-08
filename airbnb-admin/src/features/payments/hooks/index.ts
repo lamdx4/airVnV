@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { PaginatedResponse } from "@/types/api";
 
-import { paymentsApi } from "../api/payments";
+import { paymentsApi, type RefundRequest } from "../api/payments";
 import type { AdminPaymentItem, PaymentListParams } from "../types";
 
 const QUERY_KEYS = {
@@ -33,5 +33,17 @@ export function usePayment(id: string) {
     queryKey: QUERY_KEYS.DETAIL(id),
     queryFn: async () => (await paymentsApi.getById(id)).data,
     enabled: Boolean(id),
+  });
+}
+
+export function useRefundPayment(paymentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: RefundRequest) =>
+      (await paymentsApi.refund(paymentId, body)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DETAIL(paymentId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL });
+    },
   });
 }

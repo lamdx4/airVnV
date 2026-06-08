@@ -128,4 +128,32 @@ public class BalanceEntry
             Note = "Payout approved — funds disbursed to host's bank account.",
             CreatedAt = DateTimeOffset.UtcNow,
         };
+
+    /// <summary>
+    /// Refund deducted from the bucket where the money currently sits.
+    /// Use fromPending=true if the booking hasn't checked out yet; otherwise it
+    /// comes out of Available. Caller is responsible for choosing the right bucket.
+    /// </summary>
+    public static BalanceEntry Refund(
+        Guid hostId,
+        decimal hostPortion,
+        string currency,
+        Guid paymentId,
+        Guid bookingId,
+        bool fromPending)
+        => new()
+        {
+            Id = Guid.CreateVersion7(),
+            HostId = hostId,
+            Currency = currency.ToUpperInvariant(),
+            Type = BalanceEntryType.Refund,
+            PendingDelta = fromPending ? -hostPortion : 0,
+            AvailableDelta = fromPending ? 0 : -hostPortion,
+            PaymentId = paymentId,
+            BookingId = bookingId,
+            Note = fromPending
+                ? "Refund issued — deducted from Pending."
+                : "Refund issued — deducted from Available.",
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
 }

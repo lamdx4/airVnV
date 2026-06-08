@@ -30,9 +30,24 @@ public record PaymentSucceededDomainEvent(
 }
 
 public record PaymentFailedDomainEvent(
-    Guid PaymentId, 
-    Guid BookingId, 
-    string? ErrorCode, 
+    Guid PaymentId,
+    Guid BookingId,
+    string? ErrorCode,
+    long AggregateVersion
+) : IDomainEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    Guid IDomainEvent.AggregateId => PaymentId;
+}
+
+public record PaymentRefundedDomainEvent(
+    Guid PaymentId,
+    Guid BookingId,
+    decimal RefundAmount,
+    string Currency,
+    bool IsFullRefund,
+    string Reason,
     long AggregateVersion
 ) : IDomainEvent
 {

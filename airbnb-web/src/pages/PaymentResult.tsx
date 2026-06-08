@@ -5,6 +5,8 @@ import { CheckCircle2Icon, XCircleIcon } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5136';
+
 const PaymentResult: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -14,22 +16,30 @@ const PaymentResult: React.FC = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // VNPay return parameters usually include vnp_ResponseCode
     const responseCode = searchParams.get('vnp_ResponseCode');
     const orderInfo = searchParams.get('vnp_OrderInfo');
 
-    if (responseCode === '00') {
-      setStatus('success');
-      setMessage(orderInfo || t('payment.successMsg'));
-      // Invalidate guest bookings so the status updates from Pending -> Confirmed
-      queryClient.invalidateQueries({ queryKey: ['guest_bookings'] });
-    } else if (responseCode) {
-      setStatus('failed');
-      setMessage(orderInfo || t('payment.failedMsg'));
-    } else {
-      // Not a valid callback
+    if (!responseCode) {
       navigate('/');
+      return;
     }
+
+    // Dev workaround: VNPay IPN cannot reach localhost, so the browser proxies
+    // the return params back to the BE so it can validate signature and mark
+    // Payment as Success (which publishes the PaymentSucceededEvent).
+    const ipnUrl = `${API_URL}/api/payments/vnpay/ipn?${searchParams.toString()}`;
+    fetch(ipnUrl)
+      .catch(err => console.warn('IPN proxy call failed:', err))
+      .finally(() => {
+        if (responseCode === '00') {
+          setStatus('success');
+          setMessage(orderInfo || t('payment.successMsg'));
+          queryClient.invalidateQueries({ queryKey: ['guest_bookings'] });
+        } else {
+          setStatus('failed');
+          setMessage(orderInfo || t('payment.failedMsg'));
+        }
+      });
   }, [searchParams, navigate, queryClient, t]);
 
   if (status === 'loading') {

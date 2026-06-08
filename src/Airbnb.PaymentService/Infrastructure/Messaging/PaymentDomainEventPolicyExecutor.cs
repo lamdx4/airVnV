@@ -21,6 +21,7 @@ public class PaymentDomainEventPolicyExecutor(IMediator mediator) : IDomainEvent
         PaymentInitiatedDomainEvent e => new PaymentInitiatedNotification(e),
         PaymentSucceededDomainEvent e => new PaymentSucceededNotification(e),
         PaymentFailedDomainEvent e => new PaymentFailedNotification(e),
+        PaymentRefundedDomainEvent e => new PaymentRefundedNotification(e),
         _ => throw new ArgumentException($"Unhandled domain event type: {@event.GetType().Name}")
     };
 }

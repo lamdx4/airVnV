@@ -17,9 +17,17 @@ public class PaymentIntegrationEventMapper : IIntegrationEventMapper
             e.TransactionId),
 
         PaymentFailedDomainEvent e => new PaymentFailedEvent(
-            e.PaymentId, 
-            e.BookingId, 
+            e.PaymentId,
+            e.BookingId,
             e.ErrorCode),
+
+        PaymentRefundedDomainEvent e => new PaymentRefundedEvent(
+            e.PaymentId,
+            e.BookingId,
+            e.RefundAmount,
+            e.Currency,
+            e.IsFullRefund,
+            e.Reason),
 
         _ => throw new ArgumentException($"Unhandled domain event type: {domainEvent.GetType().Name}")
     };

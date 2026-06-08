@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Undo2 } from "lucide-react";
 
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/breadcrumbs";
 import { PageLoader } from "@/components/common/loading";
@@ -11,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { usePayment } from "../hooks";
+import { PaymentStatus } from "../types";
 import { getPaymentStatusConfig } from "../utils/status";
+import { RefundDialog } from "./refund-dialog";
 
 interface PaymentDetailProps {
   paymentId: string;
@@ -37,6 +40,7 @@ function formatDateTime(iso: string) {
 
 export function PaymentDetail({ paymentId }: PaymentDetailProps) {
   const router = useRouter();
+  const [refundOpen, setRefundOpen] = useState(false);
   const { data, isLoading, isError, refetch } = usePayment(paymentId);
 
   if (isLoading) return <PageLoader text="Loading payment..." />;
@@ -45,6 +49,8 @@ export function PaymentDetail({ paymentId }: PaymentDetailProps) {
   }
 
   const statusConfig = getPaymentStatusConfig(data.status);
+  const canRefund =
+    data.status === PaymentStatus.SUCCESS || data.status === PaymentStatus.PARTIALLY_REFUNDED;
   const breadcrumbs: BreadcrumbItem[] = [
     { label: "Payments", href: "/payments" },
     { label: data.id.slice(0, 8) },
@@ -61,6 +67,17 @@ export function PaymentDetail({ paymentId }: PaymentDetailProps) {
           </Button>
           <h1 className="text-[28px] font-bold text-[#222222]">Payment Detail</h1>
           <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+          {canRefund && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => setRefundOpen(true)}
+            >
+              <Undo2 className="mr-1 h-4 w-4" />
+              Refund
+            </Button>
+          )}
         </div>
         <p className="text-sm text-[#6a6a6a]">
           Created {formatDateTime(data.createdAt)}
@@ -110,6 +127,14 @@ export function PaymentDetail({ paymentId }: PaymentDetailProps) {
           </CardContent>
         </Card>
       </div>
+
+      <RefundDialog
+        open={refundOpen}
+        onOpenChange={setRefundOpen}
+        paymentId={data.id}
+        remainingAmount={data.amount}
+        currency={data.currency}
+      />
 
       {data.paymentUrl && (
         <Card>

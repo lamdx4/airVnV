@@ -52,6 +52,9 @@ builder.Services.AddScoped<IDomainEventPolicyExecutor, PaymentDomainEventPolicyE
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.PaymentService.Infrastructure.Messaging.InitiatePaymentCommandConsumer>();
+    x.AddConsumer<Airbnb.PaymentService.Features.Consumers.PaymentSucceededLedgerConsumer>();
+    x.AddConsumer<Airbnb.PaymentService.Features.Consumers.RefundPaymentCommandConsumer>();
+    x.AddConsumer<Airbnb.PaymentService.Features.Consumers.BookingCancelledRefundConsumer>();
 
     x.AddEntityFrameworkOutbox<PaymentDbContext>(o =>
     {
@@ -86,7 +89,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
         PaymentJsonContext.Default, new DefaultJsonTypeInfoResolver());
 });
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
+
+app.UseAuthorization();
 
 app.UseFastEndpoints(c => {
     c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(

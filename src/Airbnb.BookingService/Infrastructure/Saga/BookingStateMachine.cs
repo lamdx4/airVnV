@@ -95,6 +95,14 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                 .Send(context => new RefundPaymentCommand(context.Saga.BookingId, "Host approval timeout (24 hours exceeded)"))
                 .TransitionTo(Cancelled)
         );
+
+        // Guest hoặc Host cancel một booking đã Confirmed (đã thanh toán + đã được approve / InstantBook).
+        // Saga phải bắn lệnh refund để PaymentService trả tiền lại và trừ HostBalance.
+        During(Confirmed,
+            When(BookingCancelled)
+                .Send(context => new RefundPaymentCommand(context.Saga.BookingId, context.Message.Reason))
+                .TransitionTo(Cancelled)
+        );
     }
 
     // States

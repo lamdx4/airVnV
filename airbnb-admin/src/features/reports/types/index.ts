@@ -70,3 +70,22 @@ export interface PriceDistribution {
 }
 
 export type GroupBy = "day" | "week" | "month";
+
+export interface CurrencyAmount {
+  currency: string;
+  amount: number;
+}
+
+export interface RevenueOverview {
+  gmv: CurrencyAmount[];
+  netRevenue: CurrencyAmount[];
+  successCount: number;
+  refundedCount: number;
+}
+
+export interface RevenuePoint {
+  label: string;
+  gmv: number;
+  netRevenue: number;
+  transactionCount: number;
+}

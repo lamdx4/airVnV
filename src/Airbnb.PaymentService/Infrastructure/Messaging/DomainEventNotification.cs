@@ -6,3 +6,4 @@ namespace Airbnb.PaymentService.Infrastructure.Messaging;
 public record PaymentInitiatedNotification(PaymentInitiatedDomainEvent DomainEvent) : INotification;
 public record PaymentSucceededNotification(PaymentSucceededDomainEvent DomainEvent) : INotification;
 public record PaymentFailedNotification(PaymentFailedDomainEvent DomainEvent) : INotification;
+public record PaymentRefundedNotification(PaymentRefundedDomainEvent DomainEvent) : INotification;

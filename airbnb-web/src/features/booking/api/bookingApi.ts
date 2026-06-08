@@ -15,14 +15,14 @@ export const bookingApi = {
     api.get<any, BookingDto[]>('/api/bookings/host'),
 
   // Host approves a pending booking
-  approveBooking: (bookingId: string): Promise<boolean> => 
-    api.post<any, boolean>(`/api/bookings/${bookingId}/approve`),
+  approveBooking: (bookingId: string): Promise<boolean> =>
+    api.post<any, boolean>(`/api/bookings/${bookingId}/approve`, {}),
 
   // Host rejects a pending booking
-  rejectBooking: (bookingId: string): Promise<boolean> => 
-    api.post<any, boolean>(`/api/bookings/${bookingId}/reject`),
+  rejectBooking: (bookingId: string): Promise<boolean> =>
+    api.post<any, boolean>(`/api/bookings/${bookingId}/reject`, {}),
 
   // Host or Guest cancels a booking
-  cancelBooking: (bookingId: string): Promise<boolean> => 
-    api.post<any, boolean>(`/api/bookings/${bookingId}/cancel`)
+  cancelBooking: (bookingId: string): Promise<boolean> =>
+    api.post<any, boolean>(`/api/bookings/${bookingId}/cancel`, {})
 };

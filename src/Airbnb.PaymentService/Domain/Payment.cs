@@ -85,19 +85,21 @@ public class Payment : AggregateRoot
     public bool IsStillValid() 
         => Status == PaymentStatus.Pending && ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2);
 
-    public void MarkAsRefunded()
+    public void MarkAsRefunded(decimal refundAmount, string reason)
     {
         if (Status != PaymentStatus.Success && Status != PaymentStatus.PartiallyRefunded)
-            throw new InvalidOperationException("Only Success or PartiallyRefunded payments can be fully refunded.");
+            throw new BusinessException("Only Success or PartiallyRefunded payments can be fully refunded.", "PAYMENT_INVALID_STATUS");
         Status = PaymentStatus.Refunded;
         Version++;
+        Raise(new PaymentRefundedDomainEvent(Id, BookingId, refundAmount, Currency, true, reason, Version));
     }
 
-    public void MarkAsPartiallyRefunded()
+    public void MarkAsPartiallyRefunded(decimal refundAmount, string reason)
     {
-        if (Status != PaymentStatus.Success)
-            throw new InvalidOperationException("Only Success payments can be partially refunded.");
+        if (Status != PaymentStatus.Success && Status != PaymentStatus.PartiallyRefunded)
+            throw new BusinessException("Only Success or PartiallyRefunded payments can be partially refunded.", "PAYMENT_INVALID_STATUS");
         Status = PaymentStatus.PartiallyRefunded;
         Version++;
+        Raise(new PaymentRefundedDomainEvent(Id, BookingId, refundAmount, Currency, false, reason, Version));
     }
 }

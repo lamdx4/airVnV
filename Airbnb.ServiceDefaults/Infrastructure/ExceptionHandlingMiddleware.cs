@@ -35,8 +35,8 @@ public class ExceptionHandlingMiddleware(
             InvalidOperationException ex => (HttpStatusCode.BadRequest, "INVALID_OPERATION", ex.Message),
             ArgumentException ex => (HttpStatusCode.BadRequest, "BAD_REQUEST", ex.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Access denied."),
-            _ => (HttpStatusCode.InternalServerError, "INTERNAL_SERVER_ERROR", 
-                  env.IsDevelopment() ? $"Internal Error: {exception.Message} | Stack: {exception.StackTrace}" : "An unexpected error occurred.")
+            _ => (HttpStatusCode.InternalServerError, "INTERNAL_SERVER_ERROR",
+                  env.IsDevelopment() ? $"Internal Error: {exception.Message} | Inner: {exception.InnerException?.GetType().Name}: {exception.InnerException?.Message} | InnerInner: {exception.InnerException?.InnerException?.Message} | Stack: {exception.StackTrace}" : "An unexpected error occurred.")
         };
 
         context.Response.StatusCode = (int)statusCode;

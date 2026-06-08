@@ -20,12 +20,19 @@ public class PropertyServiceClient(HttpClient httpClient, IMemoryCache cache)
     public async Task<CountryMasterDataDto?> GetCountryMasterDataAsync(string countryCode, CancellationToken ct = default)
     {
         var cacheKey = $"masterdata_country_{countryCode.ToUpperInvariant()}";
-        
+
         if (cache.TryGetValue(cacheKey, out CountryMasterDataDto? cachedData))
             return cachedData;
 
-        var wrapper = await httpClient.GetFromJsonAsync<ApiResponseWrapper<CountryMasterDataDto>>($"/api/internal/master-data/countries/{countryCode}", ct);
-        
+        using var response = await httpClient.GetAsync($"/api/internal/master-data/countries/{countryCode}", ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            cache.Set(cacheKey, (CountryMasterDataDto?)null, MasterDataCacheDuration);
+            return null;
+        }
+        response.EnsureSuccessStatusCode();
+
+        var wrapper = await response.Content.ReadFromJsonAsync<ApiResponseWrapper<CountryMasterDataDto>>(cancellationToken: ct);
         if (wrapper?.Data != null)
         {
             cache.Set(cacheKey, wrapper.Data, MasterDataCacheDuration);

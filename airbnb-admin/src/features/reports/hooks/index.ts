@@ -14,6 +14,10 @@ const QUERY_KEYS = {
     ["admin", "reports", "new-listings", from, to, groupBy] as const,
   TYPE_DISTRIBUTION: () => ["admin", "reports", "type-distribution"] as const,
   PRICE_DISTRIBUTION: () => ["admin", "reports", "price-distribution"] as const,
+  REVENUE_OVERVIEW: (from: string, to: string) =>
+    ["admin", "reports", "revenue-overview", from, to] as const,
+  REVENUE_SERIES: (from: string, to: string, groupBy: GroupBy, currency?: string) =>
+    ["admin", "reports", "revenue-series", from, to, groupBy, currency ?? ""] as const,
 } as const;
 
 export function useReportSummary(from: string, to: string) {
@@ -69,5 +73,24 @@ export function usePriceDistribution() {
   return useQuery({
     queryKey: QUERY_KEYS.PRICE_DISTRIBUTION(),
     queryFn: async () => (await reportsApi.getPriceDistribution()).data,
+  });
+}
+
+export function useRevenueOverview(from: string, to: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.REVENUE_OVERVIEW(from, to),
+    queryFn: async () => (await reportsApi.getRevenueOverview(from, to)).data,
+  });
+}
+
+export function useRevenueSeries(
+  from: string,
+  to: string,
+  groupBy: GroupBy = "day",
+  currency?: string,
+) {
+  return useQuery({
+    queryKey: QUERY_KEYS.REVENUE_SERIES(from, to, groupBy, currency),
+    queryFn: async () => (await reportsApi.getRevenueSeries(from, to, groupBy, currency)).data,
   });
 }
