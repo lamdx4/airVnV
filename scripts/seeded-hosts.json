@@ -1,0 +1,27 @@
+[
+  {
+    "email": "host1_1780823380948@airbnb.local",
+    "password": "Password123!",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODA4MjQyODEsImlhdCI6MTc4MDgyMzM4MSwiVXNlcklkIjoiMDE5ZWExNTgtNTQ3Yy03MzA5LWI1MDItMDAzZmI0ZDhmNjlhIiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3ODA4MjMzODF9._78kUvlfvf1c4aaBlGRMnXMom4i_K0zFRzC2EO9sZ6Y"
+  },
+  {
+    "email": "host2_1780823381961@airbnb.local",
+    "password": "Password123!",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODA4MjQyODIsImlhdCI6MTc4MDgyMzM4MiwiVXNlcklkIjoiMDE5ZWExNTgtNTdjZS03YjZhLWJkOGUtYTJhZDE4NjI4YTAwIiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3ODA4MjMzODJ9.Pi8q08qVAHPR65m_UNnn9rhAjNTifF-Ob1tzj5qzLYE"
+  },
+  {
+    "email": "host3_1780823382582@airbnb.local",
+    "password": "Password123!",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODA4MjQyODIsImlhdCI6MTc4MDgyMzM4MiwiVXNlcklkIjoiMDE5ZWExNTgtNWEzOS03MmQwLTk1NjItZjNmYzYwYTYwYzU5Iiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3ODA4MjMzODJ9.2-3AWkwWVMj9BTgodPU1TO1sLZ6mmZx2xmDS2AIyXlI"
+  },
+  {
+    "email": "host4_1780823382977@airbnb.local",
+    "password": "Password123!",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODA4MjQyODMsImlhdCI6MTc4MDgyMzM4MywiVXNlcklkIjoiMDE5ZWExNTgtNWJjNC03NjE2LWFkY2UtNGNmZDc1ZWM5YzY1Iiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3ODA4MjMzODN9.CH1PWmIPYPwhc8rMr12WL0C1t7c5zQInIPlWuZJeAKg"
+  },
+  {
+    "email": "host5_1780823383211@airbnb.local",
+    "password": "Password123!",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODA4MjQyODMsImlhdCI6MTc4MDgyMzM4MywiVXNlcklkIjoiMDE5ZWExNTgtNWNhZS03YTZiLTg5NzMtYmI3OTJiNmZiZWM2Iiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3ODA4MjMzODN9.0P0GIxfwKsvyAfvBKsj1m1xyQRkfNzvKmlxm9O7yosc"
+  }
+]
