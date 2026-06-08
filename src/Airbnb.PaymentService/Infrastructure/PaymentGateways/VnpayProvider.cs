@@ -14,13 +14,15 @@ public class VnpayProvider(IConfiguration config, ILogger<VnpayProvider> logger)
         var vnp_TmnCode = config["Vnpay:TmnCode"];
         var vnp_HashSecret = config["Vnpay:HashSecret"];
         var vnp_Url = config["Vnpay:Url"];
-        var vnp_ReturnUrl = $"https://localhost:3000/bookings/{payment.BookingId}/payment-result"; 
+        var vnp_ReturnUrl = $"http://localhost:5173/payment/callback";
 
         vnpay.AddRequestData("vnp_Version", "2.1.0");
         vnpay.AddRequestData("vnp_Command", "pay");
         vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode!);
         vnpay.AddRequestData("vnp_Amount", ((long)(payment.Amount * 100)).ToString());
-        vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(OperatingSystem.IsWindows() ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh");
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+        vnpay.AddRequestData("vnp_CreateDate", vnNow.ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", payment.Currency);
         vnpay.AddRequestData("vnp_IpAddr", ipAddress);
         vnpay.AddRequestData("vnp_Locale", "vn");

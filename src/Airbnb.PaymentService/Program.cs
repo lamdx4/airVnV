@@ -88,7 +88,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
         PaymentJsonContext.Default, new DefaultJsonTypeInfoResolver());
 });
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
+
+app.UseAuthorization();
 
 app.UseFastEndpoints(c => {
     c.Serializer.Options.TypeInfoResolver = JsonTypeInfoResolver.Combine(

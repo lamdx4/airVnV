@@ -100,6 +100,7 @@ var bookSvc = builder.AddProject<Projects.Airbnb_BookingService>("bookingservice
     .WithReference(bookDb)
     .WithReference(rabbit)
     .WithReference(kafka)
+    .WithReference(propSvc)
     .WaitFor(bookDb)
     .WaitFor(rabbit)
     .WaitFor(kafka);
@@ -117,6 +118,7 @@ var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice"
     .WithDefaultServiceConfig()
     .WithReference(payDb)
     .WithReference(rabbit)
+    .WithReference(propSvc)   // for country master-data (tax, gateway)
     .WithReference(userSvc)   // for host basic info lookup
     .WithReference(bookSvc)   // for booking → guest lookup on admin payments
     .WaitFor(payDb)

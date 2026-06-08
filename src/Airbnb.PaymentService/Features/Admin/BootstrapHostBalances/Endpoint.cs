@@ -15,10 +15,11 @@ public record Response(
 
 /// <summary>
 /// Demo/dev tool: rebuilds Payouts, PayoutItems, HostBalances, BalanceEntries
-/// from existing Payment records, using REAL host Ids fetched from UserService.
-/// Wipes existing payout/ledger data first.
+/// from existing Payment records. Each payment is credited to the ACTUAL host
+/// of the booking it belongs to (resolved via BookingService). Wipes existing
+/// payout/ledger data first.
 /// </summary>
-public class Endpoint(PaymentDbContext db, UserServiceClient userClient)
+public class Endpoint(PaymentDbContext db, BookingServiceClient bookingClient)
     : EndpointWithoutRequest<ApiResponse<Response>>
 {
     public override void Configure()
@@ -31,42 +32,55 @@ public class Endpoint(PaymentDbContext db, UserServiceClient userClient)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        // 1) Fetch up to 3 real users with role 'User' to serve as fake hosts
-        var fakeHosts = await GetRealHostIdsAsync(ct);
-        if (fakeHosts.Count == 0)
-        {
-            await Send.ResponseAsync(
-                ApiResponse<Response>.SuccessResult(
-                    new Response(0, 0, 0, "No users found in UserService — cannot bootstrap."),
-                    "No users available"),
-                cancellation: ct);
-            return;
-        }
-
-        // 2) Wipe existing
-        await db.PayoutItems.ExecuteDeleteAsync(ct);
-        await db.Payouts.ExecuteDeleteAsync(ct);
-        await db.BalanceEntries.ExecuteDeleteAsync(ct);
-        await db.HostBalances.ExecuteDeleteAsync(ct);
-
         const decimal feePercent = 0.10m;
 
-        // 3) Load all Success payments
+        // 1) Load all Success payments
         var successPayments = await db.Payments.AsNoTracking()
             .Where(p => p.Status == PaymentStatus.Success)
             .OrderBy(p => p.CreatedAt)
             .Select(p => new { p.Id, p.BookingId, p.Amount, p.Currency, p.CreatedAt })
             .ToListAsync(ct);
 
-        // 4) Round-robin assign payments to fake hosts
+        if (successPayments.Count == 0)
+        {
+            await Send.ResponseAsync(
+                ApiResponse<Response>.SuccessResult(
+                    new Response(0, 0, 0, "No Success payments to bootstrap."),
+                    "No payments"),
+                cancellation: ct);
+            return;
+        }
+
+        // 2) Resolve real HostId per booking via BookingService.
+        var bookingInfos = await bookingClient.GetBasicInfosAsync(
+            successPayments.Select(p => p.BookingId), ct);
+
+        // 3) Filter to payments whose booking → host could be resolved.
         var assignments = successPayments
-            .Select((p, idx) => new {
+            .Where(p => bookingInfos.ContainsKey(p.BookingId))
+            .Select(p => new {
                 Payment = p,
-                HostId = fakeHosts[idx % fakeHosts.Count],
+                HostId = bookingInfos[p.BookingId].HostId,
                 Fee = Math.Round(p.Amount * feePercent, 2),
                 HostPortion = p.Amount - Math.Round(p.Amount * feePercent, 2),
             })
             .ToList();
+
+        if (assignments.Count == 0)
+        {
+            await Send.ResponseAsync(
+                ApiResponse<Response>.SuccessResult(
+                    new Response(0, 0, 0, $"Could not resolve any host from {successPayments.Count} payments — BookingService unavailable?"),
+                    "No hosts resolvable"),
+                cancellation: ct);
+            return;
+        }
+
+        // 4) Wipe existing only after we know we have data to rebuild with.
+        await db.PayoutItems.ExecuteDeleteAsync(ct);
+        await db.Payouts.ExecuteDeleteAsync(ct);
+        await db.BalanceEntries.ExecuteDeleteAsync(ct);
+        await db.HostBalances.ExecuteDeleteAsync(ct);
 
         // 5) Create Payouts (one per host+currency)
         var payouts = new List<Payout>();
@@ -116,16 +130,14 @@ public class Endpoint(PaymentDbContext db, UserServiceClient userClient)
         db.HostBalances.AddRange(balances);
         await db.SaveChangesAsync(ct);
 
+        var skipped = successPayments.Count - assignments.Count;
         var response = new Response(
             entries.Count,
             balances.Count,
             payouts.Count,
-            $"Rebuilt: {payouts.Count} payouts, {entries.Count} ledger entries across {balances.Count} host wallets (using {fakeHosts.Count} real hosts)."
+            $"Rebuilt: {payouts.Count} payouts, {entries.Count} ledger entries across {balances.Count} host wallets (skipped {skipped} payments with unresolved host)."
         );
 
         await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(response, response.Message), cancellation: ct);
     }
-
-    private async Task<List<Guid>> GetRealHostIdsAsync(CancellationToken ct)
-        => await userClient.GetSampleHostIdsAsync(3, ct);
 }

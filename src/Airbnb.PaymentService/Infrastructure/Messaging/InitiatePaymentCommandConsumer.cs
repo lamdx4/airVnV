@@ -16,7 +16,7 @@ public class InitiatePaymentCommandConsumer(IMediator mediator, ILogger<Initiate
         try
         {
             // Internal call to the existing InitiatePayment logic
-            await mediator.Send(new Request(msg.BookingId, msg.UserId), context.CancellationToken);
+            await mediator.Send(new Request(msg.BookingId) { UserId = msg.UserId }, context.CancellationToken);
         }
         catch (Exception ex)
         {
