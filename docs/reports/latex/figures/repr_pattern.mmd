@@ -1,0 +1,17 @@
+classDiagram
+    direction LR
+    class MyRequest {
+        +Id: Guid
+        +Data: string
+    }
+    class MyEndpoint {
+        +Configure()
+        +HandleAsync(req, ct)
+    }
+    class MyResponse {
+        +Success: bool
+        +Message: string
+    }
+
+    MyRequest "1" <-- "1" MyEndpoint : Receives
+    MyEndpoint "1" --> "1" MyResponse : Produces

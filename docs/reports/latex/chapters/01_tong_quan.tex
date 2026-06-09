@@ -1,0 +1,209 @@
+% ============================================================
+%  CHƯƠNG I: TỔNG QUAN
+% ============================================================
+\chapter{TỔNG QUAN}
+\label{chap:tong_quan}
+
+% ────────────────────────────────────────────────────────────
+\section{Giới thiệu đề tài}
+\label{sec:gioi_thieu}
+
+\subsection{Bối cảnh}
+\label{subsec:boi_canh}
+
+Trong những năm gần đây, thị trường cho thuê nhà ngắn hạn tại Việt Nam và trên toàn cầu đã chứng kiến
+sự tăng trưởng vượt bậc nhờ sự phổ biến của các nền tảng trực tuyến như Airbnb, Booking.com hay
+Agoda. Mô hình này không chỉ tạo ra nguồn thu nhập thụ động cho chủ nhà mà còn cung cấp cho
+khách du lịch những lựa chọn đa dạng, linh hoạt hơn so với khách sạn truyền thống.
+
+Tuy nhiên, đằng sau giao diện người dùng đơn giản là những bài toán kỹ thuật phức tạp mà các
+hệ thống này phải giải quyết:
+
+\begin{itemize}
+    \item \textbf{Tính toàn vẹn dữ liệu:} Một bất động sản không thể bị đặt trùng bởi hai khách
+    hàng cùng lúc — đây là bài toán xử lý đồng thời (concurrency control) trong hệ thống phân tán.
+
+    \item \textbf{Khả năng tìm kiếm theo địa lý:} Khách cần tìm phòng trong bán kính nhất định
+    so với điểm du lịch — đòi hỏi hệ thống tìm kiếm địa không gian (geo-spatial search) hiệu năng cao.
+
+    \item \textbf{Đồng bộ dữ liệu thời gian thực:} Khi chủ nhà cập nhật thông tin, kết quả tìm
+    kiếm của khách phải phản ánh ngay lập tức mà không cần truy vấn trực tiếp vào cơ sở dữ liệu
+    giao dịch.
+
+    \item \textbf{Giao tiếp theo ngữ cảnh:} Hệ thống chat không đơn thuần là nhắn tin P2P mà phải
+    được gắn chặt với ngữ cảnh nghiệp vụ (một bất động sản hoặc một đơn đặt phòng cụ thể).
+
+    \item \textbf{Xử lý thanh toán an toàn:} Luồng thanh toán phải đảm bảo tính nguyên tử
+    (atomicity) và không block hệ thống — kết quả thanh toán phải được xử lý bất đồng bộ.
+\end{itemize}
+
+Đề tài \textbf{AirVnV} ra đời từ nhu cầu nghiên cứu và xây dựng một nền tảng cho thuê nhà ngắn
+hạn hiện đại, áp dụng kiến trúc phân tán để giải quyết các thách thức nêu trên trong điều kiện
+thực tế. Đây không phải là bài toán học thuật đơn thuần mà là một bài toán kỹ thuật phần mềm
+có tính ứng dụng cao.
+
+\subsection{Mục tiêu}
+\label{subsec:muc_tieu}
+
+Mục tiêu của đồ án là xây dựng một nền tảng đặt phòng trực tuyến hoàn chỉnh — từ backend đến
+frontend — với các chức năng cốt lõi gồm: quản lý bất động sản, tìm kiếm theo địa lý, đặt phòng,
+thanh toán và chat theo ngữ cảnh.
+
+Bên cạnh việc hoàn thiện sản phẩm về mặt chức năng, nhóm tập trung vào việc giải quyết
+các bài toán kỹ thuật thực tế trong hệ thống phân tán:
+
+\begin{itemize}
+    \item Áp dụng kiến trúc Microservices — mỗi nghiệp vụ là một service độc lập, có thể
+    phát triển và triển khai riêng lẻ.
+
+    \item Đảm bảo tính nhất quán dữ liệu giữa các service mà không dùng distributed transaction,
+    thông qua Transactional Outbox Pattern và Change Data Capture (CDC).
+
+    \item Xây dựng hệ thống tìm kiếm địa lý hiệu năng cao bằng Elasticsearch — kết quả tìm kiếm
+    không truy vấn trực tiếp vào database giao dịch.
+
+    \item Xây dựng hệ thống chat real-time gắn với ngữ cảnh đặt phòng, tự động phát sinh
+    thông báo hệ thống khi có sự kiện nghiệp vụ.
+
+    \item Thiết kế luồng thanh toán bất đồng bộ — kết quả thanh toán không block luồng chính
+    mà được xử lý qua message broker.
+\end{itemize}
+
+\subsubsection*{Phạm vi}
+
+Đồ án bao gồm ba nhóm người dùng: Khách (Guest), Chủ nhà (Host) và Quản trị viên (Admin).
+Ứng dụng mobile native nằm ngoài phạm vi của đồ án này.
+
+
+% ────────────────────────────────────────────────────────────
+\section{Cơ sở lý thuyết}
+\label{sec:co_so_ly_thuyet}
+
+Để giải quyết các bài toán đặt ra, đồ án áp dụng một tập hợp các công nghệ và kiến trúc hiện đại.
+Phần này trình bày nền tảng lý thuyết của từng thành phần và lý do lựa chọn.
+
+% ── 2.1 Microservices Architecture ──────────────────────────
+\subsection{Kiến trúc Microservices}
+\label{subsec:microservices}
+
+Kiến trúc Microservices phân chia hệ thống thành các service nhỏ, độc lập, mỗi service chịu
+trách nhiệm về một miền nghiệp vụ duy nhất và có cơ sở dữ liệu riêng (Database-per-Service).
+Ngược lại với kiến trúc Monolith, Microservices cho phép:
+
+\begin{itemize}
+    \item Triển khai độc lập từng service mà không cần build lại toàn bộ hệ thống.
+    \item Scale theo chiều ngang (horizontal scaling) có chọn lọc — chỉ scale service đang chịu tải cao.
+    \item Cách ly lỗi (fault isolation): lỗi ở một service không làm sập toàn bộ hệ thống.
+\end{itemize}
+
+Trong AirVnV, hệ thống được phân rã thành 7 service: \textit{UserService, PropertyService,
+SearchService, BookingService, PaymentService, ChatService} và \textit{Gateway}.
+
+% ── 2.2 API Gateway Pattern ─────────────────────────────────
+\subsection{API Gateway Pattern}
+\label{subsec:api_gateway}
+
+API Gateway là một điểm vào duy nhất (single entry point) cho tất cả các yêu cầu từ client.
+Gateway đảm nhận các trách nhiệm:
+
+\begin{itemize}
+    \item \textbf{Routing:} Định tuyến request đến đúng service.
+    \item \textbf{Authentication:} Xác thực JWT token trước khi forward request.
+    \item \textbf{Load Balancing:} Phân phối tải đến các instance của cùng một service.
+\end{itemize}
+
+Đồ án sử dụng \textbf{YARP} (Yet Another Reverse Proxy) — một thư viện reverse proxy hiệu năng cao
+được phát triển bởi Microsoft, tích hợp tốt với .NET ecosystem và .NET Aspire.
+
+% ── 2.3 CQRS ────────────────────────────────────────────────
+\subsection{CQRS — Command Query Responsibility Segregation}
+\label{subsec:cqrs}
+
+CQRS là pattern tách biệt hoàn toàn luồng ghi dữ liệu (Command) và luồng đọc dữ liệu (Query).
+Mỗi thao tác nghiệp vụ được biểu diễn bằng một object (Command hoặc Query) và xử lý bởi một
+Handler tương ứng.
+
+\begin{itemize}
+    \item \textbf{Command:} Thay đổi trạng thái hệ thống. Ví dụ: \texttt{CreateBookingCommand},
+    \texttt{PublishPropertyCommand}.
+    \item \textbf{Query:} Chỉ đọc dữ liệu, không có side-effect. Ví dụ: \texttt{GetPropertyQuery},
+    \texttt{SearchPropertiesQuery}.
+\end{itemize}
+
+Đồ án triển khai CQRS với thư viện \textbf{Mediator} (.NET) kết hợp \textbf{FastEndpoints} theo
+mô hình Vertical Slice — mỗi use case gồm một bộ file độc lập:
+\texttt{Endpoint.cs, Request.cs, Response.cs, Handler.cs, Validator.cs}.
+
+% ── 2.4 Event-Driven Architecture ───────────────────────────
+\subsection{Kiến trúc Hướng sự kiện (Event-Driven Architecture)}
+\label{subsec:eda}
+
+Event-Driven Architecture (EDA) là mô hình các service giao tiếp với nhau thông qua việc
+phát và tiêu thụ sự kiện (events) bất đồng bộ thay vì gọi trực tiếp (synchronous HTTP).
+
+Trong AirVnV, hai message broker được sử dụng với vai trò khác nhau:
+
+\begin{itemize}
+    \item \textbf{RabbitMQ:} Dùng cho Domain Events nội bộ — các sự kiện nghiệp vụ ngắn hạn
+    giữa các service (ví dụ: \texttt{BookingConfirmedEvent} kích hoạt ChatService inject
+    system message).
+
+    \item \textbf{Apache Kafka:} Dùng cho Data Streaming — luồng dữ liệu lớn, bền vững, hỗ
+    trợ replay. Cụ thể là luồng CDC từ PostgreSQL đến Elasticsearch.
+\end{itemize}
+
+% ── 2.5 Transactional Outbox Pattern ────────────────────────
+\subsection{Transactional Outbox Pattern}
+\label{subsec:outbox}
+
+Một thách thức cốt lõi của Microservices là: làm sao đảm bảo rằng khi một nghiệp vụ thành công
+(ví dụ: lưu Booking vào DB), sự kiện tương ứng (ví dụ: \texttt{BookingCreatedEvent}) luôn
+được publish đến message broker — kể cả khi ứng dụng crash ngay sau khi lưu DB?
+
+Outbox Pattern giải quyết vấn đề này bằng cách lưu event vào một bảng \texttt{OutboxMessage}
+trong \textit{cùng một transaction} với nghiệp vụ chính. Một background worker riêng biệt
+sẽ đọc bảng Outbox và publish event đến broker, đảm bảo tính nguyên tử (atomicity) mà không
+cần distributed transaction.
+
+% ── 2.6 Change Data Capture ─────────────────────────────────
+\subsection{Change Data Capture (CDC) với Debezium}
+\label{subsec:cdc}
+
+CDC là kỹ thuật theo dõi các thay đổi trong cơ sở dữ liệu (INSERT, UPDATE, DELETE) ở
+mức transaction log và phát chúng ra ngoài như các sự kiện.
+
+Đồ án sử dụng \textbf{Debezium} — một nền tảng CDC mã nguồn mở — để đọc Write-Ahead Log (WAL)
+của PostgreSQL và publish các thay đổi vào Kafka. SearchService tiêu thụ luồng Kafka này để
+cập nhật Elasticsearch, đảm bảo read-model luôn đồng bộ gần thời gian thực với dữ liệu giao dịch.
+
+% ── 2.7 Geo-Spatial Search ──────────────────────────────────
+\subsection{Tìm kiếm Địa lý với Elasticsearch}
+\label{subsec:geo_search}
+
+Elasticsearch là một search engine phân tán, hỗ trợ kiểu dữ liệu \texttt{geo\_point} cho phép
+thực hiện các truy vấn địa lý như:
+
+\begin{itemize}
+    \item \textbf{Geo Distance Query:} Tìm tất cả bất động sản trong bán kính $r$ km
+    từ một tọa độ $(lat, lon)$.
+    \item \textbf{Geo Bounding Box:} Tìm bất động sản trong một vùng hình chữ nhật trên bản đồ.
+\end{itemize}
+
+Do SearchService chỉ đọc từ Elasticsearch (read-model), không bao giờ truy vấn vào DB giao dịch,
+hiệu năng tìm kiếm đạt được là hằng số $O(1)$ cho dù hệ thống có bao nhiêu bất động sản.
+
+% ── 2.8 .NET Aspire ─────────────────────────────────────────
+\subsection{.NET Aspire — Service Discovery và Orchestration}
+\label{subsec:aspire}
+
+.NET Aspire là nền tảng orchestration của Microsoft dành cho ứng dụng phân tán. Thay vì
+hardcode connection string và URL giữa các service, Aspire cung cấp:
+
+\begin{itemize}
+    \item \textbf{Service Discovery:} Các service tìm thấy nhau bằng tên logic
+    (ví dụ: \texttt{http://property-service/...}) thay vì IP/port cứng.
+    \item \textbf{Infrastructure Provisioning:} Aspire tự động khởi động các container
+    (PostgreSQL, Redis, Kafka, RabbitMQ, Elasticsearch) khi chạy môi trường phát triển.
+    \item \textbf{Observability Dashboard:} Giao diện theo dõi logs, metrics và traces
+    tập trung cho toàn bộ hệ thống.
+\end{itemize}

@@ -1,0 +1,765 @@
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-01} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đăng ký tài khoản} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest), Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Người dùng đăng ký tài khoản mới trên hệ thống AirVnV. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Người dùng chưa đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tài khoản được tạo ở trạng thái Inactive, OTP được gửi qua email. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng nhập thông định cơ bản.\newline 2. Hệ thống kiểm tra email.\newline 3. Hệ thống tạo user và gửi OTP. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Email đã tồn tại}: Hệ thống báo lỗi Email already exists. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_01.1}: Hệ thống từ chối nếu email trùng lặp. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-02} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xác thực Email (Verify)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Người dùng nhập mã OTP để kích hoạt tài khoản. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Tài khoản ở trạng thái Inactive, có mã OTP hợp lệ. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tài khoản chuyển sang trạng thái Active. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng nhập OTP.\newline 2. Hệ thống kiểm tra tính hợp lệ.\newline 3. Cập nhật trạng thái Active. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Mã hết hạn}: Hệ thống báo lỗi Verification code expired. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_02.1}: Mã OTP chỉ có hiệu lực trong 15 phút. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-03} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đăng nhập hệ thống} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Người dùng đăng nhập bằng mật khẩu hoặc Google SSO. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Tài khoản đã kích hoạt. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Nhận được JWT Token để truy cập hệ thống. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng nhập email/mật khẩu.\newline 2. Hệ thống kiểm tra hash.\newline 3. Hệ thống cấp phát JWT Token. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Sai mật khẩu}: Báo lỗi Invalid email or password. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_03.1}: Mật khẩu phải được mã hóa trước khi so sánh. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-04} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Cập nhật hồ sơ cá nhân} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Thay đổi thông tin như tên, ảnh đại diện, số điện thoại. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Người dùng đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Thông tin mới được lưu trữ trong CSDL. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng sửa thông tin.\newline 2. Hệ thống validate.\newline 3. Cập nhật CSDL. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Lỗi định dạng}: Báo lỗi Validation Failed (400). \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_04.1}: Số điện thoại phải đúng định dạng quốc gia. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-05} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đổi mật khẩu} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Người dùng đang đăng nhập muốn đổi mật khẩu mới. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Mật khẩu được cập nhật, các phiên đăng nhập khác bị đăng xuất. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhập mật khẩu cũ và mới.\newline 2. Hệ thống kiểm tra.\newline 3. Cập nhật mật khẩu. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Sai mật khẩu cũ}: Báo lỗi và từ chối cập nhật. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_05.1}: Mật khẩu mới phải mạnh (có ký tự đặc biệt, hoa, thường). \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-06} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Quên mật khẩu} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Yêu cầu khôi phục mật khẩu qua email. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Không yêu cầu đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Gửi link reset kèm token vào email. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng nhập email.\newline 2. Hệ thống tạo Reset Token.\newline 3. Gửi email chứa link khôi phục. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Email không tồn tại}: Trả về 200 OK nhưng không gửi mail để tránh lộ thông tin. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_06.1}: Token reset chỉ có hiệu lực 1 lần duy nhất trong 30 phút. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-07} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Làm mới Token (Refresh Token)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Lấy JWT mới khi token cũ hết hạn. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Sở hữu Refresh Token hợp lệ. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cấp JWT mới và Refresh Token mới. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Client gửi Refresh Token.\newline 2. Hệ thống kiểm tra.\newline 3. Trả về bộ token mới. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Token bị thu hồi}: Báo lỗi Token is revoked và yêu cầu đăng nhập lại. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_07.1}: Cơ chế xoay vòng (Rotation) Refresh Token để chống đánh cắp. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-08} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Nhận Thông báo (Notifications)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Xem danh sách thông báo in-app và đánh dấu đã đọc. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Danh sách thông báo được cập nhật trạng thái IsRead. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Lấy danh sách thông báo qua API.\newline 2. Hiển thị lên chuông thông báo.\newline 3. Đánh dấu là đã đọc. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_08.1}: Hệ thống đẩy thông báo realtime qua SignalR. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-09} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đăng tin Bất động sản mới} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khởi tạo một Bất động sản mới dưới dạng Draft. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Chủ nhà đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Bất động sản được tạo với trạng thái Draft. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host nhập tiêu đề, mô tả.\newline 2. Hệ thống validate.\newline 3. Tạo bản ghi trong propdb. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Dữ liệu thiếu}: Báo lỗi Validation Failed. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_09.1}: Tiêu đề không được để trống và tối đa 100 ký tự. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-10} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Quản lý hình ảnh \& tiện ích} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host tải lên hình ảnh và chọn tiện ích (Wifi, Bể bơi). \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Bất động sản thuộc sở hữu của Host. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Hình ảnh được lưu (Cloudinary/S3), tiện ích được map. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host chọn ảnh/tiện ích.\newline 2. Upload lên Cloud.\newline 3. Lưu URL vào CSDL. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Sai định dạng ảnh}: Từ chối upload nếu không phải JPG/PNG. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_10.1}: Mỗi phòng phải có ít nhất 5 ảnh trước khi submit. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-11} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Thiết lập Giá theo ngày (Smart Pricing)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Cấu hình giá cao hơn vào cuối tuần hoặc mùa cao điểm. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng đã được tạo. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cập nhật bảng giá tùy chỉnh. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host chọn các ngày đặc biệt.\newline 2. Nhập giá mới.\newline 3. Lưu xuống cơ sở dữ liệu. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Giá không hợp lệ}: Báo lỗi nếu giá nhập < 0. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_11.1}: Hệ thống phải ưu tiên giá tùy chỉnh thay vì giá mặc định. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-12} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Khóa lịch rảnh (Block Dates)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host chủ động khóa một khoảng thời gian không cho khách đặt. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng đã được Publish. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Khoảng thời gian bị chặn trong lịch Booking. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Chọn khoảng ngày.\newline 2. Hệ thống kiểm tra xem có ai đã đặt chưa.\newline 3. Tạo BlockAvailability. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Trùng lịch}: Báo lỗi không thể khóa ngày đã có khách đặt. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_12.1}: Từ chối block nếu ngày đó đang có Booking Pending/Confirmed. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-13} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xóa Bất động sản} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host xóa vĩnh viễn bài đăng đang lưu nháp. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng phải ở trạng thái Draft. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Dữ liệu bị xóa mềm (Soft Delete). \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host chọn phòng nháp.\newline 2. Bấm Xóa.\newline 3. Cập nhật IsDeleted = true. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Đã publish}: Báo lỗi Cannot delete published property. Must suspend first. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_13.1}: Xóa toàn bộ hình ảnh trên Cloudinary tương ứng. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-14} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Gửi duyệt Bất động sản (Submit)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Chuyển trạng thái từ Draft sang Pending Approval. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng có đủ ảnh, địa chỉ, tiện ích, giá. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trạng thái thành Pending Approval, gửi thông báo cho Admin. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host nhấn Submit.\newline 2. Hệ thống validate toàn diện.\newline 3. Đổi trạng thái. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Thiếu dữ liệu}: Từ chối Submit nếu thiếu giá tiền hoặc địa chỉ. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_14.1}: Trạng thái chỉ chuyển được từ Draft sang Pending Approval. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-15} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Cập nhật trạng thái phòng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tạm ngưng (Suspend) hoặc Mở lại (Reinstate) phòng. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng đang ở trạng thái Published hoặc Suspended. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trạng thái phòng được cập nhật. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host chọn thay đổi trạng thái.\newline 2. Cập nhật DB.\newline 3. Gửi Event sang SearchService. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Từ Draft}: Báo lỗi Cannot revert to Draft from current status. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_15.1}: Đồng bộ trạng thái này sang Elasticsearch qua Kafka. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-16} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem Dashboard Chủ nhà} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host xem tổng quan thu nhập và lượt xem. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Là Host. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về dữ liệu Analytics. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Lấy danh sách booking tháng này.\newline 2. Lấy lượt view từ SearchService.\newline 3. Hiển thị biểu đồ. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_16.1}: Dữ liệu Dashboard phải được cache trên Redis để tối ưu tốc độ. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-17} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Phản hồi đánh giá (Host Reply)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host bình luận lại bên dưới đánh giá của khách. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng có đánh giá hợp lệ. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Lưu phản hồi và hiển thị công khai. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host nhập nội dung reply.\newline 2. Lưu vào DB.\newline 3. Gửi thông báo cho khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Đã phản hồi}: Báo lỗi Host already replied to this review. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_17.1}: Nội dung phản hồi không chứa từ ngữ thô tục. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-18} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Tìm kiếm Bất động sản (Elasticsearch)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tìm kiếm phòng trống theo địa điểm, giá, ngày. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Không yêu cầu đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về danh sách phòng trống. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách nhập tiêu chí tìm kiếm.\newline 2. SearchService truy vấn Elasticsearch.\newline 3. Trả về kết quả phân trang. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Lỗi Elasticsearch}: Fallback về PostgreSQL (nếu có) hoặc báo lỗi 500. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_18.1}: Chỉ trả về các phòng có trạng thái Published. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-19} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Tìm kiếm gợi ý (Autocomplete)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Gợi ý tên thành phố hoặc địa danh khi khách gõ phím. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Không yêu cầu đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về mảng chuỗi địa danh. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách gõ chữ cái đầu.\newline 2. SearchService tìm gần đúng (Fuzzy Match).\newline 3. Trả về danh sách top 5. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_19.1}: Thời gian phản hồi autocomplete phải < 50ms. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-20} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem chi tiết Bất động sản} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Xem chi tiết phòng, giá, tiện ích và các review. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Không yêu cầu. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Dữ liệu chi tiết được hiển thị. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Chọn phòng.\newline 2. Lấy dữ liệu từ PropertyService và ReviewService.\newline 3. Hiển thị cho khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Phòng không tồn tại}: Báo lỗi Property not found (404). \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_20.1}: Nếu phòng bị ẩn, hệ thống trả về 404 Not Found. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-21} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đặt phòng (Create Booking)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tạo yêu cầu đặt phòng cho một khoảng thời gian. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tạo đơn Pending, phát sự kiện sang PaymentService. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách chọn ngày và số người.\newline 2. Hệ thống khóa lịch (Idempotent).\newline 3. Tạo Booking Pending và bắn Event. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Ngày đã bị đặt}: Báo lỗi These dates are already booked. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_21.1}: Tổng chi phí = Số đêm x Giá đêm + Phí dịch vụ. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-22} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Chủ nhà Duyệt/Từ chối đặt phòng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host quyết định chấp nhận hoặc từ chối khách. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Có đơn Booking ở trạng thái Pending Host Approval. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Booking chuyển sang Approved hoặc Rejected. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host xem đơn.\newline 2. Chọn Duyệt.\newline 3. Cập nhật trạng thái và thông báo Khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Đơn không tồn tại}: Báo lỗi Booking not found. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_22.1}: Host chỉ được thao tác trên các đơn thuộc Property của mình. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-23} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Khách Hủy đặt phòng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khách chủ động hủy đơn. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đơn đang ở trạng thái Pending hoặc Confirmed. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Booking chuyển sang Cancelled, kích hoạt hoàn tiền nếu cần. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách nhấn Hủy.\newline 2. Kiểm tra chính sách hủy.\newline 3. Cập nhật trạng thái và bắn RefundEvent. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Quá hạn hủy}: Từ chối hủy nếu vi phạm chính sách (ví dụ sát giờ check-in). \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_23.1}: Hệ thống tự động tính số tiền hoàn lại dựa trên Policy. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-24} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Chủ nhà Hủy đặt phòng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host hủy đơn trong trường hợp khẩn cấp. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đơn đang ở trạng thái Confirmed. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Hủy đơn, hoàn 100\% tiền cho khách và phạt Host. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host chọn hủy.\newline 2. Ghi nhận lý do.\newline 3. Bắn Event phạt Host và Refund cho khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Đã check-in}: Không thể hủy khi đã qua ngày Check-in. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_24.1}: Trừ tự động phí phạt (Penalty) vào tài khoản Host. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-25} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem Lịch sử Đặt phòng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khách xem danh sách chuyến đi sắp tới và quá khứ. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về danh sách Booking. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách vào Trips.\newline 2. Query BookingService.\newline 3. Trả về dữ liệu phân trang. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_25.1}: Các đơn Upcoming phải hiển thị trên cùng. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-26} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Khởi tạo Thanh toán} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Hệ thống, Khách \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tạo Session thanh toán VNPay/Stripe. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã có Booking ID. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cấp URL thanh toán cho khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. PaymentService nhận BookingEvent.\newline 2. Khởi tạo Session qua VNPay API.\newline 3. Trả URL cho Client. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Đang xử lý}: Báo lỗi Payment is already being processed. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_26.1}: Phải gắn Idempotency Key để chống tạo trùng hóa đơn. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-27} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xử lý Webhook Thanh toán} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Cổng thanh toán (VNPay) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Hệ thống nhận kết quả từ bên thứ ba. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Giao dịch đã được khách thực hiện. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cập nhật trạng thái hóa đơn và báo cho BookingService. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhận payload IPN từ VNPay.\newline 2. Xác thực chữ ký số.\newline 3. Phát PaymentCompletedEvent. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Sai chữ ký}: Ghi log cảnh báo bảo mật và bỏ qua payload. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_27.1}: Bắt buộc kiểm tra Checksum (Secure Hash) trước khi xử lý. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-28} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Tự động Hoàn tiền (Refund)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Hệ thống \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tự động hoàn tiền khi có lỗi hoặc khách hủy đúng luật. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Giao dịch gốc đã thành công. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tiền được hoàn lại tài khoản khách. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhận RefundEvent.\newline 2. Gọi API Hoàn tiền của VNPay.\newline 3. Cập nhật trạng thái Refunded. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Cổng VNPay lỗi}: Lưu vào Outbox để retry sau. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_28.1}: Lưu trữ đầy đủ Transaction ID đối soát. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-29} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem số dư ví Host} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host xem doanh thu và số tiền có thể rút. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về dữ liệu ví. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Truy vấn bảng Balance.\newline 2. Hiển thị tổng thu nhập và Available Payout.\newline 3. Trả về Client. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_29.1}: Chỉ cộng tiền vào ví sau khi khách Check-out thành công. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-30} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Cập nhật Thông tin Ngân hàng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host thêm số tài khoản ngân hàng để nhận Payout. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Lưu thông tin thanh toán (đã mã hóa). \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host nhập STK, Tên ngân hàng.\newline 2. Validate format.\newline 3. Lưu vào DB. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Số tài khoản sai}: Báo lỗi Invalid Bank Account Format. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_30.1}: Số tài khoản phải được mã hóa mã hóa chuẩn AES256. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-31} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Yêu cầu Rút tiền (Payout)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà, Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Host yêu cầu rút tiền và Admin duyệt chuyển khoản. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Số dư lớn hơn mức tối thiểu. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tiền bị trừ khỏi ví, lệnh chuyển khoản được tạo. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host tạo lệnh Payout.\newline 2. Admin xem và duyệt.\newline 3. Hệ thống MarkPayoutCompleted và trừ ví. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Số dư không đủ}: Hệ thống từ chối tạo lệnh. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_31.1}: Lệnh rút tiền phải sinh ra mã PayoutReference để đối soát. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-32} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem Lịch sử Giao dịch} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Chủ nhà (Host) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Hiển thị lịch sử cộng/trừ tiền trong ví. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về List Transaction. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Host mở Transaction History.\newline 2. Query PaymentService DB.\newline 3. Hiển thị phân trang. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_32.1}: Lịch sử phải không thể xóa hoặc sửa đổi (Immutable). \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-33} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Tạo cuộc hội thoại} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách, Chủ nhà \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khách gửi yêu cầu chat với Host về một căn phòng. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Khách đã đăng nhập. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tạo Conversation\_Id trong MongoDB/Postgres. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Khách bấm Liên hệ Chủ nhà.\newline 2. Tạo Conversation map với PropertyId.\newline 3. Chuyển sang màn hình Chat. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Chat với chính mình}: Host cannot start a conversation as a guest for their own property. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_33.1}: Nếu Conversation giữa 2 user cho Property này đã có, trả về Id cũ. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-34} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Gửi tin nhắn \& File} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Gửi text hoặc ảnh qua WebSocket. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Nằm trong Conversation. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tin nhắn được lưu và push realtime qua SignalR/Socket.IO. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhập tin nhắn.\newline 2. Lưu DB.\newline 3. Broadcast tới người kia. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Không có quyền}: Báo lỗi You are not a participant in this conversation. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_34.1}: Tin nhắn hệ thống (System message) không thể được gửi bởi user. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-35} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đọc tin nhắn (Mark As Read)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Đánh dấu tin nhắn đã được xem. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Có tin nhắn chưa đọc. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Huy hiệu Unread bị xóa. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Người dùng mở hộp thoại.\newline 2. Gọi API MarkAsRead.\newline 3. Cập nhật DB. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_35.1}: Phải cập nhật LastReadTimestamp. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-36} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Lấy Lịch sử Tin nhắn} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Người dùng \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Tải các tin nhắn cũ theo cơ chế Infinite Scroll. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đang trong Conversation. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về phân trang. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Cuộn lên trên.\newline 2. Gửi request LastMessageId.\newline 3. Lấy 20 tin nhắn tiếp theo. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_36.1}: Sử dụng Keyset Pagination (Cursor) để tránh trôi tin nhắn. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-37} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Viết Đánh giá (Review)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khách đánh giá phòng sau khi ở. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Booking ở trạng thái Completed. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Lưu Review và cập nhật Rating tổng của phòng. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhập số sao và bình luận.\newline 2. Lưu Review.\newline 3. Phát Event cập nhật PropertyService. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Chưa hoàn tất chuyến đi}: Báo lỗi Booking must be Confirmed or Completed to review. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_37.1}: Mỗi Booking chỉ được phép viết 1 Review duy nhất. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-38} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Sửa/Xóa Đánh giá} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Khách (Guest) \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Sửa hoặc xóa review đã viết. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Review do chính khách viết. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Rating tổng của phòng được tính toán lại. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Chọn Sửa/Xóa.\newline 2. Cập nhật DB.\newline 3. Phát Event để tính lại Rating trung bình. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Phòng bị xóa}: Báo lỗi Property not found. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_38.1}: Khi xóa Review, hệ thống phải cập nhật lại sao trung bình của phòng. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-39} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Đăng nhập Admin} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Đăng nhập vào hệ thống quản trị. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Tài khoản có Role = Admin/Moderator. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cấp JWT Token quyền quản trị. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Nhập credentials.\newline 2. Kiểm tra quyền.\newline 3. Cấp Token. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Thiếu quyền}: Báo lỗi Access denied. Admin or Moderator role required. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_39.1}: Mật khẩu Admin phải được mã hóa theo chuẩn bcrypt. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-40} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Duyệt Bất động sản} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Duyệt tin đăng của Host trước khi hiển thị công khai. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Phòng ở trạng thái Pending Approval. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Phòng được duyệt thành Published hoặc bị Reject. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Admin xem tin.\newline 2. Bấm Approve.\newline 3. Cập nhật trạng thái và bắn event lên Kafka. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Thiếu thông tin}: Admin chọn Reject kèm lý do. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_40.1}: Sau khi Approve, dữ liệu phải xuất hiện trên Elasticsearch qua luồng CDC. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-41} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Khóa/Mở tài khoản} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Khóa user vi phạm chính sách. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & User tồn tại. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trạng thái user = Suspended, vô hiệu hóa mọi JWT đang có. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Admin chọn User.\newline 2. Bấm Suspend.\newline 3. Cập nhật DB và phát Event. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{User không tồn tại}: Báo lỗi User not found. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_41.1}: Hệ thống tự động hủy các phiên đăng nhập (RevokeSessions) của user bị khóa. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-42} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Quản lý Danh mục Tiện ích} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Thêm, Sửa, Xóa các danh mục tiện ích cho toàn hệ thống. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Quyền Admin. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Danh mục tiện ích được cập nhật. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Admin nhập tên tiện ích mới.\newline 2. Upload icon.\newline 3. Lưu vào Amenity DB. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & \textbf{Trùng tên}: Báo lỗi Amenity already exists. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_42.1}: Không cho phép xóa tiện ích nếu đang có Property sử dụng nó. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-43} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xử lý Khiếu nại (Disputes)} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Admin tham gia giải quyết tranh chấp giữa Host và Guest. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Booking có tranh chấp. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Tranh chấp được giải quyết (Refund hoặc phạt). \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Xem bằng chứng của 2 bên.\newline 2. Ra quyết định Refund.\newline 3. Đóng Dispute. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_43.1}: Quyết định của Admin là cuối cùng và đóng băng Booking đó. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-44} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Xem Báo cáo Thống kê} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Xem biểu đồ doanh thu và lượng người dùng tăng trưởng. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Đã đăng nhập Admin. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Trả về dữ liệu mảng để vẽ Chart. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Chọn khoảng thời gian.\newline 2. Truy vấn Analytics DB.\newline 3. Trả về JSON. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_44.1}: Dữ liệu báo cáo phải được gom nhóm theo Ngày/Tháng/Năm (Group By). \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.3}
+\centering
+\begin{tabularx}{\textwidth}{|p{4.5cm}|X|}
+\hline
+\cellcolor{gray!15}\bfseries Mã Usecase & \textbf{UC-45} \\ \hline
+\cellcolor{gray!15}\bfseries Tên Usecase & \textbf{Cập nhật Cấu hình Nền tảng} \\ \hline
+\cellcolor{gray!15}\bfseries Tác nhân (Actors) & Admin \\ \hline
+\cellcolor{gray!15}\bfseries Mô tả ngắn & Thay đổi phần trăm phí dịch vụ hoặc phí hoa hồng. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện tiên quyết & Quyền Root Admin. \\ \hline
+\cellcolor{gray!15}\bfseries Điều kiện đảm bảo & Cấu hình mới được áp dụng ngay lập tức cho các giao dịch sau. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng sự kiện chính & 1. Admin nhập cấu hình mới.\newline 2. Lưu vào bảng PlatformSettings.\newline 3. Xóa Cache. \\ \hline
+\cellcolor{gray!15}\bfseries Luồng rẽ nhánh & Không có. \\ \hline
+\cellcolor{gray!15}\bfseries Yêu cầu chức năng (FR) & $\diamond$ \textbf{FR\_45.1}: Các giao dịch tạo trước thời điểm cập nhật vẫn giữ nguyên mức phí cũ. \\ \hline
+\end{tabularx}
+\end{table}

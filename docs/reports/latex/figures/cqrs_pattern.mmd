@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Client
+    participant Endpoint
+    participant Mediator
+    participant Handler
+    participant DB as PostgreSQL
+    
+    Client->>Endpoint: POST /api/properties
+    Endpoint->>Mediator: Send(CreatePropertyCommand)
+    Mediator->>Handler: Handle(Command)
+    Handler->>DB: SaveChanges()
+    DB-->>Handler: Success
+    Handler-->>Mediator: Response (DTO)
+    Mediator-->>Endpoint: Response (DTO)
+    Endpoint-->>Client: 200 OK + ApiResponse

@@ -1,0 +1,58 @@
+flowchart LR
+    %% Định nghĩa Actors
+    Guest(["👤 Khách (Guest)"])
+    Host(["🏠 Chủ nhà (Host)"])
+    Admin(["🛡️ Admin"])
+    System(["⚙️ Hệ thống"])
+
+    %% Nhóm 1: Xác thực
+    subgraph Auth [Xác thực & Tài khoản]
+        UC_Login(Đăng ký/Đăng nhập)
+        UC_Profile(Cập nhật hồ sơ)
+    end
+
+    %% Nhóm 2: Bất động sản
+    subgraph Property [Quản lý Bất động sản]
+        UC_CreateProp(Đăng tin cho thuê)
+        UC_Pricing(Thiết lập giá & khóa lịch)
+    end
+
+    %% Nhóm 3: Đặt phòng
+    subgraph Booking [Tìm kiếm & Đặt phòng]
+        UC_Search(Tìm kiếm phòng)
+        UC_Book(Đặt phòng)
+        UC_Approve(Duyệt/Từ chối đơn)
+    end
+
+    %% Nhóm 4: Thanh toán
+    subgraph Payment [Thanh toán & Ví]
+        UC_Pay(Thanh toán đơn)
+        UC_Refund(Tự động hoàn tiền)
+        UC_Payout(Rút tiền - Payout)
+    end
+
+    %% Nhóm 5: Quản trị
+    subgraph Adm [Quản trị nền tảng]
+        UC_Mod(Kiểm duyệt phòng)
+        UC_Ban(Khóa tài khoản)
+        UC_Stat(Xem báo cáo)
+    end
+
+    %% Nối Guest
+    Guest --> Auth
+    Guest --> UC_Search
+    Guest --> UC_Book
+    Guest --> UC_Pay
+
+    %% Nối Host
+    Host --> Auth
+    Host --> Property
+    Host --> UC_Approve
+    Host --> UC_Payout
+
+    %% Nối Admin
+    Admin --> Adm
+
+    %% Nối System
+    System -.-> UC_Refund
+    System -.-> UC_Search

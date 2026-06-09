@@ -1,0 +1,26 @@
+classDiagram
+    class IPaymentProvider {
+        <<interface>>
+        +InitiatePayment(amount) Url
+        +Refund(transactionId) Result
+    }
+    class VnpayProvider {
+        +InitiatePayment()
+        +Refund()
+    }
+    class StripeProvider {
+        +InitiatePayment()
+        +Refund()
+    }
+    class PaymentProviderResolver {
+        +Resolve(gatewayType) IPaymentProvider
+    }
+    class InitiatePaymentHandler {
+        +Handle()
+    }
+    
+    VnpayProvider ..|> IPaymentProvider
+    StripeProvider ..|> IPaymentProvider
+    PaymentProviderResolver --> IPaymentProvider : Returns
+    InitiatePaymentHandler --> PaymentProviderResolver : Uses
+    InitiatePaymentHandler --> IPaymentProvider : Executes

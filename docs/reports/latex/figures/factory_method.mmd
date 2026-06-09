@@ -1,0 +1,20 @@
+classDiagram
+    class Entity {
+        -Entity() private constructor
+        +Create(...) Entity$
+    }
+    class Property {
+        -Property()
+        +Create(title, description, price) Property$
+    }
+    class Booking {
+        -Booking()
+        +Create(propertyId, guestId, dates) Booking$
+    }
+    class Client {
+    }
+    
+    Property --|> Entity
+    Booking --|> Entity
+    Client ..> Property : Calls Create()
+    Client ..> Booking : Calls Create()
