@@ -1,10 +1,8 @@
-using FastEndpoints;
 using Airbnb.UserService.Domain;
-using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.GetUsers;
 
-public record Request : ICommand<ApiResponse<PaginatedUserListResponse>>
+public record Request : Mediator.IQuery<PaginatedUserListResponse>
 {
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;

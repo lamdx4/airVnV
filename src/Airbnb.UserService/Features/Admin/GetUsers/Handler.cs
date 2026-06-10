@@ -1,17 +1,14 @@
-using FastEndpoints;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.UserService.Infrastructure;
-using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.GetUsers;
 
 public sealed class GetUsersHandler(UserDbContext db)
-    : ICommandHandler<Request, ApiResponse<PaginatedUserListResponse>>
+    : IQueryHandler<Request, PaginatedUserListResponse>
 {
-    public async Task<ApiResponse<PaginatedUserListResponse>> ExecuteAsync(Request req, CancellationToken ct)
+    public async ValueTask<PaginatedUserListResponse> Handle(Request req, CancellationToken ct)
     {
-        // Builder Pattern: orchestrate filter + sort thành một câu fluent.
-        // Handler không còn chứa logic xây query — chỉ điều phối.
         var query = new UserQueryBuilder(
                 db.Users.AsNoTracking().Include(u => u.Profile))
             .WithSearch(req.Search)
@@ -40,9 +37,6 @@ public sealed class GetUsersHandler(UserDbContext db)
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)req.PageSize);
 
-        return ApiResponse<PaginatedUserListResponse>.SuccessResult(
-            new PaginatedUserListResponse(items, totalCount, req.Page, req.PageSize, totalPages),
-            "Users retrieved successfully"
-        );
+        return new PaginatedUserListResponse(items, totalCount, req.Page, req.PageSize, totalPages);
     }
 }

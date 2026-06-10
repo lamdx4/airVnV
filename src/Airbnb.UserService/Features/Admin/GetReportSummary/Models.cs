@@ -1,6 +1,6 @@
 namespace Airbnb.UserService.Features.Admin.GetReportSummary;
 
-public record Request
+public record Request : Mediator.IQuery<Response>
 {
     public string From { get; init; } = string.Empty;
     public string To { get; init; } = string.Empty;

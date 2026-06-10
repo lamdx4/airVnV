@@ -1,6 +1,6 @@
 namespace Airbnb.UserService.Features.Admin.GetUserGrowthReport;
 
-public record Request
+public record Request : Mediator.IQuery<List<Response>>
 {
     public string From { get; init; } = string.Empty;
     public string To { get; init; } = string.Empty;
