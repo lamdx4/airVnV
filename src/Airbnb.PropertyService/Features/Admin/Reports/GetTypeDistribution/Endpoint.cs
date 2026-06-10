@@ -4,7 +4,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Features.Admin.Reports.GetTypeDistribution;
 
-public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<List<TypeCount>>>
+public class Endpoint(IMediator mediator) : EndpointWithoutRequest<ApiResponse<List<TypeCount>>>
 {
     public override void Configure()
     {
@@ -18,9 +18,9 @@ public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<List<T
         });
     }
 
-    public override async Task HandleAsync(Request req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
+        var result = await mediator.Send(new Request(), ct);
         Response = ApiResponse<List<TypeCount>>.SuccessResult(result);
     }
 }

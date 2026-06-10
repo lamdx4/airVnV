@@ -4,7 +4,7 @@ using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PaymentService.Features.Admin.GetPlatformSettings;
 
-public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
+public class Endpoint(IMediator mediator) : EndpointWithoutRequest<ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -18,9 +18,9 @@ public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Respon
         });
     }
 
-    public override async Task HandleAsync(Request req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
+        var result = await mediator.Send(new Request(), ct);
         Response = ApiResponse<Response>.SuccessResult(result);
     }
 }
