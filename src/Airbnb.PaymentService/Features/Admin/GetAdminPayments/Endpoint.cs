@@ -56,41 +56,14 @@ public class Endpoint(PaymentDbContext db, BookingServiceClient bookingClient, U
         var page = req.Page < 1 ? 1 : req.Page;
         var pageSize = req.PageSize is < 1 or > 100 ? 20 : req.PageSize;
 
-        var query = db.Payments.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(req.Status) &&
-            Enum.TryParse<PaymentStatus>(req.Status, ignoreCase: true, out var status))
-        {
-            query = query.Where(p => p.Status == status);
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Search))
-        {
-            var s = req.Search.Trim();
-            if (Guid.TryParse(s, out var bookingGuid))
-            {
-                query = query.Where(p => p.BookingId == bookingGuid || p.Id == bookingGuid);
-            }
-            else
-            {
-                query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(s));
-            }
-        }
-
-        if (DateOnly.TryParse(req.From, out var from))
-        {
-            var fromDt = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-            query = query.Where(p => p.CreatedAt >= fromDt);
-        }
-        if (DateOnly.TryParse(req.To, out var to))
-        {
-            var toDt = new DateTimeOffset(to.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
-            query = query.Where(p => p.CreatedAt <= toDt);
-        }
-
-        query = (req.SortOrder?.ToLowerInvariant() == "asc")
-            ? query.OrderBy(p => p.CreatedAt)
-            : query.OrderByDescending(p => p.CreatedAt);
+        // Builder Pattern: handler không còn chứa logic xây query —
+        // toàn bộ filter + sort gói gọn trong PaymentQueryBuilder.
+        var query = new PaymentQueryBuilder(db.Payments.AsNoTracking())
+            .WithStatus(req.Status)
+            .WithSearch(req.Search)
+            .WithDateRange(req.From, req.To)
+            .OrderByCreatedAt(req.SortOrder)
+            .Build();
 
         var total = await query.CountAsync(ct);
 

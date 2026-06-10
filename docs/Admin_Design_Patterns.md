@@ -1,6 +1,6 @@
 # Design Patterns áp dụng trong module Admin
 
-> Tài liệu này tổng hợp **2 Design Pattern** đã được refactor vào module Admin của hệ thống airVnV, kèm lý do, code smell trước khi refactor, và lợi ích sau khi refactor — phục vụ buổi báo cáo với giảng viên.
+> Tài liệu này tổng hợp **3 Design Pattern** đã được refactor vào module Admin của hệ thống airVnV, kèm lý do, code smell trước khi refactor, và lợi ích sau khi refactor — phục vụ buổi báo cáo với giảng viên.
 
 ---
 
@@ -10,8 +10,11 @@
 |---|---------|------------|--------------|-------------------|
 | 1 | **Strategy** | Behavioral | Báo cáo admin theo ngày/tuần/tháng (`ReportBucketing`) | Loại bỏ `switch` lặp lại 4 lần × 3 service |
 | 2 | **State** | Behavioral | Vòng đời trạng thái User (`Active / Suspended / Banned`) | Loại bỏ chuỗi `if Status is not …` rải rác trong domain |
+| 3 | **Builder** | **Creational** | Xây dựng IQueryable cho list endpoint admin (`GetUsers`, `GetAdminPayments`) | Loại bỏ chuỗi `if (!empty) query = query.Where(...)` lặp lại trong handler |
 
-Cả hai đều thuộc nhóm **Behavioral Pattern** — tập trung vào việc tổ chức hành vi và sự thay đổi hành vi tuỳ theo dữ liệu, đúng với bản chất của module Admin: nhiều thao tác đổi trạng thái + nhiều cách tổng hợp dữ liệu.
+Bộ 3 pattern phủ **2 nhóm GoF** (Behavioral + Creational), tương ứng với 2 loại bài toán chính của module Admin:
+- **Behavioral** (Strategy, State) — tổ chức hành vi thay đổi tuỳ theo dữ liệu / trạng thái.
+- **Creational** (Builder) — xây dựng object phức tạp (`IQueryable`) qua nhiều bước tuỳ chọn.
 
 ---
 
@@ -373,17 +376,180 @@ internal void MarkActive()                 { Status = UserStatus.Active;    Susp
 
 ---
 
-## 📌 So sánh hai pattern
+## 🧩 Pattern 3 — Builder Pattern cho query danh sách admin
 
-| Tiêu chí | Strategy | State |
-|----------|----------|-------|
-| Mục đích chính | Hoán đổi **thuật toán** theo input | Hoán đổi **hành vi** theo trạng thái nội tại |
-| Ai chọn? | Client/Factory chọn dựa trên dữ liệu ngoài (`groupBy`) | Object tự chọn dựa trên trạng thái bên trong (`Status`) |
-| Strategy có biết các strategy khác? | Không | State có thể chuyển sang state khác (transition) |
-| Cấu trúc UML | Gần như giống nhau (1 interface + N concrete + Context) | Gần như giống nhau |
+### 3.1. Bối cảnh
+
+Module Admin có nhiều endpoint dạng "list + filter + paginate":
+- `GET /api/admin/users` — filter Search/Role/Status, sort 6 trường
+- `GET /api/admin/payments` — filter Status/Search (Guid hoặc TransactionId)/DateRange, sort theo CreatedAt
+- `GET /api/admin/payouts` — filter Status/HostId/Currency
+- `GET /api/admin/host-balances` — filter Currency/HostId
+
+Mỗi endpoint cần xây một `IQueryable<T>` qua **nhiều bước tuỳ chọn**: nếu user không truyền filter nào thì bỏ qua bước đó, nếu truyền thì áp dụng `.Where(...)`.
+
+### 3.2. Vấn đề trước khi refactor
+
+Code cũ trong handler chứa chuỗi `if (!empty) query = query.Where(...)` dài, lẫn với logic orchestration. Ví dụ `GetAdminPayments/Endpoint.cs` (rút gọn):
+
+```csharp
+var query = db.Payments.AsNoTracking().AsQueryable();
+
+if (!string.IsNullOrWhiteSpace(req.Status) &&
+    Enum.TryParse<PaymentStatus>(req.Status, ignoreCase: true, out var status))
+{
+    query = query.Where(p => p.Status == status);
+}
+
+if (!string.IsNullOrWhiteSpace(req.Search))
+{
+    var s = req.Search.Trim();
+    if (Guid.TryParse(s, out var bookingGuid))
+        query = query.Where(p => p.BookingId == bookingGuid || p.Id == bookingGuid);
+    else
+        query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(s));
+}
+
+if (DateOnly.TryParse(req.From, out var from)) { ... query = query.Where(...); }
+if (DateOnly.TryParse(req.To, out var to))     { ... query = query.Where(...); }
+
+query = (req.SortOrder?.ToLowerInvariant() == "asc")
+    ? query.OrderBy(p => p.CreatedAt)
+    : query.OrderByDescending(p => p.CreatedAt);
+```
+
+Các vấn đề cụ thể:
+- ❌ **Vi phạm Single Responsibility**: handler vừa xây query vừa orchestrate (count, paginate, enrich, response). Một method gánh quá nhiều việc.
+- ❌ **Khó đọc**: ~30 dòng `if` lẫn vào giữa handler che mất luồng nghiệp vụ chính.
+- ❌ **DRY**: cùng skeleton lặp ở 4 endpoint admin khác nhau, mỗi nơi viết một kiểu hơi khác.
+- ❌ **Khó test**: muốn test riêng logic filter phải spin lên cả handler + DbContext.
+
+### 3.3. Tại sao chọn Builder Pattern?
+
+Builder phù hợp khi:
+1. Cần **xây dựng object phức tạp** qua **nhiều bước**.
+2. Một số bước là **tuỳ chọn** (skip được nếu input không có).
+3. Cần API **đọc rõ ràng** — fluent: caller nhìn vào là hiểu đang build cái gì.
+4. Logic xây dựng cần **tách hẳn** khỏi đối tượng kết quả (`IQueryable`) và khỏi caller (handler).
+
+`IQueryable` ở đây thoả cả 4 điều kiện → Builder là đúng pattern, không phải Factory (chỉ tạo 1 phát) hay Strategy (chọn thuật toán, không xây).
+
+### 3.4. Thiết kế sau refactor
+
+Mỗi entity có một Builder riêng vì các bước filter khác nhau:
+
+```
+src/Airbnb.UserService/Features/Admin/GetUsers/
+└── UserQueryBuilder.cs
+
+src/Airbnb.PaymentService/Features/Admin/GetAdminPayments/
+└── PaymentQueryBuilder.cs
+```
+
+**Cấu trúc chung:**
+
+```csharp
+public sealed class XxxQueryBuilder
+{
+    private IQueryable<Xxx> _query;
+    public XxxQueryBuilder(IQueryable<Xxx> source) => _query = source;
+
+    public XxxQueryBuilder WithSomething(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return this;   // ← step bỏ qua được
+        _query = _query.Where(...);
+        return this;                                          // ← fluent
+    }
+
+    public IQueryable<Xxx> Build() => _query;
+}
+```
+
+**Ví dụ "complex step" trong `PaymentQueryBuilder`** — gói cả nhánh Guid/string vào 1 method:
+
+```csharp
+public PaymentQueryBuilder WithSearch(string? search)
+{
+    if (string.IsNullOrWhiteSpace(search)) return this;
+
+    var needle = search.Trim();
+    if (Guid.TryParse(needle, out var guid))
+        _query = _query.Where(p => p.BookingId == guid || p.Id == guid);
+    else
+        _query = _query.Where(p => p.TransactionId != null && p.TransactionId.Contains(needle));
+
+    return this;
+}
+```
+
+**Handler sau refactor — toàn bộ logic xây query gọn trong 6 dòng:**
+
+```csharp
+var query = new PaymentQueryBuilder(db.Payments.AsNoTracking())
+    .WithStatus(req.Status)
+    .WithSearch(req.Search)
+    .WithDateRange(req.From, req.To)
+    .OrderByCreatedAt(req.SortOrder)
+    .Build();
+
+var total = await query.CountAsync(ct);
+var rows  = await query.Skip(...).Take(...).Select(...).ToListAsync(ct);
+```
+
+### 3.5. Sơ đồ UML
+
+```
+       ┌──────────────────────────────┐
+       │ PaymentQueryBuilder           │
+       ├──────────────────────────────┤
+       │ - _query: IQueryable<Payment> │
+       ├──────────────────────────────┤
+       │ + WithStatus(s): Builder      │  ←┐
+       │ + WithSearch(s): Builder      │   │ fluent —
+       │ + WithDateRange(f,t): Builder │   │ mỗi method
+       │ + OrderByCreatedAt(o): Builder│   │ trả về `this`
+       │ + Build(): IQueryable<Payment>│  ←┘
+       └──────────────────────────────┘
+                     △
+                     │ uses
+       ┌─────────────┴────────────────┐
+       │ GetAdminPaymentsEndpoint     │ ←── handler chỉ orchestrate,
+       └──────────────────────────────┘     không chứa logic xây query
+```
+
+### 3.6. Lợi ích đạt được
+
+| Trước | Sau |
+|-------|-----|
+| `GetAdminPayments` handler ~33 dòng xây query lẫn vào ~100 dòng total | Còn 6 dòng fluent → handler đọc thấy ngay luồng "build → count → paginate → enrich" |
+| `GetUsers` handler ~50 dòng filter+sort | Còn 5 dòng fluent |
+| Logic filter phức tạp (Guid/string switch) lẫn giữa handler | Gói gọn 1 method `WithSearch` — handler không cần biết |
+| Khó test filter riêng | Test trực tiếp builder bằng `new PaymentQueryBuilder(InMemoryQuery).WithSearch("abc").Build()` |
+| Vi phạm SRP | Handler chỉ orchestration, builder chỉ xây query — tách bạch rõ |
+
+✅ **Single Responsibility**: handler & builder mỗi cái 1 việc.
+✅ **Fluent API**: code đọc như tiếng Anh: "with status, with search, with date range, order by created at, build".
+✅ **Tái sử dụng pattern**: cùng motif áp dụng cho 2 entity khác hẳn nhau (User + Payment) → chứng minh pattern *generic* về cấu trúc, không bị bó cứng vào 1 bảng.
+
+> **Lưu ý thiết kế:** Mỗi entity có Builder riêng (không generic `QueryBuilder<T>`) vì các bước filter mang ý nghĩa nghiệp vụ khác nhau (`WithRole` chỉ có ý nghĩa với User, `WithDateRange` chỉ có ý nghĩa với Payment). Generic hoá quá sớm sẽ mất đi tên method có ý nghĩa.
+
+---
+
+## 📌 So sánh ba pattern
+
+| Tiêu chí | Strategy | State | Builder |
+|----------|----------|-------|---------|
+| Nhóm GoF | Behavioral | Behavioral | **Creational** |
+| Mục đích | Hoán đổi **thuật toán** theo input | Hoán đổi **hành vi** theo trạng thái nội tại | **Xây dựng object** phức tạp qua nhiều bước |
+| Ai quyết định? | Factory chọn dựa trên dữ liệu ngoài (`groupBy`) | Object tự chọn theo `Status` của chính nó | Caller chọn các step áp dụng |
+| Đối tượng kết quả | Hành vi (thuật toán) | Hành vi (transition) | Object dữ liệu (`IQueryable`) |
+| Fluent API? | Thường không | Không | **Có** (đặc trưng) |
 
 > **Điểm thường bị hỏi:** "Strategy và State có UML giống nhau, khác chỗ nào?"
 > **Trả lời:** Khác ở **ý đồ (intent)**. Strategy quan tâm "chọn cách làm", State quan tâm "tôi đang là gì → tôi cư xử ra sao".
+
+> **Điểm thường bị hỏi:** "Sao không dùng Strategy thay cho Builder ở filter query?"
+> **Trả lời:** Strategy chọn *một* thuật toán. Còn ở đây mỗi filter là một *bước tuỳ chọn* có thể **bật/tắt độc lập**, và nhiều bước **cùng được áp dụng tích lũy** lên một object. Đó là motif Builder, không phải Strategy.
 
 ---
 
@@ -391,10 +557,11 @@ internal void MarkActive()                 { Status = UserStatus.Active;    Susp
 
 Sau khi refactor, đã verify:
 
-- ✅ Build thành công cả 3 service: `Airbnb.PaymentService`, `Airbnb.PropertyService`, `Airbnb.UserService` (0 error).
+- ✅ Build thành công cả 3 service: `Airbnb.PaymentService`, `Airbnb.PropertyService`, `Airbnb.UserService` (0 compile error).
 - ✅ Test có sẵn `Airbnb.PropertyService.Tests` pass 3/3.
 - ✅ Hành vi domain giữ nguyên 100%: cùng `BusinessException` code (`INVALID_STATUS_TRANSITION`, `REASON_REQUIRED`, `USER_ALREADY_BANNED`).
 - ✅ API public của `User` không đổi → các handler admin không phải sửa.
+- ✅ Endpoint admin `/api/admin/users` và `/api/admin/payments` giữ nguyên request/response contract → frontend admin không cần thay đổi.
 
 ---
 
@@ -415,3 +582,9 @@ Sau khi refactor, đã verify:
 - `src/Airbnb.UserService/Domain/States/BannedState.cs`
 - `src/Airbnb.UserService/Domain/States/UserStatusStateFactory.cs`
 - Aggregate đã refactor: `src/Airbnb.UserService/Domain/User.cs`
+
+**Builder Pattern:**
+- `src/Airbnb.UserService/Features/Admin/GetUsers/UserQueryBuilder.cs`
+- `src/Airbnb.UserService/Features/Admin/GetUsers/Handler.cs` (đã refactor)
+- `src/Airbnb.PaymentService/Features/Admin/GetAdminPayments/PaymentQueryBuilder.cs`
+- `src/Airbnb.PaymentService/Features/Admin/GetAdminPayments/Endpoint.cs` (đã refactor)

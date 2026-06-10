@@ -9,7 +9,6 @@
     <Project Path="src/Airbnb.UserService/Airbnb.UserService.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Airbnb.PaymentService.Tests/Airbnb.PaymentService.Tests.csproj" />
     <Project Path="tests/Airbnb.PropertyService.Tests/Airbnb.PropertyService.Tests.csproj" />
   </Folder>
   <Project Path="Airbnb.AppHost/Airbnb.AppHost.csproj" />
