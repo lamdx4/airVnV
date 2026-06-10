@@ -1,0 +1,28 @@
+classDiagram
+    class Endpoint {
+        +HandleAsync(req, ct)
+    }
+    class IMediator {
+        <<interface>>
+        +Send(request, ct)
+    }
+    class ICommand~TResponse~ {
+        <<interface>>
+    }
+    class ICommandHandler~TRequest, TResponse~ {
+        <<interface>>
+        +Handle(request, ct)
+    }
+    class CreatePropertyCommand {
+        +Title: string
+        +Price: decimal
+    }
+    class CreatePropertyHandler {
+        +Handle(command, ct)
+    }
+    
+    Endpoint --> IMediator : Sends
+    IMediator ..> ICommand : Routes
+    CreatePropertyCommand ..|> ICommand
+    CreatePropertyHandler ..|> ICommandHandler
+    CreatePropertyHandler --> CreatePropertyCommand : Handles

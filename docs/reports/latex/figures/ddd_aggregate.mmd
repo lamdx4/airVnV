@@ -1,0 +1,25 @@
+classDiagram
+    class AggregateRoot {
+        <<abstract>>
+        -List~IDomainEvent~ _domainEvents
+        +IReadOnlyCollection~IDomainEvent~ DomainEvents
+        #Raise(event)
+        +ClearDomainEvents()
+    }
+    class Property {
+        -Title: string
+        -Status: PropertyStatus
+        -Price: Pricing
+        -Property()
+        +Create(...) Property$
+        +Submit()
+        +Approve()
+    }
+    class Pricing {
+        <<ValueObject>>
+        +Amount: decimal
+        +Currency: string
+    }
+    
+    Property --|> AggregateRoot
+    Property *-- Pricing : Encapsulates

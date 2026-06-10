@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PropertyService.Infrastructure;
 using Airbnb.ServiceDefaults.Infrastructure;
+using Airbnb.SharedKernel.Reports;
 
 namespace Airbnb.PropertyService.Features.Admin.Reports.GetNewListings;
 
@@ -31,7 +32,7 @@ public class Endpoint(AppDbContext db) : Endpoint<Request, ApiResponse<List<Resp
         var fromStart = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var toEnd = new DateTimeOffset(to.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
 
-        var groupBy = (req.GroupBy ?? "day").ToLowerInvariant();
+        var bucket = BucketStrategyFactory.For(req.GroupBy);
 
         var raw = await db.Properties.AsNoTracking()
             .Where(p => p.CreatedAt >= fromStart && p.CreatedAt <= toEnd)
@@ -39,10 +40,10 @@ public class Endpoint(AppDbContext db) : Endpoint<Request, ApiResponse<List<Resp
             .ToListAsync(ct);
 
         var grouped = raw
-            .GroupBy(d => ReportBucketing.BucketKey(DateOnly.FromDateTime(d.UtcDateTime), groupBy))
+            .GroupBy(d => bucket.Key(DateOnly.FromDateTime(d.UtcDateTime)))
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var buckets = ReportBucketing.GenerateBuckets(from, to, groupBy);
+        var buckets = bucket.GenerateBuckets(from, to);
         var result = buckets
             .Select(b => new Response(b.Label, grouped.TryGetValue(b.Key, out var c) ? c : 0))
             .ToList();

@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Airbnb.ServiceDefaults.Infrastructure;
+using Airbnb.SharedKernel.Reports;
 using Airbnb.UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,11 +32,11 @@ public class Endpoint(UserDbContext db) : Endpoint<Request, ApiResponse<List<Res
             .Select(u => u.CreatedAt)
             .ToListAsync(ct);
 
-        var groupBy = (req.GroupBy ?? "day").ToLowerInvariant();
-        var buckets = ReportBucketing.GenerateBuckets(fromDate, toDate, groupBy);
+        var bucket = BucketStrategyFactory.For(req.GroupBy);
+        var buckets = bucket.GenerateBuckets(fromDate, toDate);
 
         var grouped = rawCounts
-            .GroupBy(d => ReportBucketing.BucketKey(DateOnly.FromDateTime(d), groupBy))
+            .GroupBy(d => bucket.Key(DateOnly.FromDateTime(d)))
             .ToDictionary(g => g.Key, g => g.Count());
 
         var running = baselineTotal;
@@ -49,55 +50,4 @@ public class Endpoint(UserDbContext db) : Endpoint<Request, ApiResponse<List<Res
 
         Response = ApiResponse<List<Response>>.SuccessResult(result, "User growth retrieved");
     }
-}
-
-internal static class ReportBucketing
-{
-    public static List<(string Key, string Label)> GenerateBuckets(DateOnly from, DateOnly to, string groupBy)
-    {
-        var list = new List<(string, string)>();
-        var cursor = NormalizeStart(from, groupBy);
-        while (cursor <= to)
-        {
-            var key = BucketKey(cursor, groupBy);
-            var label = BucketLabel(cursor, groupBy);
-            list.Add((key, label));
-            cursor = Advance(cursor, groupBy);
-        }
-        return list;
-    }
-
-    public static string BucketKey(DateOnly d, string groupBy) => groupBy switch
-    {
-        "month" => $"{d.Year:D4}-{d.Month:D2}",
-        "week" => $"{ISOWeekYear(d):D4}-W{ISOWeekNumber(d):D2}",
-        _ => d.ToString("yyyy-MM-dd")
-    };
-
-    private static string BucketLabel(DateOnly d, string groupBy) => groupBy switch
-    {
-        "month" => d.ToString("yyyy-MM"),
-        "week" => $"W{ISOWeekNumber(d):D2} {d:yyyy}",
-        _ => d.ToString("MM-dd")
-    };
-
-    private static DateOnly NormalizeStart(DateOnly d, string groupBy) => groupBy switch
-    {
-        "month" => new DateOnly(d.Year, d.Month, 1),
-        "week" => d.AddDays(-((int)d.DayOfWeek == 0 ? 6 : (int)d.DayOfWeek - 1)),
-        _ => d
-    };
-
-    private static DateOnly Advance(DateOnly d, string groupBy) => groupBy switch
-    {
-        "month" => d.AddMonths(1),
-        "week" => d.AddDays(7),
-        _ => d.AddDays(1)
-    };
-
-    private static int ISOWeekNumber(DateOnly d) =>
-        System.Globalization.ISOWeek.GetWeekOfYear(d.ToDateTime(TimeOnly.MinValue));
-
-    private static int ISOWeekYear(DateOnly d) =>
-        System.Globalization.ISOWeek.GetYear(d.ToDateTime(TimeOnly.MinValue));
 }

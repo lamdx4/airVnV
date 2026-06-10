@@ -1,0 +1,19 @@
+sequenceDiagram
+    autonumber
+    participant BookSvc as Booking Service
+    participant RMQ as RabbitMQ
+    participant PaySvc as Payment Service
+
+    BookSvc->>RMQ: Phát sự kiện BookingCreatedEvent
+    RMQ-->>PaySvc: Nhận sự kiện (Consume)
+    Note over PaySvc: Xử lý giao dịch thanh toán
+    
+    alt Giao dịch Thành công
+        PaySvc->>RMQ: Phát sự kiện PaymentCompletedEvent
+        RMQ-->>BookSvc: Nhận sự kiện
+        Note over BookSvc: Chuyển trạng thái = Confirmed
+    else Giao dịch Thất bại (Compensation)
+        PaySvc->>RMQ: Phát sự kiện PaymentFailedEvent
+        RMQ-->>BookSvc: Nhận sự kiện
+        Note over BookSvc: Rollback: Hủy đơn (Cancelled)
+    end

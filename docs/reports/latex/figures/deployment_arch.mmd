@@ -1,0 +1,71 @@
+graph TD
+    %% Define styles
+    classDef publicNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef privateNode fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px;
+    classDef dbNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+    classDef mqNode fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    classDef orchestrator fill:#ffcdd2,stroke:#c62828,stroke-width:2px;
+    
+    subgraph Internet ["🌐 Mạng Public (Internet)"]
+        Client[Client App / React UI]
+    end
+
+    subgraph DMZ ["🛡️ Phân vùng DMZ"]
+        Gateway[YARP API Gateway<br/>Port: 80/443]:::publicNode
+    end
+
+    subgraph InternalNetwork ["🔒 Mạng Nội bộ (Internal Docker Network)"]
+        Aspire((.NET Aspire Orchestrator<br/>Service Discovery)):::orchestrator
+        
+        subgraph Microservices ["Cụm Dịch vụ (App Nodes)"]
+            AuthService[Identity Service]:::privateNode
+            PropertyService[Property Service]:::privateNode
+            BookingService[Booking Service]:::privateNode
+            PaymentService[Payment Service]:::privateNode
+            SearchService[Search Service]:::privateNode
+        end
+        
+        subgraph MessageBrokers ["Message Brokers"]
+            RabbitMQ[RabbitMQ<br/>Port: 5672]:::mqNode
+            Kafka[Kafka Cluster<br/>Port: 9092]:::mqNode
+            Debezium[Debezium Connect]:::mqNode
+        end
+
+        subgraph Databases ["Cụm Cơ sở dữ liệu (Data Nodes)"]
+            PG_Auth[(PostgreSQL userdb)]:::dbNode
+            PG_Prop[(PostgreSQL propdb)]:::dbNode
+            PG_Book[(PostgreSQL bookdb)]:::dbNode
+            PG_Pay[(PostgreSQL paydb)]:::dbNode
+            Elastic[(Elasticsearch)]:::dbNode
+        end
+    end
+
+    %% Connections
+    Client -->|HTTPS| Gateway
+    
+    %% Gateway routing
+    Gateway -->|HTTP| AuthService
+    Gateway -->|HTTP| PropertyService
+    Gateway -->|HTTP| BookingService
+    Gateway -->|HTTP| PaymentService
+    Gateway -->|HTTP| SearchService
+    
+    %% Service to DB
+    AuthService --> PG_Auth
+    PropertyService --> PG_Prop
+    BookingService --> PG_Book
+    PaymentService --> PG_Pay
+    SearchService --> Elastic
+    
+    %% CDC Pipeline
+    PG_Prop -.->|WAL Logs| Debezium
+    Debezium -.->|Produce| Kafka
+    Kafka -.->|Consume| SearchService
+    
+    %% Async Comm
+    PropertyService <-->|Publish/Consume| RabbitMQ
+    BookingService <-->|Publish/Consume| RabbitMQ
+    PaymentService <-->|Publish/Consume| RabbitMQ
+    
+    %% Aspire
+    Aspire -.->|Inject Env/Config| Microservices

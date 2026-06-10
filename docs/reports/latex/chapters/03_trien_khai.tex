@@ -1,0 +1,110 @@
+% ============================================================
+%  CHƯƠNG III: TRIỂN KHAI HỆ THỐNG
+% ============================================================
+\chapter{TRIỂN KHAI HỆ THỐNG}
+\label{chap:trien_khai}
+
+% ────────────────────────────────────────────────────────────
+\section{Môi trường và công nghệ triển khai}
+\label{sec:moi_truong_cong_nghe}
+
+%
+% REQUIREMENT (từ main.md – Chương III, mục 1):
+%   Trình bày chi tiết stack công nghệ được sử dụng:
+%
+%   a) Ngôn ngữ & Framework:
+%      - Backend : .NET 9 / C# – FastEndpoints + Mediator (CQRS)
+%      - Frontend: React + TypeScript – Vite / Next.js
+%                  (TanStack Query, Zustand, ShadCN/UI)
+%      - ORM     : Entity Framework Core + EF Migrations
+%
+%   b) Cơ sở hạ tầng:
+%      - Database       : PostgreSQL (per service)
+%      - Search         : Elasticsearch (qua Debezium CDC)
+%      - Message Broker : Apache Kafka + Zookeeper
+%      - CDC            : Debezium
+%      - Container      : Docker + Docker Compose
+%      - Service Discovery: .NET Aspire
+%      - API Gateway    : YARP (Yet Another Reverse Proxy)
+%
+%   c) Môi trường chạy:
+%      - OS   : Ubuntu Server / Fedora (ghi rõ phiên bản)
+%      - Docker Engine: (ghi rõ phiên bản)
+%      - .NET SDK      : (ghi rõ phiên bản)
+%      - Node.js       : (ghi rõ phiên bản)
+%
+%   d) Công cụ phát triển:
+%      - IDE           : JetBrains Rider / VS Code
+%      - API Testing   : Scalar / Swagger UI
+%      - Version Control: Git + GitHub
+%
+
+\placeholder{Trình bày bảng môi trường và phiên bản công nghệ tại đây.}
+
+% ────────────────────────────────────────────────────────────
+\section{Kết quả triển khai các chức năng chính}
+\label{sec:ket_qua_trien_khai}
+
+%
+% REQUIREMENT (từ main.md – Chương III, mục 2):
+%   Trình bày kết quả từng nhóm chức năng kèm ảnh demo thực tế:
+%
+%   a) Xác thực & Tài khoản:
+%      - Screenshot giao diện Đăng ký / Đăng nhập.
+%      - Kết quả API trả về JWT token (Postman/Scalar).
+%
+%   b) Quản lý bất động sản (Host):
+%      - Giao diện Đăng tin / Chỉnh sửa bất động sản.
+%      - Kết quả lưu DB + đồng bộ Elasticsearch (log Debezium/Kafka).
+%
+%   c) Tìm kiếm & Đặt phòng (Guest):
+%      - Giao diện tìm kiếm (full-text + filter).
+%      - Luồng đặt phòng: từ chọn ngày đến tạo Booking (Pending).
+%      - Screenshot trạng thái Booking trong DB.
+%
+%   d) Thanh toán & Hoàn tiền:
+%      - Demo luồng thanh toán (nếu có tích hợp Payment Gateway).
+%      - Log xử lý bất đồng bộ qua Kafka Consumer.
+%
+%   e) Đánh giá & Tin nhắn:
+%      - Giao diện Review / Rating.
+%      - Giao diện Chat real-time (nếu có).
+%
+%   Hướng dẫn đưa hình ảnh vào báo cáo:
+%     \begin{figure}[H]
+%       \centering
+%       \includegraphics[width=0.9\textwidth]{figures/ten_hinh.png}
+%       \caption{Mô tả hình ảnh}
+%       \label{fig:ten_nhan}
+%     \end{figure}
+%
+
+\placeholder{Trình bày kết quả demo từng chức năng kèm ảnh chụp màn hình tại đây.}
+
+% ────────────────────────────────────────────────────────────
+\section{Đánh giá kết quả thực nghiệm}
+\label{sec:danh_gia_thuc_nghiem}
+
+%
+% REQUIREMENT (từ main.md – Chương III, mục 3):
+%   Đánh giá đối chiếu thiết kế – thực tế:
+%
+%   a) Ma trận đối chiếu Use Case vs. Kết quả:
+%      - Lập bảng: Mã UC | Tên UC | Trạng thái (✓ Hoàn thành / △ Một phần / ✗ Chưa có)
+%      - Tỷ lệ hoàn thành tổng thể (%).
+%
+%   b) Đánh giá hiệu năng (nếu có đo):
+%      - Response time trung bình các API chính (ms).
+%      - Throughput (req/s) trong điều kiện thử nghiệm.
+%      - Công cụ đo: k6 / JMeter / ApacheBench.
+%
+%   c) Đánh giá tính nhất quán dữ liệu:
+%      - Kiểm tra Outbox Pattern hoạt động đúng không.
+%      - Dữ liệu đồng bộ từ PostgreSQL → Elasticsearch qua Debezium có chính xác không.
+%
+%   d) Đánh giá bảo mật cơ bản:
+%      - JWT được validate đúng chưa.
+%      - Endpoint có được bảo vệ đúng role chưa.
+%
+
+\placeholder{Trình bày bảng đánh giá thực nghiệm và kết quả đo lường tại đây.}

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Client
+    participant BookingService
+    participant RabbitMQ
+    participant PaymentService
+    
+    Client->>BookingService: 1. Request Checkout
+    BookingService->>BookingService: 2. Create Pending Booking
+    BookingService->>RabbitMQ: 3. Publish BookingCreatedEvent
+    RabbitMQ-->>PaymentService: 4. Consume Event
+    PaymentService->>PaymentService: 5. Create Payment Session
+    PaymentService->>Client: 6. Return Checkout URL
+    
+    Client->>PaymentService: 7. Complete Payment (Gateway Webhook)
+    PaymentService->>RabbitMQ: 8. Publish PaymentCompletedEvent
+    RabbitMQ-->>BookingService: 9. Consume Event
+    BookingService->>BookingService: 10. Update Booking = Confirmed

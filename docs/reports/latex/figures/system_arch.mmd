@@ -1,0 +1,21 @@
+%%{init: {'theme': 'base', 'look': 'handDrawn'}}%%
+graph TD
+    Client["React Frontend"] --> GW["YARP Gateway"]
+    
+    GW --> SS["Search Service"]
+    GW --> PS["Property Service"]
+    GW --> BS["Booking Service"]
+    GW --> Pay["Payment Service"]
+    GW --> CS["Chat Service"]
+    
+    SS --> ES[("Elasticsearch")]
+    
+    PS --> PDB[("Property DB")]
+    BS --> BDB[("Booking DB")]
+    Pay --> PayDB[("Payment DB")]
+    
+    CS --> CDB[("Chat DB")]
+    
+    %% Async Data Flows
+    PDB -.->|Debezium CDC| Kafka{{"Kafka"}}
+    Kafka -.->|Sync| SS

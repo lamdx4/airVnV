@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant PropSvc as Property Service
+    participant DB as PostgreSQL (propdb)
+    participant Kafka as Debezium & Kafka
+    participant SearchSvc as Search Service
+    participant ES as Elasticsearch
+
+    PropSvc->>DB: 1. Lưu/Cập nhật Bất động sản
+    DB-->>Kafka: 2. Bắt log thay đổi mức hạ tầng (WAL)
+    Kafka-->>SearchSvc: 3. Truyền luồng sự kiện (Stream Event)
+    SearchSvc->>ES: 4. Cập nhật dữ liệu Tìm kiếm

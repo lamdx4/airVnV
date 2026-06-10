@@ -1,0 +1,54 @@
+% ============================================================
+%  CHƯƠNG IV: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+% ============================================================
+\chapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+\label{chap:ket_luan}
+
+% ────────────────────────────────────────────────────────────
+\section{Những kết quả đã đạt được}
+\label{sec:ket_qua_dat_duoc}
+
+%
+% REQUIREMENT (từ main.md – Chương IV, mục 1):
+%   - Đối chiếu trực tiếp với mục tiêu đã đặt ra ở Chương I, mục 1.2.
+%   - Đối chiếu với các tiêu chí thiết kế ở Chương II.
+%   - Trình bày dưới dạng bảng tổng kết:
+%       Mục tiêu ban đầu | Kết quả đạt được | Mức độ hoàn thành (%)
+%   - Nhấn mạnh các điểm kỹ thuật nổi bật:
+%       + Kiến trúc Microservices với .NET Aspire Service Discovery.
+%       + CQRS sạch với Mediator (ICommand / IQuery).
+%       + Transactional Outbox đảm bảo data consistency.
+%       + CDC Debezium đồng bộ real-time sang Elasticsearch.
+%       + YARP API Gateway là single entry point.
+%   - Kết luận ngắn: Hệ thống có đáp ứng được bài toán đặt ra không?
+%
+
+\placeholder{Trình bày tổng kết kết quả đạt được tại đây.}
+
+% ────────────────────────────────────────────────────────────
+\section{Hạn chế và hướng phát triển}
+\label{sec:han_che_huong_phat_trien}
+
+%
+% REQUIREMENT (từ main.md – Chương IV, mục 2):
+%   a) Hạn chế hiện tại (Technical Debt – cần thẳng thắn):
+%      - Chưa triển khai được tính năng nào? Lý do?
+%      - Hiệu năng chưa được tối ưu ở điểm nào?
+%      - Bảo mật còn thiếu sót gì (ví dụ: rate limiting, OWASP...)?
+%      - Monitoring & Observability chưa có (Prometheus, Grafana, Jaeger)?
+%
+%   b) Hướng phát triển ngắn hạn (3–6 tháng):
+%      - Cấu hình Auto-scaling (Kubernetes HPA) cho các service tải cao.
+%      - Bổ sung Distributed Tracing (OpenTelemetry + Jaeger).
+%      - Tích hợp Payment Gateway thật (VNPay / Stripe).
+%      - Bổ sung Push Notification (FCM).
+%
+%   c) Hướng phát triển dài hạn (>6 tháng):
+%      - Áp dụng Saga Pattern (Choreography/Orchestration) cho luồng
+%        Booking → Payment → Confirmation phức tạp hơn.
+%      - Multi-region deployment để giảm latency.
+%      - Machine Learning: Gợi ý bất động sản theo hành vi người dùng.
+%      - Mobile App (React Native / Flutter).
+%
+
+\placeholder{Trình bày hạn chế và hướng phát triển tại đây.}

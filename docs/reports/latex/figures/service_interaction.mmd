@@ -1,0 +1,33 @@
+sequenceDiagram
+    autonumber
+    
+    participant Client as React App
+    participant PropSvc as Property Service
+    participant DB as PostgreSQL (WAL)
+    participant Kafka as Kafka / Debezium
+    participant SearchSvc as Search Service
+    
+    participant BookSvc as Booking Service
+    participant RMQ as RabbitMQ
+    participant PaySvc as Payment Service
+
+    rect rgb(255, 243, 224)
+    note right of PropSvc: [Luồng 1] Đồng bộ Dữ liệu Tìm kiếm (CDC)
+    PropSvc->>DB: Lưu/Cập nhật thông tin phòng
+    DB-->>Kafka: Bắt log thay đổi qua Debezium
+    Kafka-->>SearchSvc: Truyền Stream Event
+    SearchSvc->>SearchSvc: Cập nhật Elasticsearch
+    end
+
+    rect rgb(227, 242, 253)
+    note right of Client: [Luồng 2] Giao dịch Đặt phòng & Thanh toán (Saga)
+    Client->>BookSvc: Yêu cầu đặt phòng
+    BookSvc->>RMQ: Phát sự kiện BookingCreatedEvent
+    RMQ-->>PaySvc: Nhận sự kiện
+    PaySvc->>Client: Cấp Payment Session URL
+    
+    Client->>PaySvc: Webhook báo thanh toán thành công
+    PaySvc->>RMQ: Phát sự kiện PaymentCompletedEvent
+    RMQ-->>BookSvc: Nhận sự kiện
+    BookSvc->>BookSvc: Chuyển trạng thái sang Confirmed
+    end

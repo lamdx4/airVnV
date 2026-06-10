@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Handler
+    participant DB as PostgreSQL
+    participant Worker as Outbox Worker
+    participant Broker as Message Broker (RabbitMQ/Kafka)
+    
+    Handler->>DB: 1. Begin Transaction
+    Handler->>DB: 2. Insert Business Data (e.g. Booking)
+    Handler->>DB: 3. Insert OutboxMessage (Event)
+    Handler->>DB: 4. Commit Transaction
+    
+    loop Background Process
+        Worker->>DB: 5. Read Pending Messages
+        Worker->>Broker: 6. Publish Event
+        Worker->>DB: 7. Mark as Processed
+    end
