@@ -26,7 +26,14 @@ public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Respon
     {
         Post("/api/admin/payments/{id}/refund");
         AllowAnonymous();
-        Summary(s => s.Summary = "Admin: refund a payment (full or partial).");
+        Summary(s =>
+        {
+            s.Summary = "Admin: refund a payment (full or partial).";
+            s.Description = "**Possible error codes:**\n- `NOT_FOUND` — payment does not exist\n- `REFUND_AMOUNT_INVALID` — refund amount exceeds remaining refundable balance\n- `REFUND_INVALID_STATE` — payment is not in a refundable state";
+            s.Responses[200] = "Refund issued";
+            s.Responses[400] = "Business rule violation";
+            s.Responses[404] = "Payment not found";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
