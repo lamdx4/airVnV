@@ -1,0 +1,38 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    ChatUser {
+        uuid UserId PK
+        string DisplayName
+        string AvatarUrl "Đồng bộ từ UserService"
+    }
+    
+    Conversation {
+        uuid Id PK
+        uuid PropertyId "Soft-link tới Property DB"
+        string PropertyTitle "Snapshot"
+        uuid ReservationId "Soft-link tới Booking DB (Nullable)"
+        datetime LastMessageAt
+        datetime CreatedAt
+    }
+    
+    ConversationParticipant {
+        uuid ConversationId PK, FK
+        uuid UserId PK, FK
+        string Role "Enum: Host, Guest"
+        uuid LastReadMessageId "Nullable"
+        boolean IsArchived
+    }
+    
+    Message {
+        uuid Id PK "UUIDv7 (Time-sorted)"
+        uuid ConversationId FK
+        uuid SenderId "Soft-link (Nullable) - Null = System"
+        string MessageType "Enum: Text, Image, File"
+        string Content
+        datetime CreatedAt
+    }
+
+    ChatUser ||--o{ ConversationParticipant : "Tham gia"
+    Conversation ||--|{ ConversationParticipant : "Bao gồm"
+    Conversation ||--o{ Message : "Chứa"
+    ChatUser ||--o{ Message : "Gửi"
