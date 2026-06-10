@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Airbnb.ServiceDefaults.Infrastructure;
 using Airbnb.SharedKernel.Domain;
 using Airbnb.UserService.Domain.Events;
+using Airbnb.UserService.Domain.States;
 
 namespace Airbnb.UserService.Domain;
 
@@ -103,32 +104,26 @@ public class User : AggregateRoot
         Raise(new UserProfileUpdatedDomainEvent(Id, fullName, avatarUrl));
     }
 
-    public void Suspend(string reason)
+    // State pattern: each transition is delegated to the IUserStatusState
+    // matching the current Status. Invalid transitions throw from the state.
+    public void Suspend(string reason) => UserStatusStateFactory.For(Status).Suspend(this, reason);
+    public void Ban(string reason) => UserStatusStateFactory.For(Status).Ban(this, reason);
+    public void Activate() => UserStatusStateFactory.For(Status).Activate(this);
+
+    internal void MarkSuspended(string reason)
     {
-        if (Status is not UserStatus.Active)
-            throw new BusinessException("Only active users can be suspended.", "INVALID_STATUS_TRANSITION");
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new BusinessException("Suspension reason is required.", "REASON_REQUIRED");
         Status = UserStatus.Suspended;
         SuspensionReason = reason;
     }
 
-    public void Ban(string reason)
+    internal void MarkBanned(string reason)
     {
-        if (Status is UserStatus.Banned)
-            throw new BusinessException("User is already banned.", "USER_ALREADY_BANNED");
-        if (Status is not (UserStatus.Active or UserStatus.Suspended))
-            throw new BusinessException("Cannot ban a user with current status.", "INVALID_STATUS_TRANSITION");
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new BusinessException("Ban reason is required.", "REASON_REQUIRED");
         Status = UserStatus.Banned;
         BanReason = reason;
     }
 
-    public void Activate()
+    internal void MarkActive()
     {
-        if (Status is not (UserStatus.Suspended or UserStatus.Banned))
-            throw new BusinessException("Only suspended or banned users can be activated.", "INVALID_STATUS_TRANSITION");
         Status = UserStatus.Active;
         SuspensionReason = null;
         BanReason = null;

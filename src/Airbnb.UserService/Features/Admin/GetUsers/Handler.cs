@@ -1,7 +1,6 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.UserService.Infrastructure;
-using Airbnb.UserService.Domain;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.GetUsers;
@@ -11,42 +10,15 @@ public sealed class GetUsersHandler(UserDbContext db)
 {
     public async Task<ApiResponse<PaginatedUserListResponse>> ExecuteAsync(Request req, CancellationToken ct)
     {
-        var query = db.Users
-            .AsNoTracking()
-            .Include(u => u.Profile)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(req.Search))
-        {
-            var search = req.Search.ToLower();
-            query = query.Where(u =>
-                u.Email.ToLower().Contains(search) ||
-                u.Profile.FullName.ToLower().Contains(search));
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Role) && Enum.TryParse<UserRole>(req.Role, true, out var role))
-        {
-            query = query.Where(u => u.Role == role);
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Status) && Enum.TryParse<UserStatus>(req.Status, true, out var status))
-        {
-            query = query.Where(u => u.Status == status);
-        }
-
-        var sortBy = req.SortBy ?? "CreatedAt";
-        var sortOrder = req.SortOrder ?? "asc";
-
-        query = sortBy.ToLower() switch
-        {
-            "email" => sortOrder == "desc" ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email),
-            "fullname" => sortOrder == "desc" ? query.OrderByDescending(u => u.Profile.FullName) : query.OrderBy(u => u.Profile.FullName),
-            "role" => sortOrder == "desc" ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role),
-            "status" => sortOrder == "desc" ? query.OrderByDescending(u => u.Status) : query.OrderBy(u => u.Status),
-            "createdat" => sortOrder == "desc" ? query.OrderByDescending(u => u.CreatedAt) : query.OrderBy(u => u.CreatedAt),
-            "lastloginat" => sortOrder == "desc" ? query.OrderByDescending(u => u.LastLoginAt) : query.OrderBy(u => u.LastLoginAt),
-            _ => sortOrder == "desc" ? query.OrderByDescending(u => u.CreatedAt) : query.OrderBy(u => u.CreatedAt),
-        };
+        // Builder Pattern: orchestrate filter + sort thành một câu fluent.
+        // Handler không còn chứa logic xây query — chỉ điều phối.
+        var query = new UserQueryBuilder(
+                db.Users.AsNoTracking().Include(u => u.Profile))
+            .WithSearch(req.Search)
+            .WithRole(req.Role)
+            .WithStatus(req.Status)
+            .OrderBy(req.SortBy, req.SortOrder)
+            .Build();
 
         var totalCount = await query.CountAsync(ct);
 

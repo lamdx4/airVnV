@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Airbnb.PaymentService.Domain;
 using Airbnb.ServiceDefaults.Infrastructure;
+using Airbnb.SharedKernel.Reports;
 
 namespace Airbnb.PaymentService.Features.Admin.Reports.GetRevenueSeries;
 
@@ -30,7 +31,7 @@ public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<List<
         var to = DateOnly.Parse(req.To);
         var fromStart = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var toEnd = new DateTimeOffset(to.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
-        var groupBy = (req.GroupBy ?? "day").ToLowerInvariant();
+        var bucket = BucketStrategyFactory.For(req.GroupBy);
         var currencyFilter = req.Currency?.ToUpperInvariant();
 
         var gmvStatuses = new[] { PaymentStatus.Success, PaymentStatus.Refunded, PaymentStatus.PartiallyRefunded };
@@ -55,14 +56,14 @@ public class Endpoint(PaymentDbContext db) : Endpoint<Request, ApiResponse<List<
             .ToListAsync(ct);
 
         var gmvByBucket = payments
-            .GroupBy(p => ReportBucketing.BucketKey(DateOnly.FromDateTime(p.CreatedAt.UtcDateTime), groupBy))
+            .GroupBy(p => bucket.Key(DateOnly.FromDateTime(p.CreatedAt.UtcDateTime)))
             .ToDictionary(g => g.Key, g => (Total: g.Sum(x => x.Amount), Count: g.Count()));
 
         var netByBucket = payouts
-            .GroupBy(p => ReportBucketing.BucketKey(DateOnly.FromDateTime(p.CompletedAt!.Value.UtcDateTime), groupBy))
+            .GroupBy(p => bucket.Key(DateOnly.FromDateTime(p.CompletedAt!.Value.UtcDateTime)))
             .ToDictionary(g => g.Key, g => g.Sum(x => x.PlatformFee));
 
-        var buckets = ReportBucketing.GenerateBuckets(from, to, groupBy);
+        var buckets = bucket.GenerateBuckets(from, to);
         var result = buckets.Select(b =>
         {
             gmvByBucket.TryGetValue(b.Key, out var gmv);
