@@ -1,33 +1,26 @@
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using Airbnb.PropertyService.Infrastructure;
-using Airbnb.PropertyService.Domain.Enums;
+using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PropertyService.Features.Admin.Reports.GetTypeDistribution;
 
-public record TypeCount(string Type, int Count);
-
-public class Endpoint(AppDbContext db) : EndpointWithoutRequest<ApiResponse<List<TypeCount>>>
+public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<List<TypeCount>>>
 {
     public override void Configure()
     {
         Get("/api/properties/admin/reports/type-distribution");
         AllowAnonymous();
-        Summary(s => s.Summary = "Admin: property counts grouped by type");
+        Summary(s =>
+        {
+            s.Summary = "Admin: property counts grouped by type";
+            s.Description = "No error codes. Read-only aggregate.";
+            s.Responses[200] = "Type distribution retrieved";
+        });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var counts = await db.Properties.AsNoTracking()
-            .GroupBy(p => p.Type)
-            .Select(g => new { g.Key, Count = g.Count() })
-            .ToListAsync(ct);
-
-        var result = Enum.GetValues<PropertyType>()
-            .Select(t => new TypeCount(t.ToString(), counts.FirstOrDefault(c => c.Key == t)?.Count ?? 0))
-            .ToList();
-
-        await Send.ResponseAsync(ApiResponse<List<TypeCount>>.SuccessResult(result), cancellation: ct);
+        var result = await mediator.Send(req, ct);
+        Response = ApiResponse<List<TypeCount>>.SuccessResult(result);
     }
 }
