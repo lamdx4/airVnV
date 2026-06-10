@@ -11,6 +11,20 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Post("/api/conversations/{ConversationId}/messages");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Gửi tin nhắn vào cuộc trò chuyện";
+            s.Description = @"
+**Error Codes:**
+- **`CHAT_ACCESS_DENIED`**: Bạn không tham gia cuộc trò chuyện này.
+- **`CHAT_INVALID_MESSAGE_TYPE`**: Loại tin nhắn không hợp lệ.
+- **`CHAT_SYSTEM_MESSAGE_FORBIDDEN`**: Không thể gửi tin nhắn hệ thống.
+- **`NOT_FOUND`**: Không tìm thấy Conversation.
+";
+            s.Responses[200] = "Thành công. Trả về tin nhắn đã gửi.";
+            s.Responses[400] = "Lỗi nghiệp vụ.";
+            s.Responses[404] = "Không tìm thấy dữ liệu liên quan.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

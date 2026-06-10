@@ -11,6 +11,16 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Patch("/api/conversations/{ConversationId}/archive");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Lưu trữ (Archive) cuộc trò chuyện";
+            s.Description = @"
+**Error Codes:**
+- **`CHAT_ACCESS_DENIED`**: Bạn không tham gia cuộc trò chuyện này.
+";
+            s.Responses[200] = "Archive thành công.";
+            s.Responses[400] = "Lỗi nghiệp vụ.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
