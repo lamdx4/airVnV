@@ -6,7 +6,8 @@
 
 * **Geo-Spatial Search:** Properties are indexed with geographic coordinates. Users can search for properties within a specific radius of a location (e.g., "Properties within 5km of Hanoi").
 * **Pre-Aggregation:** Calculating ratings or aggregating amenities on-the-fly is expensive. This service expects data to be pre-calculated and flattened into documents.
-* **Eventual Consistency (CDC):** This service does NOT manage its own writes from users. Instead, it passively consumes a Change Data Capture (CDC) stream (via Debezium and Kafka) from the `PropertyService`'s Postgres database.
+* **Media Decoupling (Hydration):** This service **DOES NOT** store property images or heavy media. Elasticsearch only returns raw IDs and text metadata. The frontend performs a secondary "Join/Hydration" call to `PropertyService` to load images.
+* **Eventual Consistency (CDC):** This service does NOT manage its own writes from users. Instead, it passively consumes a Change Data Capture (CDC) stream (via Debezium and Kafka) from the `PropertyService`'s Postgres database (strictly excluding image tables).
 
 ## 🗄️ Database Schema (Elasticsearch)
 
@@ -14,7 +15,7 @@ Instead of relational tables, this service uses **Elasticsearch Documents**.
 
 | Index Name | Description |
 |------------|-------------|
-| `properties` | Flat document containing ID, Title, Geo-Point (Lat/Lng), Pricing, Pre-calculated Ratings, and Property Type. Optimized for rapid filtering and radius querying. |
+| `properties` | Flat document containing ID, Title, Geo-Point (Lat/Lng), Pricing, Pre-calculated Ratings, and Property Type. Optimized for rapid filtering and radius querying. Note: `ThumbnailUrl` and media fields have been intentionally removed. |
 
 ## 🔌 API Endpoints (FastEndpoints)
 

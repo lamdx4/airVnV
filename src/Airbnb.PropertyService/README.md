@@ -293,3 +293,5 @@ erDiagram
 | **POST** | `/api/properties` | Create a new property listing with images (Atomic) |
 | **POST** | `/api/properties/{propertyId}/archive` | Host archives property (Published\|Suspended → Archived) |
 | **POST** | `/api/properties/{propertyId}/approve` | Admin approve property (PendingReview → Published) |
+| **GET** | `/api/properties/bulk` | (MỚI) Get basic property info + images by IDs (Dùng cho Search Hydration) |
+| **GET** | `/api/properties/public` | (MỚI) Get paginated public properties + images (Dùng cho Home Page) |

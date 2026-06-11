@@ -44,6 +44,7 @@ To understand the deeper business logic and architectural decisions, refer to th
 | **Chat Service**      | [`src/Airbnb.ChatService`](./src/Airbnb.ChatService) | [Chat Domain & Endpoints](./src/Airbnb.ChatService/README.md) |
 | **User Service**      | [`src/Airbnb.UserService`](./src/Airbnb.UserService) | [Identity Domain & Endpoints](./src/Airbnb.UserService/README.md) |
 | **React Frontend**    | [`airbnb-web/`](./airbnb-web) | [Frontend Architecture Rules](./.agents/rules/frontend.md) |
+| **Admin Web Panel**   | [`airbnb-admin/`](./airbnb-admin) | [Admin Architecture & Features](./airbnb-admin/README.md) |
 | **Engineering Rules** | `.agents/rules/` | [Backend Rules](./.agents/rules/backend.md) 🔹 [Project Rules](./.agents/rules/project.md) |
 
 ## Tech Stack
@@ -74,6 +75,7 @@ To understand the deeper business logic and architectural decisions, refer to th
 ### 2. Search & Discovery (Search Service)
 * **Geo-Spatial Search:** Leverages Elasticsearch `geo_point` to find properties within a specific coordinate radius.
 * **Read-Model Optimization:** Search queries never hit the transactional DB. Data is synchronized in near real-time via CDC, guaranteeing O(1) response times for complex filters.
+* **Hybrid Data Hydration:** Elasticsearch holds only lightweight text/geo data to ensure blindingly fast searches. Heavy media (like property image URLs) are hydrated dynamically on the frontend via a separate call to the Property Service `/bulk` endpoint.
 
 ### 3. Booking & Reservations (Booking Service)
 * **Reservation Workflow:** Manages atomic state transitions for bookings (`Pending` -> `Confirmed` -> `Cancelled`).

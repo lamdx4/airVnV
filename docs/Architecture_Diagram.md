@@ -39,8 +39,9 @@ graph LR
 ## Giải thích luồng cơ bản
 
 1. **Trục dọc (Microservices & DB độc lập):** `API Gateway` điều phối request. Các service đều sở hữu DB độc lập. `Payment Service` tích hợp với VNPay.
-2. **Luồng Kafka Data Sync (CDC):** Khi `DB Property` thay đổi, **Debezium CDC** sẽ bắt thay đổi dưới tầng database và đẩy vào cụm **Kafka Topic (CDC)**. `Search Service` sẽ consume topic này để nạp thẳng vào Elasticsearch (Đảm bảo đồng bộ 1-1 không rườm rà logic).
+2. **Luồng Kafka Data Sync (CDC):** Khi `DB Property` thay đổi, **Debezium CDC** sẽ bắt thay đổi dưới tầng database và đẩy vào cụm **Kafka Topic (CDC)**. `Search Service` sẽ consume topic này để nạp thẳng vào Elasticsearch. Lưu ý: **Media (Images) KHÔNG được đồng bộ qua CDC** để tránh phình to Payload Kafka và Index của ES. Elasticsearch chỉ chứa dữ liệu text và geo-spatial.
 3. **Luồng Kafka Domain Events:** Khi thanh toán xong, `Payment Service` chủ động bắn một sự kiện nghiệp vụ (`PaymentSuccess`) vào cụm **Kafka Topic (Domain Events)**. `Booking Service` lắng nghe topic này để cập nhật trạng thái chốt phòng. Sự phân tách topic giúp hệ thống rạch ròi giữa việc "Đồng bộ dữ liệu" và "Giao tiếp nghiệp vụ".
+4. **Chiến lược Hybrid Hydration (Frontend Composition):** Do Elasticsearch không chứa Images, Frontend sau khi gọi API `/search` để lấy danh sách Property ID, sẽ thực hiện tiếp một lời gọi `/bulk` sang `Property Service` để **Hydrate** (lắp ghép) hình ảnh chất lượng cao vào thẻ phòng trước khi hiển thị.
 
 ---
 

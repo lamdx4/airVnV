@@ -14,13 +14,14 @@ Thiết lập luồng tự động đồng bộ dữ liệu từ Postgres (`prop
 
 ## Đầu vào
 - Binlog từ Postgres (via Debezium).
-- Kafka Topic: `dbserver1.public.properties`.
+- Kafka Topic: `airbnb.public.properties` (Lưu ý: Không subscribe topic `property_images` nữa).
 
 ## Đầu ra
-- Dữ liệu trong Elasticsearch luôn khớp với Postgres.
+- Dữ liệu text/geo-spatial trong Elasticsearch luôn khớp với Postgres.
+- (MỚI) Frontend sẽ tự hydrate hình ảnh qua `/bulk` API thay vì bắt ES lưu hình ảnh.
 
 ## Ưu tiên
-Medium
+Medium (Đã hoàn thành và refactor Hybrid Hydration)
 
 ## Ước lượng
 3 days
