@@ -11,6 +11,16 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Get("/api/conversations/{ConversationId}/messages");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Lấy danh sách tin nhắn của cuộc trò chuyện";
+            s.Description = @"
+**Error Codes:**
+- **`CHAT_ACCESS_DENIED`**: Bạn không tham gia cuộc trò chuyện này.
+";
+            s.Responses[200] = "Thành công. Trả về danh sách tin nhắn.";
+            s.Responses[400] = "Lỗi nghiệp vụ.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

@@ -1,0 +1,64 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    Property {
+        uuid Id PK
+        uuid HostId "Soft-link tới User DB"
+        string Title
+        string Description
+        string Slug
+        float Latitude
+        float Longitude
+        string CountryCode
+        jsonb AddressRaw "Complex Type"
+        jsonb Pricing "Complex Type"
+        jsonb Capacity "Complex Type"
+        jsonb HouseRules "Complex Type"
+        string Status "Enum: Draft, Published, Suspended"
+        int ReviewCount
+        decimal AverageRating
+    }
+    
+    PropertyImage {
+        uuid Id PK
+        uuid PropertyId FK
+        string Url
+        string Type "Enum: Cover, Gallery"
+        int DisplayOrder
+    }
+    
+    Amenity {
+        uuid Id PK
+        string Name
+        string Icon
+        string CategoryId
+    }
+    
+    PropertyAmenity {
+        uuid PropertyId PK, FK
+        uuid AmenityId PK, FK
+        string AdditionalInfo
+    }
+    
+    PropertyAvailability {
+        uuid Id PK
+        uuid PropertyId FK
+        date StartDate
+        date EndDate
+        string Type "Enum: Blocked, Booked"
+    }
+    
+    Review {
+        uuid Id PK
+        uuid PropertyId FK
+        uuid BookingId "Soft-link tới Booking DB"
+        uuid GuestId "Soft-link tới User DB"
+        int Rating
+        string Comment
+        datetime CreatedAt
+    }
+
+    Property ||--|{ PropertyImage : "Có"
+    Property ||--o{ PropertyAmenity : "Có tiện ích"
+    Amenity ||--o{ PropertyAmenity : "Thuộc"
+    Property ||--o{ PropertyAvailability : "Lịch trống"
+    Property ||--o{ Review : "Được đánh giá"

@@ -11,6 +11,15 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Get("/api/conversations");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Lấy danh sách hộp thoại (Inbox)";
+            s.Description = @"
+**Error Codes:**
+- *(Không có lỗi nghiệp vụ cụ thể)*
+";
+            s.Responses[200] = "Thành công. Trả về danh sách cuộc trò chuyện.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

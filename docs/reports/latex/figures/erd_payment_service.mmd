@@ -1,0 +1,70 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    Payment {
+        uuid Id PK
+        uuid BookingId FK
+        decimal Amount
+        string Currency
+        string Status "Enum: Pending, Success, Failed, Refunded"
+        string TransactionId
+        string PaymentUrl
+        datetime ExpiresAt
+        datetime CreatedAt
+    }
+
+    HostBalance {
+        uuid Id PK
+        uuid HostId FK
+        string Currency
+        decimal PendingBalance
+        decimal AvailableBalance
+        datetime UpdatedAt
+    }
+
+    BalanceEntry {
+        uuid Id PK
+        uuid HostId FK
+        string Currency
+        string Type "Enum: Received, CheckedOut, PayoutApproved"
+        decimal PendingDelta
+        decimal AvailableDelta
+        uuid PaymentId FK "Nullable"
+        uuid PayoutId FK "Nullable"
+        uuid BookingId FK "Nullable"
+        string Note
+        datetime CreatedAt
+    }
+
+    Payout {
+        uuid Id PK
+        uuid HostId FK
+        decimal TotalEarnings
+        decimal PlatformFee
+        decimal PayoutAmount
+        string Currency
+        string Status "Enum: Pending, Approved, Completed, Failed"
+        int ItemCount
+        uuid ApprovedBy "Nullable"
+        datetime ApprovedAt "Nullable"
+        datetime CompletedAt "Nullable"
+        datetime CreatedAt
+    }
+
+    PayoutItem {
+        uuid Id PK
+        uuid PayoutId FK
+        uuid BookingId FK
+        uuid PaymentId FK
+        decimal BookingTotal
+        decimal ServiceFee
+        decimal HostEarning
+        date CheckIn
+        date CheckOut
+        string PropertyTitle
+        string GuestName
+    }
+
+    HostBalance ||--o{ BalanceEntry : "Được tính toán từ"
+    Payout ||--o{ PayoutItem : "Bao gồm"
+    BalanceEntry }o--o| Payment : "Ghi nhận từ (Tùy chọn)"
+    BalanceEntry }o--o| Payout : "Ghi nhận từ (Tùy chọn)"

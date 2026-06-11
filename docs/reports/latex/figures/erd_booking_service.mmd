@@ -1,0 +1,29 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    Booking {
+        uuid Id PK
+        uuid PropertyId "Soft-link tới Property DB"
+        uuid HostId "Soft-link tới User DB"
+        uuid GuestId "Soft-link tới User DB"
+        string CountryCode
+        string BookingMode "InstantBook / RequestToBook"
+        date CheckIn
+        date CheckOut
+        int GuestCount
+        int NightCount
+        decimal BasePricePerNight
+        decimal CleaningFee
+        decimal ServiceFee
+        decimal TaxAmount
+        decimal TotalPrice
+        string CurrencyCode
+        string Status "Enum: Pending, AwaitingApproval, Confirmed, Cancelled"
+        uuid CancelledBy "Nullable"
+        datetime CreatedAt
+    }
+
+    ProcessedEvent {
+        uuid EventId PK "Idempotency Key"
+        string EventType
+        datetime ProcessedAt
+    }

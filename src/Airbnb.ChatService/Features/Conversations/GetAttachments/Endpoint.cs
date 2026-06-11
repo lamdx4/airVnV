@@ -10,6 +10,17 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Get("/api/conversations/{ConversationId}/attachments");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Lấy danh sách file đính kèm / hình ảnh";
+            s.Description = @"
+**Error Codes:**
+- **`CHAT_FORBIDDEN`**: Bạn không tham gia cuộc trò chuyện này.
+- **`INVALID_ATTACHMENT_TYPE`**: Loại attachment không hợp lệ (phải là Image hoặc File).
+";
+            s.Responses[200] = "Thành công.";
+            s.Responses[400] = "Lỗi nghiệp vụ.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
