@@ -69,5 +69,8 @@
 \contentsline {section}{\numberline {3.3}Đánh giá kết quả thực nghiệm}{60}{section.3.3}%
 \contentsline {chapter}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{61}{chapter.4}%
 \contentsline {section}{\numberline {4.1}Những kết quả đã đạt được}{61}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{61}{section.4.2}%
-\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{62}{chapter.A}%
+\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{62}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Hạn chế hiện tại}{62}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Hướng phát triển ngắn hạn (3--6 tháng)}{63}{subsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}Hướng phát triển dài hạn (>6 tháng)}{63}{subsection.4.2.3}%
+\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{65}{chapter.A}%
