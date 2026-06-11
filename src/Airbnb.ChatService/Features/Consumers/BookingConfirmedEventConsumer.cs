@@ -30,8 +30,11 @@ public class BookingConfirmedEventConsumer(
                 c.Participants.Any(p => p.UserId == message.UserId && p.Role == ParticipantRole.Guest), 
                 context.CancellationToken);
 
+        bool isNewConversation = false;
+
         if (conversation == null)
         {
+            isNewConversation = true;
             logger.LogInformation("Instant Book detected for Property {PropertyId}, creating new conversation...", message.PropertyId);
             
             // 1. Fetch Property Info to get Title & HostId
@@ -106,7 +109,7 @@ public class BookingConfirmedEventConsumer(
         }
 
         // Kiểm tra tránh trùng lặp event (Idempotency)
-        if (conversation.ReservationId == message.BookingId)
+        if (!isNewConversation && conversation.ReservationId == message.BookingId)
         {
             logger.LogInformation("Booking {BookingId} already confirmed for conversation {ConversationId}. Skipping duplicate event.", message.BookingId, conversation.Id);
             return;
@@ -121,7 +124,7 @@ public class BookingConfirmedEventConsumer(
             ConversationId = conversation.Id,
             SenderId = null, // System Message
             MessageType = MessageType.System,
-            Content = $" Booking confirmed! {message.CheckIn:MMM dd} - {message.CheckOut:MMM dd, yyyy} • ${message.TotalPrice} 🎉",
+            Content = $" Booking confirmed! {message.CheckIn:MMM dd} - {message.CheckOut:MMM dd, yyyy} • {message.TotalPrice:N0}₫ 🎉",
         };
 
         db.Messages.Add(systemMsg);
