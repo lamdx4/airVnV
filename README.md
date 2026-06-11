@@ -17,16 +17,18 @@ graph TD
     GW --> Pay["Payment Service"]
     GW --> CS["Chat Service"]
     
+    GW --> US["User Service"]
+    
+    %% Database-per-Microservice
     SS --> ES[("Elasticsearch")]
-    
-    PS --> PG[("PostgreSQL")]
-    BS --> PG
-    Pay --> PG
-    
-    CS --> CDB[("Chat DB")]
+    PS --> DB_Prop[("Property DB")]
+    BS --> DB_Book[("Booking DB")]
+    Pay --> DB_Pay[("Payment DB")]
+    CS --> DB_Chat[("Chat DB")]
+    US --> DB_User[("User DB")]
     
     %% Async Data Flows
-    PG -.->|Debezium CDC| Kafka{{"Kafka"}}
+    DB_Prop -.->|Debezium CDC| Kafka{{"Kafka"}}
     Kafka -.->|Sync| SS
 ```
 
