@@ -124,3 +124,13 @@ npm install
 npm run dev
 ```
 *Note: The Admin Panel will be available at `http://localhost:9999`.*
+
+### Generating Docker Compose (from Aspire)
+
+To generate a `docker-compose.yml` deployment from the .NET Aspire orchestration, use the [Aspirate](https://github.com/prom3theu5/aspirational-manifests) CLI tool:
+
+```bash
+cd Airbnb.AppHost
+aspirate generate
+```
+*Note: This will parse the AppHost graph and automatically scaffold your `docker-compose.yml` and `.env` files.*
