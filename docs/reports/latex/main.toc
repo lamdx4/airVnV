@@ -65,9 +65,9 @@
 \contentsline {subsection}{\numberline {2.4.2}Cấu hình Điều phối bằng .NET Aspire}{57}{subsection.2.4.2}%
 \contentsline {chapter}{\numberline {3}TRIỂN KHAI HỆ THỐNG}{58}{chapter.3}%
 \contentsline {section}{\numberline {3.1}Môi trường và công nghệ triển khai}{58}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Kết quả triển khai các chức năng chính}{58}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Đánh giá kết quả thực nghiệm}{58}{section.3.3}%
-\contentsline {chapter}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{59}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Những kết quả đã đạt được}{59}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{59}{section.4.2}%
-\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{60}{chapter.A}%
+\contentsline {section}{\numberline {3.2}Kết quả triển khai các chức năng chính}{60}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Đánh giá kết quả thực nghiệm}{60}{section.3.3}%
+\contentsline {chapter}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{61}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Những kết quả đã đạt được}{61}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{61}{section.4.2}%
+\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{62}{chapter.A}%
