@@ -1,10 +1,96 @@
 import { useGuestBookings, useCancelBooking, BookingStatus } from '@/features/booking';
 import { useInitiatePayment } from '@/features/payment/hooks';
+import { useProperty } from '@/features/properties/hooks/useProperties';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
+
+function BookingCard({ booking, onPay, onCancel, isPaying }: {
+  booking: {
+    id: string;
+    propertyId: string;
+    hostId: string;
+    guestId: string;
+    checkIn: string;
+    checkOut: string;
+    guestCount: number;
+    nightCount: number;
+    totalPrice: number;
+    currencyCode: string;
+    status: BookingStatus;
+  };
+  onPay: (bookingId: string) => void;
+  onCancel: (bookingId: string) => void;
+  isPaying: boolean;
+}) {
+  const { data: property } = useProperty(booking.propertyId);
+  const thumbnail = property?.images?.find(img => img.type === 0)?.url || property?.images?.[0]?.url;
+  const { t } = useTranslation();
+
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition bg-white flex flex-col">
+      <div className="h-40 bg-gray-200 overflow-hidden">
+        {thumbnail ? (
+          <img src={thumbnail} alt={property?.title || 'Property'} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            {property?.title || 'Property'}
+          </div>
+        )}
+      </div>
+      <div className="p-5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-semibold text-lg text-gray-900 truncate">
+            {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
+          </h3>
+          <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+            booking.status === BookingStatus.Confirmed ? 'bg-green-100 text-green-800' :
+            booking.status === BookingStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+            booking.status === BookingStatus.AwaitingApproval ? 'bg-orange-100 text-orange-800' :
+            'bg-gray-100 text-gray-800'
+          }`}>
+            {booking.status === BookingStatus.AwaitingApproval ? t('trips.awaitingHostApproval') : booking.status}
+          </span>
+        </div>
+        
+        <p className="text-sm text-gray-500 mb-4">
+          {booking.nightCount} nights • {booking.guestCount} guests
+        </p>
+
+        <div className="text-sm text-gray-700 mb-4 font-medium">
+          Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: booking.currencyCode }).format(booking.totalPrice)}
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col gap-2">
+          {booking.status === BookingStatus.Pending && (
+            <Button 
+              className="w-full bg-[#ff385c] hover:bg-[#e31c5f] text-white"
+              onClick={() => onPay(booking.id)}
+              disabled={isPaying}
+            >
+              {isPaying ? t('trips.processing') : t('trips.payNow')}
+            </Button>
+          )}
+          {booking.status === BookingStatus.Pending || booking.status === BookingStatus.AwaitingApproval || booking.status === BookingStatus.Confirmed ? (
+            <Button 
+              variant="outline" 
+              className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              onClick={() => onCancel(booking.id)}
+            >
+              {t('trips.cancelReservation')}
+            </Button>
+          ) : (
+            <Button variant="outline" className="w-full" disabled>
+              {booking.status}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Trips() {
   const { t } = useTranslation();
@@ -31,70 +117,22 @@ export default function Trips() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookings.map((booking) => (
-            <div key={booking.id} className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition bg-white flex flex-col">
-              <div className="h-40 bg-gray-200 flex items-center justify-center text-gray-400">
-                {/* Normally we would fetch the Property Image here */}
-                Property {booking.propertyId.substring(0, 8)}
-              </div>
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg text-gray-900 truncate">
-                    {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
-                  </h3>
-                  <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    booking.status === BookingStatus.Confirmed ? 'bg-green-100 text-green-800' :
-                    booking.status === BookingStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
-                    booking.status === BookingStatus.AwaitingApproval ? 'bg-orange-100 text-orange-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {booking.status === BookingStatus.AwaitingApproval ? t('trips.awaitingHostApproval') : booking.status}
-                  </span>
-                </div>
-                
-                <p className="text-sm text-gray-500 mb-4">
-                  {booking.nightCount} nights • {booking.guestCount} guests
-                </p>
-
-                <div className="text-sm text-gray-700 mb-4 font-medium">
-                  Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: booking.currencyCode }).format(booking.totalPrice)}
-                </div>
-
-                <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col gap-2">
-                  {booking.status === BookingStatus.Pending && (
-                    <Button 
-                      className="w-full bg-[#ff385c] hover:bg-[#e31c5f] text-white"
-                      onClick={() => {
-                        initiatePayment.mutate({ bookingId: booking.id }, {
-                          onSuccess: (data) => {
-                            window.location.href = data.paymentUrl;
-                          },
-                          onError: (err) => {
-                            console.error("Failed to initiate payment:", err);
-                          }
-                        });
-                      }}
-                      disabled={initiatePayment.isPending}
-                    >
-                      {initiatePayment.isPending ? t('trips.processing') : t('trips.payNow')}
-                    </Button>
-                  )}
-                  {booking.status === BookingStatus.Pending || booking.status === BookingStatus.AwaitingApproval || booking.status === BookingStatus.Confirmed ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => setBookingToCancel(booking.id)}
-                      disabled={cancelBooking.isPending || initiatePayment.isPending}
-                    >
-                      {t('trips.cancelReservation')}
-                    </Button>
-                  ) : (
-                    <Button variant="outline" className="w-full" disabled>
-                      {booking.status}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              onPay={(bookingId) => {
+                initiatePayment.mutate({ bookingId }, {
+                  onSuccess: (data) => {
+                    window.location.href = data.paymentUrl;
+                  },
+                  onError: (err) => {
+                    console.error("Failed to initiate payment:", err);
+                  }
+                });
+              }}
+              onCancel={(bookingId) => setBookingToCancel(bookingId)}
+              isPaying={initiatePayment.isPending}
+            />
           ))}
         </div>
       )}
