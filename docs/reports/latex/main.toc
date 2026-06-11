@@ -27,44 +27,44 @@
 \contentsline {subsection}{\numberline {2.2.3}Thiết kế Dữ liệu Chat Service}{37}{subsection.2.2.3}%
 \contentsline {subsection}{\numberline {2.2.4}Thiết kế Dữ liệu User Service}{38}{subsection.2.2.4}%
 \contentsline {subsection}{\numberline {2.2.5}Thiết kế Dữ liệu Search Service (Elasticsearch)}{39}{subsection.2.2.5}%
-\contentsline {subsection}{\numberline {2.2.6}Thiết kế Dữ liệu Payment Service}{42}{subsection.2.2.6}%
-\contentsline {subsection}{\numberline {2.2.7}Cơ sở Dữ liệu Phân tán \& Cấu trúc Outbox / Inbox Pattern}{44}{subsection.2.2.7}%
-\contentsline {section}{\numberline {2.3}Kiến trúc tổng thể}{44}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}Sơ đồ Kiến trúc Tổng thể}{44}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Cơ chế giao tiếp giữa các dịch vụ (Inter-service Communication)}{46}{subsection.2.3.2}%
-\contentsline {subsubsection}{Bản đồ Giao tiếp Cụ thể Giữa Các Dịch vụ (Service Interaction Map)}{47}{subsubsection*.60}%
-\contentsline {paragraph}{1. Chức năng Đồng bộ Dữ liệu Tìm kiếm (Data-level CDC)}{47}{paragraph*.61}%
-\contentsline {paragraph}{2. Chức năng Giao dịch Đặt phòng và Thanh toán}{47}{paragraph*.63}%
-\contentsline {subsection}{\numberline {2.3.3}Áp dụng Mẫu thiết kế (Design Patterns / Architectural Patterns)}{48}{subsection.2.3.3}%
-\contentsline {subsubsection}{Các Mẫu Thiết kế Kiến trúc (Architectural Patterns)}{49}{subsubsection*.65}%
-\contentsline {paragraph}{1. REPR Pattern (Request-Endpoint-Response)}{49}{paragraph*.66}%
-\contentsline {paragraph}{2. CQRS (Command Query Responsibility Segregation)}{49}{paragraph*.68}%
-\contentsline {paragraph}{3. Transactional Outbox Pattern \& Idempotent Consumer}{50}{paragraph*.71}%
-\contentsline {paragraph}{4. Vertical Slice Architecture (Kiến trúc theo chiều dọc)}{51}{paragraph*.73}%
-\contentsline {paragraph}{5. Saga Pattern (Choreography)}{51}{paragraph*.74}%
-\contentsline {subsubsection}{Các Mẫu Thiết kế Hướng đối tượng (Object-Oriented Design Patterns)}{52}{subsubsection*.76}%
-\contentsline {paragraph}{1. Strategy Pattern \& Provider Resolver}{52}{paragraph*.77}%
-\contentsline {paragraph}{2. Domain-Driven Design (DDD) \& Aggregate Root Pattern}{53}{paragraph*.79}%
-\contentsline {paragraph}{3. Factory Method Pattern}{53}{paragraph*.81}%
-\contentsline {paragraph}{4. Shared Kernel Pattern}{54}{paragraph*.83}%
-\contentsline {subsubsection}{Các Mẫu Thiết kế Giao diện Phía Khách (Frontend UI Patterns)}{54}{subsubsection*.84}%
-\contentsline {paragraph}{1. Kiến trúc Module hóa (Modular / Feature-Based Architecture)}{54}{paragraph*.85}%
-\contentsline {paragraph}{2. Adapter Pattern (Chuyển đổi Dữ liệu)}{55}{paragraph*.86}%
-\contentsline {paragraph}{3. Tách biệt Mối quan tâm (Separation of Concerns) \& Observer Pattern}{55}{paragraph*.87}%
-\contentsline {paragraph}{4. Flux Architecture (Kiến trúc Luồng dữ liệu Một chiều)}{55}{paragraph*.88}%
-\contentsline {paragraph}{5. Interceptor Pattern (Mẫu thiết kế Đánh chặn)}{55}{paragraph*.89}%
-\contentsline {subsubsection}{Các Mẫu Cắt ngang và Đảm bảo An toàn (Cross-Cutting \& Safety Patterns)}{55}{subsubsection*.90}%
-\contentsline {paragraph}{1. Unified Response Envelope}{55}{paragraph*.91}%
-\contentsline {paragraph}{2. Exhaustiveness Check (CI Guard Pattern)}{55}{paragraph*.92}%
-\contentsline {paragraph}{3. Idempotency Guard (DB-Level Filtered Index)}{56}{paragraph*.93}%
-\contentsline {section}{\numberline {2.4}Thiết kế cấu hình các node và mạng}{56}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Cấu trúc Phân vùng Mạng (Network Segmentation)}{56}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Cấu hình Điều phối bằng .NET Aspire}{57}{subsection.2.4.2}%
-\contentsline {chapter}{\numberline {3}TRIỂN KHAI HỆ THỐNG}{58}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Môi trường và công nghệ triển khai}{58}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Kết quả triển khai các chức năng chính}{58}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Đánh giá kết quả thực nghiệm}{58}{section.3.3}%
-\contentsline {chapter}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{59}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Những kết quả đã đạt được}{59}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{59}{section.4.2}%
-\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{60}{appendix.A}%
+\contentsline {subsection}{\numberline {2.2.6}Thiết kế Dữ liệu Payment Service}{41}{subsection.2.2.6}%
+\contentsline {subsection}{\numberline {2.2.7}Cơ sở Dữ liệu Phân tán \& Cấu trúc Outbox / Inbox Pattern}{43}{subsection.2.2.7}%
+\contentsline {section}{\numberline {2.3}Kiến trúc tổng thể}{43}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Sơ đồ Kiến trúc Tổng thể}{43}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Cơ chế giao tiếp giữa các dịch vụ (Inter-service Communication)}{45}{subsection.2.3.2}%
+\contentsline {subsubsection}{Bản đồ Giao tiếp Cụ thể Giữa Các Dịch vụ (Service Interaction Map)}{46}{subsubsection*.60}%
+\contentsline {paragraph}{1. Chức năng Đồng bộ Dữ liệu Tìm kiếm (Data-level CDC)}{46}{paragraph*.61}%
+\contentsline {paragraph}{2. Chức năng Giao dịch Đặt phòng và Thanh toán}{46}{paragraph*.63}%
+\contentsline {subsection}{\numberline {2.3.3}Áp dụng Mẫu thiết kế (Design Patterns / Architectural Patterns)}{47}{subsection.2.3.3}%
+\contentsline {subsubsection}{Các Mẫu Thiết kế Kiến trúc (Architectural Patterns)}{48}{subsubsection*.65}%
+\contentsline {paragraph}{1. REPR Pattern (Request-Endpoint-Response)}{48}{paragraph*.66}%
+\contentsline {paragraph}{2. CQRS (Command Query Responsibility Segregation)}{48}{paragraph*.68}%
+\contentsline {paragraph}{3. Transactional Outbox Pattern \& Idempotent Consumer}{49}{paragraph*.71}%
+\contentsline {paragraph}{4. Vertical Slice Architecture (Kiến trúc theo chiều dọc)}{50}{paragraph*.73}%
+\contentsline {paragraph}{5. Saga Pattern (Choreography)}{50}{paragraph*.74}%
+\contentsline {subsubsection}{Các Mẫu Thiết kế Hướng đối tượng (Object-Oriented Design Patterns)}{51}{subsubsection*.76}%
+\contentsline {paragraph}{1. Strategy Pattern \& Provider Resolver}{51}{paragraph*.77}%
+\contentsline {paragraph}{2. Domain-Driven Design (DDD) \& Aggregate Root Pattern}{52}{paragraph*.79}%
+\contentsline {paragraph}{3. Factory Method Pattern}{52}{paragraph*.81}%
+\contentsline {paragraph}{4. Shared Kernel Pattern}{53}{paragraph*.83}%
+\contentsline {subsubsection}{Các Mẫu Thiết kế Giao diện Phía Khách (Frontend UI Patterns)}{53}{subsubsection*.84}%
+\contentsline {paragraph}{1. Kiến trúc Module hóa (Modular / Feature-Based Architecture)}{53}{paragraph*.85}%
+\contentsline {paragraph}{2. Adapter Pattern (Chuyển đổi Dữ liệu)}{54}{paragraph*.86}%
+\contentsline {paragraph}{3. Tách biệt Mối quan tâm (Separation of Concerns) \& Observer Pattern}{54}{paragraph*.87}%
+\contentsline {paragraph}{4. Flux Architecture (Kiến trúc Luồng dữ liệu Một chiều)}{54}{paragraph*.88}%
+\contentsline {paragraph}{5. Interceptor Pattern (Mẫu thiết kế Đánh chặn)}{54}{paragraph*.89}%
+\contentsline {subsubsection}{Các Mẫu Cắt ngang và Đảm bảo An toàn (Cross-Cutting \& Safety Patterns)}{54}{subsubsection*.90}%
+\contentsline {paragraph}{1. Unified Response Envelope}{54}{paragraph*.91}%
+\contentsline {paragraph}{2. Exhaustiveness Check (CI Guard Pattern)}{54}{paragraph*.92}%
+\contentsline {paragraph}{3. Idempotency Guard (DB-Level Filtered Index)}{55}{paragraph*.93}%
+\contentsline {section}{\numberline {2.4}Thiết kế cấu hình các node và mạng}{55}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Cấu trúc Phân vùng Mạng (Network Segmentation)}{55}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Cấu hình Điều phối bằng .NET Aspire}{56}{subsection.2.4.2}%
+\contentsline {chapter}{\numberline {3}TRIỂN KHAI HỆ THỐNG}{57}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Môi trường và công nghệ triển khai}{57}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Kết quả triển khai các chức năng chính}{57}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Đánh giá kết quả thực nghiệm}{57}{section.3.3}%
+\contentsline {chapter}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{58}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Những kết quả đã đạt được}{58}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Hạn chế và hướng phát triển}{58}{section.4.2}%
+\contentsline {chapter}{\numberline {A}BẢNG PHÂN CÔNG CÔNG VIỆC}{59}{appendix.A}%

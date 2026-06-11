@@ -5,20 +5,20 @@
 \contentsline {figure}{\numberline {2.3}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Thực thể Liên kết (ERD) của Booking Service}}{37}{figure.caption.54}%
 \contentsline {figure}{\numberline {2.4}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Thực thể Liên kết (ERD) của Chat Service}}{38}{figure.caption.55}%
 \contentsline {figure}{\numberline {2.5}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Thực thể Liên kết (ERD) của User Service}}{39}{figure.caption.56}%
-\contentsline {figure}{\numberline {2.6}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lược đồ Tài liệu (Document Schema) của Search Service}}{41}{figure.caption.57}%
-\contentsline {figure}{\numberline {2.7}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Thực thể Liên kết (ERD) của Payment Service}}{43}{figure.caption.58}%
-\contentsline {figure}{\numberline {2.8}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Kiến trúc Tổng thể của hệ thống AirVnV}}{46}{figure.caption.59}%
-\contentsline {figure}{\numberline {2.9}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự minh họa giao tiếp Đồng bộ dữ liệu qua Kafka}}{47}{figure.caption.62}%
-\contentsline {figure}{\numberline {2.10}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự minh họa giao tiếp Đặt phòng qua RabbitMQ}}{48}{figure.caption.64}%
-\contentsline {figure}{\numberline {2.11}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) cấu trúc REPR Pattern}}{49}{figure.caption.67}%
-\contentsline {figure}{\numberline {2.12}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) cấu trúc CQRS sử dụng Mediator}}{49}{figure.caption.69}%
-\contentsline {figure}{\numberline {2.13}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) minh họa luồng xử lý CQRS}}{50}{figure.caption.70}%
-\contentsline {figure}{\numberline {2.14}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) cơ chế Transactional Outbox}}{50}{figure.caption.72}%
-\contentsline {figure}{\numberline {2.15}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) minh họa Saga Pattern giữa Booking và Payment}}{52}{figure.caption.75}%
-\contentsline {figure}{\numberline {2.16}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) mô hình Strategy Pattern tại PaymentService}}{52}{figure.caption.78}%
-\contentsline {figure}{\numberline {2.17}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) mô tả Aggregate Root trong DDD}}{53}{figure.caption.80}%
-\contentsline {figure}{\numberline {2.18}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) của Factory Method Pattern}}{54}{figure.caption.82}%
-\contentsline {figure}{\numberline {2.19}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Triển khai (Deployment Diagram) các Node và Phân vùng mạng}}{56}{figure.caption.94}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lược đồ Tài liệu (Document Schema) của Search Service}}{40}{figure.caption.57}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Thực thể Liên kết (ERD) của Payment Service}}{42}{figure.caption.58}%
+\contentsline {figure}{\numberline {2.8}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Kiến trúc Tổng thể của hệ thống AirVnV}}{45}{figure.caption.59}%
+\contentsline {figure}{\numberline {2.9}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự minh họa giao tiếp Đồng bộ dữ liệu qua Kafka}}{46}{figure.caption.62}%
+\contentsline {figure}{\numberline {2.10}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự minh họa giao tiếp Đặt phòng qua RabbitMQ}}{47}{figure.caption.64}%
+\contentsline {figure}{\numberline {2.11}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) cấu trúc REPR Pattern}}{48}{figure.caption.67}%
+\contentsline {figure}{\numberline {2.12}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) cấu trúc CQRS sử dụng Mediator}}{48}{figure.caption.69}%
+\contentsline {figure}{\numberline {2.13}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) minh họa luồng xử lý CQRS}}{49}{figure.caption.70}%
+\contentsline {figure}{\numberline {2.14}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) cơ chế Transactional Outbox}}{49}{figure.caption.72}%
+\contentsline {figure}{\numberline {2.15}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Tuần tự (Sequence Diagram) minh họa Saga Pattern giữa Booking và Payment}}{51}{figure.caption.75}%
+\contentsline {figure}{\numberline {2.16}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) mô hình Strategy Pattern tại PaymentService}}{51}{figure.caption.78}%
+\contentsline {figure}{\numberline {2.17}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) mô tả Aggregate Root trong DDD}}{52}{figure.caption.80}%
+\contentsline {figure}{\numberline {2.18}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Lớp (Class Diagram) của Factory Method Pattern}}{53}{figure.caption.82}%
+\contentsline {figure}{\numberline {2.19}{\ignorespaces \xpg@aux {}{vietnamese}\ignorespaces Sơ đồ Triển khai (Deployment Diagram) các Node và Phân vùng mạng}}{55}{figure.caption.94}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
