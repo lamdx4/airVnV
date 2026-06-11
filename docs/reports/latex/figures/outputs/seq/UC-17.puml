@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Đánh giá" as reviewUI
+control "Xử lý Đánh giá" as reviewController
+entity "Review" as review
+
+host -> reviewUI: 1. Nhập nội dung phản hồi đánh giá
+activate reviewUI
+reviewUI -> reviewController: 2. Gửi nội dung phản hồi
+activate reviewController
+reviewController -> review: 3. Kiểm tra đánh giá hiện tại
+activate review
+review --> reviewController: 4. Trả về dữ liệu đánh giá
+deactivate review
+alt Đánh giá chưa có phản hồi
+    reviewController -> reviewController: 5. Kiểm tra từ ngữ thô tục
+    reviewController -> review: 6. Cập nhật nội dung phản hồi (HostReply)
+    activate review
+    review --> reviewController: 7. Lưu DB thành công
+    deactivate review
+    reviewController -> reviewController: 8. Bắn sự kiện gửi thông báo cho Khách
+    reviewController --> reviewUI: 9. Phản hồi xử lý thành công
+    reviewUI --> host: 10. Hiển thị phản hồi công khai
+else Đã phản hồi trước đó
+    reviewController --> reviewUI: 5a. Báo lỗi "Host already replied to this review"
+    reviewUI --> host: 6a. Hiển thị thông báo lỗi
+end
+deactivate reviewController
+deactivate reviewUI
+@enduml

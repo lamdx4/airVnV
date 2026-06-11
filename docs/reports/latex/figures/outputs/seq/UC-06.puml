@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Quên mật khẩu" as forgotPwdUI
+control "Xử lý Quên mật khẩu" as forgotPwdController
+entity "User" as account
+
+user -> forgotPwdUI: 1. Nhập email yêu cầu khôi phục
+activate forgotPwdUI
+forgotPwdUI -> forgotPwdController: 2. Gửi yêu cầu quên mật khẩu
+activate forgotPwdController
+forgotPwdController -> account: 3. Tìm tài khoản theo email
+activate account
+account --> forgotPwdController: 4. Trả về kết quả tìm kiếm
+deactivate account
+alt Email có tồn tại trong hệ thống
+    forgotPwdController -> forgotPwdController: 5. Tạo Reset Token
+    forgotPwdController -> account: 6. Lưu Token vào tài khoản
+    activate account
+    account --> forgotPwdController: 7. Lưu thành công
+    deactivate account
+    forgotPwdController -> forgotPwdController: 8. Gửi email chứa link khôi phục
+    forgotPwdController --> forgotPwdUI: 9. Phản hồi xử lý thành công (200 OK)
+    forgotPwdUI --> user: 10. Thông báo kiểm tra email
+else Email không tồn tại
+    forgotPwdController --> forgotPwdUI: 5a. Phản hồi xử lý thành công (200 OK)
+    forgotPwdUI --> user: 6a. Thông báo kiểm tra email (Ẩn danh)
+end
+deactivate forgotPwdController
+deactivate forgotPwdUI
+@enduml

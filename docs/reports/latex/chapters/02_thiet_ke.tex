@@ -43,6 +43,8 @@ Dưới đây là đặc tả chi tiết 45 luồng nghiệp vụ cốt lõi (Us
 
 \input{chapters/02_1_usecases.tex}
 
+
+
 % ── 1.2 Yêu cầu phi chức năng ───────────────────────────────
 \subsection{Yêu cầu phi chức năng (Non-Functional Requirements)}
 \label{subsec:yeu_cau_phi_chuc_nang}
@@ -226,6 +228,13 @@ Do áp dụng kiến trúc Microservices, hệ thống đối mặt với bài t
 \end{itemize}
 
 Việc tích hợp đồng bộ 3 bảng \texttt{InboxState}, \texttt{OutboxMessage}, \texttt{OutboxState} vào CSDL của từng Service giúp kiến trúc phân tán đạt được tính \textbf{Eventually Consistent} (Nhất quán cuối) một cách tự động và bền bỉ mà không cần dùng đến các cơ chế đắt đỏ như Two-Phase Commit (2PC).
+
+% ────────────────────────────────────────────────────────────
+\section{Sơ đồ Tuần tự Nghiệp vụ (Sequence Diagrams)}
+\label{sec:sequence_diagrams}
+Phần này trình bày luồng tương tác dữ liệu (Data Flow) của các Use Case trong hệ thống theo mô hình Boundary - Control - Entity (BCE). Các sơ đồ tập trung vào tầng Phân tích (Analysis Level), không bao gồm các chi tiết triển khai vật lý.
+
+\input{chapters/02_2_sequence_diagrams.tex}
 
 % ────────────────────────────────────────────────────────────
 \section{Kiến trúc tổng thể}

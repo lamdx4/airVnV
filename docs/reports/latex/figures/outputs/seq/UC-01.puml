@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Đăng ký" as registerUI
+control "Xử lý Đăng ký" as registerController
+entity "User" as account
+
+user -> registerUI: 1. Nhập thông tin đăng ký
+activate registerUI
+registerUI -> registerController: 2. Gửi yêu cầu đăng ký
+activate registerController
+registerController -> registerController: 3. Xác thực định dạng dữ liệu
+registerController -> account: 4. Kiểm tra email tồn tại
+activate account
+account --> registerController: 5. Trả về kết quả kiểm tra
+deactivate account
+alt Email chưa tồn tại
+    registerController -> account: 6. Tạo mới tài khoản (Inactive)
+    activate account
+    account --> registerController: 7. Tạo thành công
+    deactivate account
+    registerController -> registerController: 8. Tạo mã OTP và Gửi Email
+    registerController --> registerUI: 9. Phản hồi yêu cầu nhập OTP
+    registerUI --> user: 10. Hiển thị màn hình xác thực OTP
+else Email đã tồn tại
+    registerController --> registerUI: 6a. Báo lỗi "Email already exists"
+    registerUI --> user: 7a. Hiển thị thông báo lỗi
+end
+deactivate registerController
+deactivate registerUI
+@enduml

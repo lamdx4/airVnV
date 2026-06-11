@@ -1,0 +1,25 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Xử lý Khiếu nại" as adminUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+admin -> adminUI: 1. Xem xét chứng cứ 2 bên và ra Quyết định
+activate adminUI
+adminUI -> bookingController: 2. Gửi Quyết định giải quyết khiếu nại (Phạt/Hoàn tiền)
+activate bookingController
+bookingController -> booking: 3. Truy cập Đơn đặt phòng có tranh chấp
+activate booking
+booking --> bookingController: 4. Trả về dữ liệu Đơn
+deactivate booking
+bookingController -> booking: 5. Đóng băng Booking (Giải quyết dứt điểm)
+activate booking
+booking --> bookingController: 6. Cập nhật thành công
+deactivate booking
+bookingController -> bookingController: 7. Bắn Event Refund hoặc Phạt Host tương ứng
+bookingController --> adminUI: 8. Phản hồi xử lý thành công
+adminUI --> admin: 9. Hiển thị Dispute đã đóng
+deactivate bookingController
+deactivate adminUI
+@enduml

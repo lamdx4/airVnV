@@ -1,0 +1,33 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Hệ thống" as system
+boundary "Job Hoàn tiền (Background)" as refundJob
+control "Xử lý Hoàn tiền" as refundController
+entity "RefundRecord" as refundRecord
+participant "VNPay API" as vnpay
+
+system -> refundJob: 1. Lắng nghe RefundEvent (Từ Booking bị hủy)
+activate refundJob
+refundJob -> refundController: 2. Khởi tạo tiến trình hoàn tiền
+activate refundController
+refundController -> refundRecord: 3. Ghi nhận giao dịch hoàn tiền (Pending)
+activate refundRecord
+refundRecord --> refundController: 4. Khởi tạo thành công
+deactivate refundRecord
+refundController -> vnpay: 5. Gọi API Hoàn tiền của cổng thanh toán
+activate vnpay
+alt VNPay phản hồi thành công
+    vnpay --> refundController: 6. Trả về kết quả hoàn tiền thành công
+    refundController -> refundRecord: 7. Cập nhật trạng thái Refunded (Lưu Transaction ID)
+    activate refundRecord
+    refundRecord --> refundController: 8. Cập nhật DB thành công
+    deactivate refundRecord
+else VNPay báo lỗi hoặc timeout
+    vnpay --> refundController: 6a. Báo lỗi API
+    refundController -> refundController: 7a. Lưu tác vụ vào Outbox để Retry sau
+end
+deactivate vnpay
+refundController --> refundJob: 9. Hoàn thành tiến trình
+deactivate refundController
+deactivate refundJob
+@enduml

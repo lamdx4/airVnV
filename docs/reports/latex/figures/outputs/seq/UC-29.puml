@@ -1,0 +1,21 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Ví Điện tử" as walletUI
+control "Xử lý Ví Host" as paymentController
+entity "HostBalance" as balance
+
+host -> walletUI: 1. Truy cập Ví thu nhập (Wallet)
+activate walletUI
+walletUI -> paymentController: 2. Yêu cầu lấy thông tin số dư
+activate paymentController
+paymentController -> balance: 3. Truy vấn bảng Balance theo Host ID
+activate balance
+balance --> paymentController: 4. Trả về dữ liệu ví
+deactivate balance
+paymentController -> paymentController: 5. Phân tách (Thu nhập tạm tính / Available Payout)
+paymentController --> walletUI: 6. Phản hồi thông tin số dư
+walletUI --> host: 7. Hiển thị doanh thu và số tiền có thể rút
+deactivate paymentController
+deactivate walletUI
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Host" as hostUI
+control "Xử lý Bất động sản" as propertyController
+entity "PropertyImage" as property
+
+host -> hostUI: 1. Tải lên hình ảnh và chọn Tiện ích
+activate hostUI
+hostUI -> propertyController: 2. Gửi yêu cầu cập nhật hình ảnh và tiện ích
+activate propertyController
+propertyController -> propertyController: 3. Kiểm tra định dạng và số lượng hình ảnh
+alt Hình ảnh hợp lệ (JPG/PNG và tối thiểu 5 ảnh)
+    propertyController -> propertyController: 4. Xử lý tải hình ảnh lên Cloud
+    propertyController -> property: 5. Cập nhật danh sách URL hình ảnh và tiện ích
+    activate property
+    property --> propertyController: 6. Cập nhật thành công
+    deactivate property
+    propertyController --> hostUI: 7. Phản hồi cập nhật thành công
+    hostUI --> host: 8. Hiển thị thông báo thành công
+else Sai định dạng hoặc thiếu số lượng
+    propertyController --> hostUI: 4a. Từ chối upload và báo lỗi
+    hostUI --> host: 5a. Yêu cầu tải lại ảnh hợp lệ
+end
+deactivate propertyController
+deactivate hostUI
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Dashboard Chủ nhà" as dashboardUI
+control "Xử lý Thống kê" as analyticsController
+entity "Booking" as booking
+entity "PropertyDoc" as propertyDoc
+
+host -> dashboardUI: 1. Truy cập trang Thống kê
+activate dashboardUI
+dashboardUI -> analyticsController: 2. Yêu cầu lấy dữ liệu Dashboard (Tháng này)
+activate analyticsController
+analyticsController -> booking: 3. Truy vấn tổng số đơn đặt phòng và doanh thu
+activate booking
+booking --> analyticsController: 4. Trả về số liệu thống kê Booking
+deactivate booking
+analyticsController -> propertyDoc: 5. Truy vấn lượt xem từ SearchService (Elasticsearch)
+activate propertyDoc
+propertyDoc --> analyticsController: 6. Trả về số liệu lượt xem
+deactivate propertyDoc
+analyticsController -> analyticsController: 7. Tổng hợp và lưu Cache (Redis)
+analyticsController --> dashboardUI: 8. Trả về dữ liệu Analytics
+dashboardUI --> host: 9. Hiển thị biểu đồ thu nhập và lượt xem
+deactivate analyticsController
+deactivate dashboardUI
+@enduml

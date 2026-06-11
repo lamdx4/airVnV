@@ -14,16 +14,16 @@
 % \setmainfont{TeX Gyre Termes}
 % \setsansfont{TeX Gyre Heros}
 % \setmonofont[Scale=0.9]{TeX Gyre Cursor}
-\setmainfont{Times New Roman}
+\setmainfont{TeX Gyre Termes}
 \setsansfont{Arial}
-\setmonofont[Scale=0.9]{Consolas}
+\setmonofont[Scale=0.9]{TeX Gyre Cursor}
 
 % ── Căn lề chuẩn A4 học thuật ───────────────────────────────
 \usepackage[
   a4paper,
   top=3cm, bottom=3cm,
   left=3.5cm, right=2cm,
-  headheight=14.5pt
+  headheight=16pt
 ]{geometry}
 
 % ── Dòng kẻ & Căn chỉnh ─────────────────────────────────────
@@ -116,6 +116,7 @@
   style=numeric,
   sorting=none
 ]{biblatex}
+\DeclareLanguageMapping{vietnamese}{english}
 \addbibresource{appendix/tai_lieu_tham_khao.bib}
 
 % ── Tiện ích khác ────────────────────────────────────────────
@@ -163,6 +164,7 @@
 \input{chapters/04_ket_luan}
 
 % ── Tài liệu tham khảo ──────────────────────────────────────
+\nocite{*}
 \printbibliography[heading=bibintoc, title={TÀI LIỆU THAM KHẢO}]
 
 % ── Phụ lục ─────────────────────────────────────────────────

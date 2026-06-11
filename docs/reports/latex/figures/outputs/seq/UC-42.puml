@@ -1,0 +1,29 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Quản lý Tiện ích" as adminUI
+control "Xử lý Tiện ích" as amenityController
+entity "Amenity" as amenity
+
+admin -> adminUI: 1. Nhập Tên tiện ích mới và Icon
+activate adminUI
+adminUI -> amenityController: 2. Yêu cầu thêm Tiện ích
+activate amenityController
+amenityController -> amenity: 3. Kiểm tra tính trùng lặp tên Tiện ích
+activate amenity
+amenity --> amenityController: 4. Phản hồi kết quả kiểm tra
+deactivate amenity
+alt Tên tiện ích chưa tồn tại
+    amenityController -> amenity: 5. Lưu Tiện ích mới vào DB
+    activate amenity
+    amenity --> amenityController: 6. Lưu thành công
+    deactivate amenity
+    amenityController --> adminUI: 7. Phản hồi tạo thành công
+    adminUI --> admin: 8. Hiển thị tiện ích mới trong danh sách
+else Trùng tên
+    amenityController --> adminUI: 5a. Báo lỗi "Amenity already exists"
+    adminUI --> admin: 6a. Yêu cầu chọn tên khác
+end
+deactivate amenityController
+deactivate adminUI
+@enduml

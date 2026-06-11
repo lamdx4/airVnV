@@ -1,0 +1,28 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Chat" as chatUI
+control "Xử lý Chat (WebSocket)" as chatController
+entity "Message" as message
+participant "SignalR / Socket.IO" as socket
+
+user -> chatUI: 1. Nhập tin nhắn và Nhấn gửi
+activate chatUI
+chatUI -> chatController: 2. Gửi tin nhắn qua WebSocket
+activate chatController
+chatController -> chatController: 3. Kiểm tra quyền (Là người tham gia hội thoại)
+alt Có quyền gửi
+    chatController -> message: 4. Lưu tin nhắn vào DB
+    activate message
+    message --> chatController: 5. Lưu thành công
+    deactivate message
+    chatController -> socket: 6. Broadcast tin nhắn tới đối phương
+    chatController --> chatUI: 7. Xác nhận đã gửi
+    chatUI --> user: 8. Hiển thị tin nhắn lên giao diện
+else Không có quyền gửi
+    chatController --> chatUI: 4a. Báo lỗi "Not a participant"
+    chatUI --> user: 5a. Hiển thị thông báo lỗi
+end
+deactivate chatController
+deactivate chatUI
+@enduml

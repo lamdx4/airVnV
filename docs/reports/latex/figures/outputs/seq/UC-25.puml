@@ -1,0 +1,21 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Lịch sử Chuyến đi" as tripsUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+guest -> tripsUI: 1. Truy cập mục Chuyến đi (Trips)
+activate tripsUI
+tripsUI -> bookingController: 2. Yêu cầu lấy danh sách lịch sử đặt phòng
+activate bookingController
+bookingController -> booking: 3. Truy vấn DB lấy lịch sử Booking của Khách
+activate booking
+booking --> bookingController: 4. Trả về danh sách đơn
+deactivate booking
+bookingController -> bookingController: 5. Phân loại đơn (Upcoming / Past)
+bookingController --> tripsUI: 6. Phản hồi dữ liệu phân trang
+tripsUI --> guest: 7. Hiển thị danh sách chuyến đi sắp tới và quá khứ
+deactivate bookingController
+deactivate tripsUI
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Quản lý Đánh giá" as reviewUI
+control "Xử lý Đánh giá" as reviewController
+entity "Review" as review
+
+guest -> reviewUI: 1. Chọn Sửa / Xóa bài đánh giá
+activate reviewUI
+reviewUI -> reviewController: 2. Gửi yêu cầu cập nhật/xóa Đánh giá
+activate reviewController
+reviewController -> review: 3. Kiểm tra quyền sở hữu Review
+activate review
+review --> reviewController: 4. Trả về dữ liệu Review
+deactivate review
+alt Hợp lệ và Phòng đang tồn tại
+    reviewController -> review: 5. Thực thi cập nhật / Xóa mềm
+    activate review
+    review --> reviewController: 6. Xử lý thành công
+    deactivate review
+    reviewController -> reviewController: 7. Phát Event tính toán lại Rating cho Property
+    reviewController --> reviewUI: 8. Phản hồi thành công
+    reviewUI --> guest: 9. Hiển thị cập nhật trên màn hình
+else Phòng không tồn tại
+    reviewController --> reviewUI: 5a. Báo lỗi "Property not found"
+    reviewUI --> guest: 6a. Hiển thị thông báo lỗi
+end
+deactivate reviewController
+deactivate reviewUI
+@enduml

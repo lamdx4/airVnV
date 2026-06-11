@@ -1,0 +1,20 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Chat" as chatUI
+control "Xử lý Chat" as chatController
+entity "ConversationParticipant" as participant
+
+user -> chatUI: 1. Mở cửa sổ hội thoại (Đang có tin nhắn mới)
+activate chatUI
+chatUI -> chatController: 2. Gửi API MarkAsRead
+activate chatController
+chatController -> participant: 3. Cập nhật LastReadTimestamp
+activate participant
+participant --> chatController: 4. Cập nhật DB thành công
+deactivate participant
+chatController --> chatUI: 5. Phản hồi xử lý thành công
+chatUI --> user: 6. Xóa huy hiệu Unread (Chấm đỏ)
+deactivate chatController
+deactivate chatUI
+@enduml

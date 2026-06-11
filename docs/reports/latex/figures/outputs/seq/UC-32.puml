@@ -1,0 +1,20 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Lịch sử Giao dịch" as transactionUI
+control "Xử lý Giao dịch" as paymentController
+entity "Payment" as payment
+
+host -> transactionUI: 1. Mở trang Lịch sử Giao dịch
+activate transactionUI
+transactionUI -> paymentController: 2. Yêu cầu lấy danh sách giao dịch
+activate paymentController
+paymentController -> payment: 3. Truy vấn DB Payment Service theo HostId
+activate payment
+payment --> paymentController: 4. Trả về danh sách (Immutable)
+deactivate payment
+paymentController --> transactionUI: 5. Phản hồi danh sách phân trang
+transactionUI --> host: 6. Hiển thị lịch sử cộng/trừ tiền
+deactivate paymentController
+deactivate transactionUI
+@enduml

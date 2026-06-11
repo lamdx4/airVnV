@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Đơn" as hostUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+host -> hostUI: 1. Chọn hủy đơn khách đã đặt và nhập lý do
+activate hostUI
+hostUI -> bookingController: 2. Gửi yêu cầu hủy đơn từ phía Host
+activate bookingController
+bookingController -> booking: 3. Lấy thông tin đơn đặt phòng
+activate booking
+booking --> bookingController: 4. Trả về thông tin đơn
+deactivate booking
+alt Chưa qua ngày Check-in
+    bookingController -> booking: 5. Cập nhật trạng thái (Cancelled by Host)
+    activate booking
+    booking --> bookingController: 6. Cập nhật thành công
+    deactivate booking
+    bookingController -> bookingController: 7. Bắn Event Phạt Host (Penalty)
+    bookingController -> bookingController: 8. Bắn Event Hoàn tiền 100% cho Khách
+    bookingController --> hostUI: 9. Phản hồi hủy thành công
+    hostUI --> host: 10. Hiển thị cảnh báo đã bị trừ phí phạt
+else Khách đã Check-in
+    bookingController --> hostUI: 5a. Báo lỗi không thể hủy khi khách đã nhận phòng
+    hostUI --> host: 6a. Hiển thị thông báo lỗi
+end
+deactivate bookingController
+deactivate hostUI
+@enduml

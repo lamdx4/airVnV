@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Thanh toán" as paymentUI
+control "Xử lý Thanh toán" as paymentController
+entity "Payment" as payment
+participant "VNPay API" as vnpay
+
+guest -> paymentUI: 1. Nhấn nút Xác nhận thanh toán
+activate paymentUI
+paymentUI -> paymentController: 2. Gửi yêu cầu khởi tạo thanh toán (Idempotency Key)
+activate paymentController
+paymentController -> payment: 3. Kiểm tra trạng thái hóa đơn
+activate payment
+payment --> paymentController: 4. Trả về trạng thái
+deactivate payment
+alt Chưa thanh toán hoặc Đang chờ
+    paymentController -> paymentController: 5. Khởi tạo dữ liệu giao dịch
+    paymentController -> vnpay: 6. Gọi API khởi tạo Session
+    activate vnpay
+    vnpay --> paymentController: 7. Trả về URL thanh toán VNPay
+    deactivate vnpay
+    paymentController --> paymentUI: 8. Phản hồi URL thanh toán
+    paymentUI --> guest: 9. Chuyển hướng sang VNPay
+else Đã thanh toán / Đang xử lý
+    paymentController --> paymentUI: 5a. Báo lỗi "Payment is already processed"
+    paymentUI --> guest: 6a. Thông báo lỗi chống trùng lặp
+end
+deactivate paymentController
+deactivate paymentUI
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Đổi mật khẩu" as passwordUI
+control "Xử lý Đổi mật khẩu" as passwordController
+entity "User" as account
+
+user -> passwordUI: 1. Nhập mật khẩu cũ và mật khẩu mới
+activate passwordUI
+passwordUI -> passwordController: 2. Gửi yêu cầu đổi mật khẩu
+activate passwordController
+passwordController -> account: 3. Lấy thông tin tài khoản hiện tại
+activate account
+account --> passwordController: 4. Trả về thông tin tài khoản
+deactivate account
+alt Mật khẩu cũ chính xác và Mật khẩu mới hợp lệ
+    passwordController -> passwordController: 5. Xác thực mật khẩu cũ
+    passwordController -> account: 6. Cập nhật mật khẩu mới
+    activate account
+    account --> passwordController: 7. Cập nhật thành công
+    deactivate account
+    passwordController -> passwordController: 8. Hủy các phiên đăng nhập khác
+    passwordController --> passwordUI: 9. Phản hồi Đổi mật khẩu thành công
+    passwordUI --> user: 10. Hiển thị thông báo thành công
+else Sai mật khẩu cũ hoặc không đạt chuẩn
+    passwordController --> passwordUI: 5a. Báo lỗi sai mật khẩu hoặc mật khẩu yếu
+    passwordUI --> user: 6a. Hiển thị thông báo lỗi
+end
+deactivate passwordController
+deactivate passwordUI
+@enduml

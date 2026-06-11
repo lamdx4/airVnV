@@ -1,0 +1,20 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Chat" as chatUI
+control "Xử lý Chat" as chatController
+entity "Message" as message
+
+user -> chatUI: 1. Cuộn lên trên để xem tin cũ
+activate chatUI
+chatUI -> chatController: 2. Yêu cầu lấy tin nhắn (LastMessageId)
+activate chatController
+chatController -> message: 3. Truy vấn DB (Keyset Pagination / Cursor)
+activate message
+message --> chatController: 4. Trả về 20 tin nhắn tiếp theo
+deactivate message
+chatController --> chatUI: 5. Phản hồi mảng dữ liệu tin nhắn
+chatUI --> user: 6. Hiển thị thêm tin nhắn lên lịch sử trò chuyện
+deactivate chatController
+deactivate chatUI
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Chi tiết Phòng" as propertyUI
+control "Xử lý Chat" as chatController
+entity "Conversation" as conversation
+
+guest -> propertyUI: 1. Nhấn nút "Liên hệ Chủ nhà"
+activate propertyUI
+propertyUI -> chatController: 2. Yêu cầu khởi tạo hội thoại
+activate chatController
+chatController -> chatController: 3. Kiểm tra tính hợp lệ (Khách không phải là Chủ nhà)
+alt Khách hợp lệ
+    chatController -> conversation: 4. Kiểm tra Conversation_Id hiện có
+    activate conversation
+    conversation --> chatController: 5. Trả về Conversation_Id (Cũ hoặc Tạo mới)
+    deactivate conversation
+    chatController --> propertyUI: 6. Phản hồi Id hội thoại
+    propertyUI --> guest: 7. Chuyển hướng sang Màn hình Chat
+else Là Chủ nhà tự chat với chính mình
+    chatController --> propertyUI: 4a. Báo lỗi "Host cannot start conversation"
+    propertyUI --> guest: 5a. Hiển thị thông báo từ chối
+end
+deactivate chatController
+deactivate propertyUI
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Thu nhập" as payoutUI
+control "Xử lý Rút tiền" as payoutController
+entity "Payout" as payout
+
+host -> payoutUI: 1. Gửi yêu cầu rút tiền
+activate payoutUI
+payoutUI -> payoutController: 2. Gọi API tạo lệnh Payout
+activate payoutController
+payoutController -> payoutController: 3. Kiểm tra số dư khả dụng (Available Balance)
+alt Số dư hợp lệ và đủ mức tối thiểu
+    payoutController -> payout: 4. Tạo lệnh Payout (Trạng thái: Pending)
+    activate payout
+    payout --> payoutController: 5. Sinh mã PayoutReference thành công
+    deactivate payout
+    payoutController --> payoutUI: 6. Phản hồi tạo lệnh thành công
+    payoutUI --> host: 7. Hiển thị thông báo chờ Admin duyệt
+else Số dư không đủ
+    payoutController --> payoutUI: 4a. Báo lỗi "Insufficient funds"
+    payoutUI --> host: 5a. Hiển thị thông báo từ chối
+end
+deactivate payoutController
+deactivate payoutUI
+@enduml

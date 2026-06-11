@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Đăng nhập" as loginUI
+control "Xử lý Đăng nhập" as loginController
+entity "User" as account
+
+user -> loginUI: 1. Nhập email và mật khẩu
+activate loginUI
+loginUI -> loginController: 2. Gửi thông tin đăng nhập
+activate loginController
+loginController -> account: 3. Lấy thông tin tài khoản theo email
+activate account
+account --> loginController: 4. Trả về thông tin tài khoản
+deactivate account
+alt Tài khoản tồn tại và Mật khẩu hợp lệ
+    loginController -> loginController: 5. Xác thực mật khẩu
+    loginController -> loginController: 6. Tạo phiên đăng nhập (Cấp phát Token)
+    loginController --> loginUI: 7. Phản hồi Đăng nhập thành công
+    loginUI --> user: 8. Chuyển hướng sang Màn hình chính
+else Sai email hoặc mật khẩu
+    loginController --> loginUI: 5a. Báo lỗi "Invalid email or password"
+    loginUI --> user: 6a. Hiển thị thông báo lỗi
+end
+deactivate loginController
+deactivate loginUI
+@enduml

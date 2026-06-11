@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Host" as hostUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+
+host -> hostUI: 1. Nhập thông tin cơ bản (Tiêu đề, mô tả)
+activate hostUI
+hostUI -> propertyController: 2. Yêu cầu khởi tạo Bất động sản mới
+activate propertyController
+propertyController -> propertyController: 3. Xác thực định dạng dữ liệu (Validate)
+alt Dữ liệu đầy đủ và hợp lệ
+    propertyController -> property: 4. Tạo mới bản ghi Bất động sản (Trạng thái: Draft)
+    activate property
+    property --> propertyController: 5. Khởi tạo thành công (Trả về Property ID)
+    deactivate property
+    propertyController --> hostUI: 6. Phản hồi tạo thành công
+    hostUI --> host: 7. Chuyển sang bước Tải hình ảnh
+else Dữ liệu thiếu hoặc sai định dạng
+    propertyController --> hostUI: 4a. Báo lỗi "Validation Failed"
+    hostUI --> host: 5a. Hiển thị lỗi yêu cầu nhập lại
+end
+deactivate propertyController
+deactivate hostUI
+@enduml

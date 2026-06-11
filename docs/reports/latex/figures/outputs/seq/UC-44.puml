@@ -1,0 +1,20 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Báo cáo Thống kê" as adminUI
+control "Xử lý Thống kê" as analyticsController
+entity "Payment" as payment
+
+admin -> adminUI: 1. Chọn khoảng thời gian xem báo cáo
+activate adminUI
+adminUI -> analyticsController: 2. Yêu cầu xuất dữ liệu doanh thu
+activate analyticsController
+analyticsController -> payment: 3. Truy vấn Analytics DB (Group By Ngày/Tháng)
+activate payment
+payment --> analyticsController: 4. Trả về tổng hợp doanh thu
+deactivate payment
+analyticsController --> adminUI: 5. Phản hồi JSON dữ liệu Chart
+adminUI --> admin: 6. Render biểu đồ tăng trưởng
+deactivate analyticsController
+deactivate adminUI
+@enduml

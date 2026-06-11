@@ -1,0 +1,22 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Cấu hình Nền tảng" as adminUI
+control "Xử lý Cấu hình" as platformController
+entity "PlatformSetting" as settings
+
+admin -> adminUI: 1. Nhập phần trăm phí Dịch vụ / Hoa hồng mới
+activate adminUI
+adminUI -> platformController: 2. Yêu cầu cập nhật cấu hình
+activate platformController
+platformController -> platformController: 3. Xác thực quyền Root Admin
+platformController -> settings: 4. Lưu cấu hình mới (Chỉ áp dụng tương lai)
+activate settings
+settings --> platformController: 5. Cập nhật DB thành công
+deactivate settings
+platformController -> platformController: 6. Xóa Cache cấu hình cũ
+platformController --> adminUI: 7. Phản hồi cập nhật thành công
+adminUI --> admin: 8. Hiển thị thông báo lưu thành công
+deactivate platformController
+deactivate adminUI
+@enduml

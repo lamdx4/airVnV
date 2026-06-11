@@ -1,0 +1,22 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Màn hình Duyệt Bài" as adminUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+
+admin -> adminUI: 1. Xem xét phòng (Pending Approval) và nhấn Approve
+activate adminUI
+adminUI -> propertyController: 2. Gửi yêu cầu phê duyệt Bất động sản
+activate propertyController
+propertyController -> propertyController: 3. Xác thực quyền Admin
+propertyController -> property: 4. Cập nhật trạng thái thành Published
+activate property
+property --> propertyController: 5. Cập nhật thành công
+deactivate property
+propertyController -> propertyController: 6. Phát Event sang Kafka (Kích hoạt luồng CDC sang Elasticsearch)
+propertyController --> adminUI: 7. Phản hồi duyệt thành công
+adminUI --> admin: 8. Hiển thị tin đăng đã công khai
+deactivate propertyController
+deactivate adminUI
+@enduml

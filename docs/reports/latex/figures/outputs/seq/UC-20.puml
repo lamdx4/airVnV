@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Chi tiết Phòng" as propertyDetailUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+entity "Review" as review
+
+guest -> propertyDetailUI: 1. Chọn xem một phòng cụ thể
+activate propertyDetailUI
+propertyDetailUI -> propertyController: 2. Yêu cầu lấy thông tin chi tiết phòng
+activate propertyController
+propertyController -> property: 3. Lấy thông tin phòng, giá, tiện ích
+activate property
+property --> propertyController: 4. Trả về thông tin
+deactivate property
+alt Phòng tồn tại và trạng thái Published
+    propertyController -> review: 5. Lấy danh sách đánh giá của phòng
+    activate review
+    review --> propertyController: 6. Trả về danh sách đánh giá
+    deactivate review
+    propertyController --> propertyDetailUI: 7. Phản hồi dữ liệu chi tiết
+    propertyDetailUI --> guest: 8. Hiển thị toàn bộ thông tin
+else Phòng không tồn tại hoặc bị ẩn
+    propertyController --> propertyDetailUI: 5a. Báo lỗi "Property not found (404)"
+    propertyDetailUI --> guest: 6a. Chuyển hướng về trang Lỗi 404
+end
+deactivate propertyController
+deactivate propertyDetailUI
+@enduml

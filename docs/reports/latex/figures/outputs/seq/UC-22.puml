@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Đơn" as hostUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+host -> hostUI: 1. Xem đơn đặt phòng chờ duyệt
+activate hostUI
+hostUI -> bookingController: 2. Chọn Duyệt (Approve) đơn
+activate bookingController
+bookingController -> booking: 3. Lấy thông tin đơn đặt phòng
+activate booking
+booking --> bookingController: 4. Trả về thông tin đơn (Kiểm tra quyền Host)
+deactivate booking
+alt Đơn tồn tại và thuộc quyền Host
+    bookingController -> booking: 5. Cập nhật trạng thái (Approved)
+    activate booking
+    booking --> bookingController: 6. Cập nhật thành công
+    deactivate booking
+    bookingController -> bookingController: 7. Gửi thông báo cho Khách
+    bookingController --> hostUI: 8. Phản hồi xử lý thành công
+    hostUI --> host: 9. Cập nhật trạng thái hiển thị
+else Đơn không tồn tại hoặc không đủ quyền
+    bookingController --> hostUI: 5a. Báo lỗi "Booking not found / Unauthorized"
+    hostUI --> host: 6a. Hiển thị thông báo lỗi
+end
+deactivate bookingController
+deactivate hostUI
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Giao diện Thông báo" as notificationUI
+control "Xử lý Thông báo" as notificationController
+entity "Notification" as notification
+
+user -> notificationUI: 1. Bấm mở chuông thông báo
+activate notificationUI
+notificationUI -> notificationController: 2. Yêu cầu lấy danh sách thông báo
+activate notificationController
+notificationController -> notification: 3. Truy vấn danh sách thông báo chưa đọc
+activate notification
+notification --> notificationController: 4. Trả về danh sách thông báo
+deactivate notification
+notificationController --> notificationUI: 5. Phản hồi danh sách thông báo
+notificationUI --> user: 6. Hiển thị danh sách lên màn hình
+
+user -> notificationUI: 7. Nhấn xem một thông báo cụ thể
+notificationUI -> notificationController: 8. Gửi yêu cầu đánh dấu đã đọc
+notificationController -> notification: 9. Cập nhật trạng thái (IsRead = true)
+activate notification
+notification --> notificationController: 10. Cập nhật thành công
+deactivate notification
+notificationController --> notificationUI: 11. Phản hồi xử lý thành công
+notificationUI --> user: 12. Ẩn dấu chấm đỏ (Unread badge)
+
+deactivate notificationController
+deactivate notificationUI
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Giá" as pricingUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+
+host -> pricingUI: 1. Chọn ngày và nhập giá tùy chỉnh
+activate pricingUI
+pricingUI -> propertyController: 2. Gửi yêu cầu cập nhật giá
+activate propertyController
+propertyController -> propertyController: 3. Kiểm tra tính hợp lệ của giá
+alt Giá hợp lệ (Lớn hơn 0)
+    propertyController -> property: 4. Cập nhật bảng giá tùy chỉnh (Smart Pricing)
+    activate property
+    property --> propertyController: 5. Cập nhật thành công
+    deactivate property
+    propertyController --> pricingUI: 6. Phản hồi thiết lập thành công
+    pricingUI --> host: 7. Hiển thị thông báo thành công
+else Giá không hợp lệ
+    propertyController --> pricingUI: 4a. Báo lỗi giá không hợp lệ
+    pricingUI --> host: 5a. Hiển thị cảnh báo lỗi
+end
+deactivate propertyController
+deactivate pricingUI
+@enduml

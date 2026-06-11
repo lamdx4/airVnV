@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Host" as hostUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+entity "PropertyImage" as propertyImage
+
+host -> hostUI: 1. Chọn xóa phòng đang nháp
+activate hostUI
+hostUI -> propertyController: 2. Gửi yêu cầu xóa Bất động sản
+activate propertyController
+propertyController -> property: 3. Lấy thông tin trạng thái phòng
+activate property
+property --> propertyController: 4. Trả về trạng thái hiện tại
+deactivate property
+alt Trạng thái là Draft
+    propertyController -> property: 5. Cập nhật trạng thái (IsDeleted = true)
+    activate property
+    property --> propertyController: 6. Soft Delete thành công
+    deactivate property
+    propertyController -> propertyImage: 7. Gửi yêu cầu xóa hình ảnh (Cloud)
+    propertyController --> hostUI: 8. Phản hồi xóa thành công
+    hostUI --> host: 9. Xóa phòng khỏi danh sách hiển thị
+else Trạng thái đã Publish
+    propertyController --> hostUI: 5a. Báo lỗi "Cannot delete published property"
+    hostUI --> host: 6a. Hiển thị thông báo yêu cầu Suspend trước
+end
+deactivate propertyController
+deactivate hostUI
+@enduml

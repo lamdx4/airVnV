@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Trang Đăng nhập Quản trị" as loginUI
+control "Xử lý Đăng nhập" as authController
+entity "User" as account
+
+admin -> loginUI: 1. Nhập Email và Mật khẩu (bcrypt)
+activate loginUI
+loginUI -> authController: 2. Gửi thông tin chứng thực Admin
+activate authController
+authController -> account: 3. Lấy thông tin tài khoản và Role
+activate account
+account --> authController: 4. Trả về thông tin Admin
+deactivate account
+alt Đúng mật khẩu và Có quyền Admin/Moderator
+    authController -> authController: 5. Sinh JWT Token (Admin Privilege)
+    authController --> loginUI: 6. Phản hồi Đăng nhập thành công
+    loginUI --> admin: 7. Chuyển hướng vào Dashboard Quản trị
+else Thiếu quyền truy cập
+    authController --> loginUI: 5a. Báo lỗi "Access denied. Admin role required"
+    loginUI --> admin: 6a. Hiển thị thông báo từ chối
+end
+deactivate authController
+deactivate loginUI
+@enduml

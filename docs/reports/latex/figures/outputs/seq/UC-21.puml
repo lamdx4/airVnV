@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Đặt phòng" as bookingUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+guest -> bookingUI: 1. Chọn ngày, số người và Đặt phòng
+activate bookingUI
+bookingUI -> bookingController: 2. Gửi yêu cầu đặt phòng
+activate bookingController
+bookingController -> booking: 3. Kiểm tra tính khả dụng (Lịch trùng)
+activate booking
+booking --> bookingController: 4. Phản hồi tính khả dụng
+deactivate booking
+alt Lịch còn trống
+    bookingController -> booking: 5. Tạo đơn đặt phòng mới (Trạng thái: Pending)
+    activate booking
+    booking --> bookingController: 6. Khởi tạo thành công
+    deactivate booking
+    bookingController -> bookingController: 7. Bắn Event sang PaymentService
+    bookingController --> bookingUI: 8. Phản hồi tạo đơn thành công
+    bookingUI --> guest: 9. Chuyển hướng sang trang Thanh toán
+else Ngày đã bị đặt
+    bookingController --> bookingUI: 5a. Báo lỗi "These dates are already booked"
+    bookingUI --> guest: 6a. Hiển thị thông báo yêu cầu chọn ngày khác
+end
+deactivate bookingController
+deactivate bookingUI
+@enduml

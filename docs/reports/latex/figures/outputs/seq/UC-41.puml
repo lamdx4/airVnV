@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Admin" as admin
+boundary "Quản lý Người dùng" as adminUI
+control "Xử lý Tài khoản" as userController
+entity "User" as account
+
+admin -> adminUI: 1. Chọn User và nhấn Khóa (Suspend)
+activate adminUI
+adminUI -> userController: 2. Gửi yêu cầu khóa tài khoản
+activate userController
+userController -> account: 3. Lấy thông tin User
+activate account
+account --> userController: 4. Trả về thông tin
+deactivate account
+alt User tồn tại trong hệ thống
+    userController -> account: 5. Đổi trạng thái thành Suspended
+    activate account
+    account --> userController: 6. Lưu thay đổi
+    deactivate account
+    userController -> userController: 7. Tự động hủy mọi phiên đăng nhập (RevokeSessions)
+    userController --> adminUI: 8. Phản hồi khóa thành công
+    adminUI --> admin: 9. Hiển thị trạng thái Suspended
+else User không tồn tại
+    userController --> adminUI: 5a. Báo lỗi "User not found"
+    adminUI --> admin: 6a. Hiển thị thông báo lỗi
+end
+deactivate userController
+deactivate adminUI
+@enduml

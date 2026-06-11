@@ -21,7 +21,7 @@
 set -euo pipefail
 
 MAIN="main.tex"
-OUT_DIR="build"
+OUT_DIR="outputs"
 WATCH_DIRS=("." "chapters" "appendix")
 
 GREEN='\033[0;32m'

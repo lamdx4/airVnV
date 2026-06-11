@@ -1,0 +1,20 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Thanh Tìm kiếm" as searchBarUI
+control "Xử lý Tìm kiếm" as searchController
+entity "PropertyDoc" as propertyDoc
+
+guest -> searchBarUI: 1. Gõ chữ cái đầu vào ô Tìm kiếm
+activate searchBarUI
+searchBarUI -> searchController: 2. Gửi từ khóa gợi ý (Autocomplete)
+activate searchController
+searchController -> propertyDoc: 3. Tìm kiếm gần đúng (Fuzzy Match) trên Elasticsearch
+activate propertyDoc
+propertyDoc --> searchController: 4. Trả về Top 5 địa danh / tên phòng
+deactivate propertyDoc
+searchController --> searchBarUI: 5. Phản hồi danh sách gợi ý (< 50ms)
+searchBarUI --> guest: 6. Hiển thị danh sách Autocomplete thả xuống
+deactivate searchController
+deactivate searchBarUI
+@enduml

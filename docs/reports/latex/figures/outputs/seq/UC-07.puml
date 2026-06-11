@@ -1,0 +1,29 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Hệ thống ngầm (Client)" as clientUI
+control "Xử lý Xác thực" as authController
+entity "UserSession" as session
+
+user -> clientUI: 1. Truy cập tính năng khi Token hết hạn
+activate clientUI
+clientUI -> authController: 2. Gửi Refresh Token yêu cầu làm mới
+activate authController
+authController -> session: 3. Kiểm tra tính hợp lệ của Refresh Token
+activate session
+session --> authController: 4. Trả về trạng thái Token
+deactivate session
+alt Token hợp lệ và chưa bị thu hồi
+    authController -> session: 5. Thu hồi Token cũ và Tạo Token mới (Rotation)
+    activate session
+    session --> authController: 6. Cập nhật phiên đăng nhập thành công
+    deactivate session
+    authController --> clientUI: 7. Trả về bộ Token mới
+    clientUI --> user: 8. Tự động tiếp tục tính năng đang dùng
+else Token không hợp lệ hoặc bị thu hồi
+    authController --> clientUI: 5a. Báo lỗi "Token is revoked / invalid"
+    clientUI --> user: 6a. Chuyển hướng người dùng về trang Đăng nhập
+end
+deactivate authController
+deactivate clientUI
+@enduml

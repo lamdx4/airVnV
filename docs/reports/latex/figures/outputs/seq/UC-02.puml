@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Xác thực" as verifyUI
+control "Xử lý Xác thực" as verifyController
+entity "User" as account
+
+user -> verifyUI: 1. Nhập mã OTP
+activate verifyUI
+verifyUI -> verifyController: 2. Gửi mã OTP để xác thực
+activate verifyController
+verifyController -> verifyController: 3. Kiểm tra tính hợp lệ của mã OTP
+alt OTP hợp lệ và chưa hết hạn
+    verifyController -> account: 4. Cập nhật trạng thái tài khoản (Active)
+    activate account
+    account --> verifyController: 5. Cập nhật thành công
+    deactivate account
+    verifyController --> verifyUI: 6. Phản hồi xác thực thành công
+    verifyUI --> user: 7. Chuyển hướng đến màn hình Đăng nhập
+else OTP hết hạn hoặc sai
+    verifyController --> verifyUI: 4a. Báo lỗi "Verification code expired / invalid"
+    verifyUI --> user: 5a. Hiển thị thông báo lỗi
+end
+deactivate verifyController
+deactivate verifyUI
+@enduml

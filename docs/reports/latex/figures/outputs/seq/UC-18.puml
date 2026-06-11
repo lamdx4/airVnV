@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Tìm kiếm" as searchUI
+control "Xử lý Tìm kiếm" as searchController
+entity "PropertyDoc" as propertyDoc
+
+guest -> searchUI: 1. Nhập tiêu chí (Địa điểm, giá, ngày) và nhấn Tìm
+activate searchUI
+searchUI -> searchController: 2. Gửi yêu cầu tìm kiếm Bất động sản
+activate searchController
+searchController -> searchController: 3. Khởi tạo truy vấn tìm kiếm
+searchController -> propertyDoc: 4. Truy vấn Elasticsearch (Chỉ phòng Published)
+activate propertyDoc
+propertyDoc --> searchController: 5. Trả về danh sách kết quả phù hợp
+deactivate propertyDoc
+alt Truy vấn thành công
+    searchController --> searchUI: 6. Phản hồi dữ liệu phân trang
+    searchUI --> guest: 7. Hiển thị danh sách phòng trống
+else Lỗi Elasticsearch
+    searchController -> searchController: 6a. Chuyển hướng truy vấn Fallback (PostgreSQL)
+    searchController --> searchUI: 7a. Phản hồi kết quả Fallback hoặc Lỗi 500
+    searchUI --> guest: 8a. Hiển thị kết quả hoặc thông báo lỗi
+end
+deactivate searchController
+deactivate searchUI
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Lịch sử Đặt phòng" as tripsUI
+control "Xử lý Đặt phòng" as bookingController
+entity "Booking" as booking
+
+guest -> tripsUI: 1. Nhấn nút Hủy phòng
+activate tripsUI
+tripsUI -> bookingController: 2. Gửi yêu cầu hủy đơn
+activate bookingController
+bookingController -> booking: 3. Lấy thông tin đơn và ngày Check-in
+activate booking
+booking --> bookingController: 4. Trả về thông tin đơn
+deactivate booking
+alt Trong thời hạn cho phép hủy
+    bookingController -> bookingController: 5. Tính toán số tiền hoàn lại theo Policy
+    bookingController -> booking: 6. Cập nhật trạng thái (Cancelled)
+    activate booking
+    booking --> bookingController: 7. Cập nhật thành công
+    deactivate booking
+    bookingController -> bookingController: 8. Bắn RefundEvent sang PaymentService
+    bookingController --> tripsUI: 9. Phản hồi hủy thành công
+    tripsUI --> guest: 10. Hiển thị thông báo hủy và tiền hoàn
+else Quá thời hạn (Ví dụ: Sát giờ check-in)
+    bookingController --> tripsUI: 5a. Báo lỗi vi phạm chính sách hủy
+    tripsUI --> guest: 6a. Hiển thị thông báo từ chối hủy
+end
+deactivate bookingController
+deactivate tripsUI
+@enduml

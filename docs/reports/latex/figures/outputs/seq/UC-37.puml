@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Khách" as guest
+boundary "Màn hình Đánh giá" as reviewUI
+control "Xử lý Đánh giá" as reviewController
+entity "Review" as review
+
+guest -> reviewUI: 1. Nhập Số sao và Nội dung bình luận
+activate reviewUI
+reviewUI -> reviewController: 2. Gửi yêu cầu lưu Đánh giá
+activate reviewController
+reviewController -> reviewController: 3. Kiểm tra trạng thái chuyến đi (Completed)
+alt Chuyến đi đã hoàn tất
+    reviewController -> review: 4. Tạo mới Review (Gắn với BookingId)
+    activate review
+    review --> reviewController: 5. Lưu thành công
+    deactivate review
+    reviewController -> reviewController: 6. Phát Event tính toán lại Rating cho Property
+    reviewController --> reviewUI: 7. Phản hồi xử lý thành công
+    reviewUI --> guest: 8. Hiển thị đánh giá công khai
+else Chuyến đi chưa hoàn tất hoặc Đã đánh giá
+    reviewController --> reviewUI: 4a. Báo lỗi "Booking must be Completed"
+    reviewUI --> guest: 5a. Hiển thị thông báo lỗi
+end
+deactivate reviewController
+deactivate reviewUI
+@enduml

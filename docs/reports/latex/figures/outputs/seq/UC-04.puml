@@ -1,0 +1,26 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Người dùng" as user
+boundary "Màn hình Hồ sơ" as profileUI
+control "Xử lý Hồ sơ" as profileController
+entity "User" as account
+
+user -> profileUI: 1. Cập nhật thông tin cá nhân
+activate profileUI
+profileUI -> profileController: 2. Gửi yêu cầu cập nhật hồ sơ
+activate profileController
+profileController -> profileController: 3. Xác thực định dạng dữ liệu (Validate)
+alt Dữ liệu hợp lệ
+    profileController -> account: 4. Cập nhật thông tin vào CSDL
+    activate account
+    account --> profileController: 5. Cập nhật thành công
+    deactivate account
+    profileController --> profileUI: 6. Phản hồi Cập nhật thành công
+    profileUI --> user: 7. Hiển thị thông báo thành công
+else Lỗi định dạng (Validation Failed)
+    profileController --> profileUI: 4a. Phản hồi lỗi định dạng
+    profileUI --> user: 5a. Hiển thị thông báo lỗi
+end
+deactivate profileController
+deactivate profileUI
+@enduml

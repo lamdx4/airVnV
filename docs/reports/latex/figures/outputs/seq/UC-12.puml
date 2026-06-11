@@ -1,0 +1,30 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Lịch" as calendarUI
+control "Xử lý Bất động sản" as propertyController
+entity "Booking" as booking
+entity "PropertyAvailability" as availability
+
+host -> calendarUI: 1. Chọn khoảng thời gian cần khóa
+activate calendarUI
+calendarUI -> propertyController: 2. Gửi yêu cầu khóa lịch rảnh
+activate propertyController
+propertyController -> booking: 3. Kiểm tra các đơn đặt phòng (Pending/Confirmed) trong khoảng ngày
+activate booking
+booking --> propertyController: 4. Trả về danh sách đơn đặt phòng
+deactivate booking
+alt Không có đơn đặt phòng trùng lịch
+    propertyController -> availability: 5. Tạo mới BlockAvailability
+    activate availability
+    availability --> propertyController: 6. Khóa lịch thành công
+    deactivate availability
+    propertyController --> calendarUI: 7. Phản hồi khóa lịch thành công
+    calendarUI --> host: 8. Cập nhật giao diện lịch (Màu đỏ/Khóa)
+else Có đơn đặt phòng trùng lịch
+    propertyController --> calendarUI: 5a. Báo lỗi không thể khóa ngày đã có khách đặt
+    calendarUI --> host: 6a. Hiển thị thông báo lỗi
+end
+deactivate propertyController
+deactivate calendarUI
+@enduml

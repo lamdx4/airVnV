@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Quản lý Host" as hostUI
+control "Xử lý Bất động sản" as propertyController
+entity "Property" as property
+
+host -> hostUI: 1. Chọn phòng nháp và nhấn Submit
+activate hostUI
+hostUI -> propertyController: 2. Gửi yêu cầu duyệt Bất động sản
+activate propertyController
+propertyController -> property: 3. Lấy toàn bộ thông tin phòng
+activate property
+property --> propertyController: 4. Trả về thông tin phòng
+deactivate property
+propertyController -> propertyController: 5. Validate dữ liệu toàn diện (Giá, Địa chỉ, Ảnh)
+alt Dữ liệu đầy đủ và trạng thái Draft
+    propertyController -> property: 6. Chuyển trạng thái (Pending Approval)
+    activate property
+    property --> propertyController: 7. Cập nhật thành công
+    deactivate property
+    propertyController -> propertyController: 8. Gửi thông báo cho Admin
+    propertyController --> hostUI: 9. Phản hồi gửi duyệt thành công
+    hostUI --> host: 10. Cập nhật trạng thái hiển thị
+else Thiếu dữ liệu hoặc sai trạng thái
+    propertyController --> hostUI: 6a. Báo lỗi thiếu thông tin bắt buộc
+    hostUI --> host: 7a. Hiển thị thông báo yêu cầu bổ sung
+end
+deactivate propertyController
+deactivate hostUI
+@enduml

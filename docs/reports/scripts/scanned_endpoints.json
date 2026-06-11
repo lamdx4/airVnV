@@ -1,0 +1,656 @@
+{
+    "Airbnb.PropertyService": [
+        {
+            "FeatureName": "CreateProperty",
+            "Path": "/Airbnb.PropertyService/Features/CreateProperty",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "UpdateProperty",
+            "Path": "/Airbnb.PropertyService/Features/UpdateProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "DeleteProperty",
+            "Path": "/Airbnb.PropertyService/Features/DeleteProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "SubmitProperty",
+            "Path": "/Airbnb.PropertyService/Features/SubmitProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "ApproveProperty",
+            "Path": "/Airbnb.PropertyService/Features/ApproveProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "SuspendProperty",
+            "Path": "/Airbnb.PropertyService/Features/SuspendProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "ReinstateProperty",
+            "Path": "/Airbnb.PropertyService/Features/ReinstateProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "ArchiveProperty",
+            "Path": "/Airbnb.PropertyService/Features/ArchiveProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "AddImage",
+            "Path": "/Airbnb.PropertyService/Features/ManageImages/AddImage",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "RemoveImage",
+            "Path": "/Airbnb.PropertyService/Features/ManageImages/RemoveImage",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied.",
+                "NotFoundException: Image not found."
+            ]
+        },
+        {
+            "FeatureName": "AddImages",
+            "Path": "/Airbnb.PropertyService/Features/ManageImages/AddImages",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "ReorderImages",
+            "Path": "/Airbnb.PropertyService/Features/ManageImages/ReorderImages",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized."
+            ]
+        },
+        {
+            "FeatureName": "AddAmenity",
+            "Path": "/Airbnb.PropertyService/Features/ManageAmenities/AddAmenity",
+            "Exceptions": [
+                "NotFoundException: Amenity not found in catalog.",
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "RemoveAmenity",
+            "Path": "/Airbnb.PropertyService/Features/ManageAmenities/RemoveAmenity",
+            "Exceptions": [
+                "NotFoundException: Property not found or access denied."
+            ]
+        },
+        {
+            "FeatureName": "GetMyProperties",
+            "Path": "/Airbnb.PropertyService/Features/GetMyProperties",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetAvailableAmenities",
+            "Path": "/Airbnb.PropertyService/Features/GetAvailableAmenities",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "UpdateStatus",
+            "Path": "/Airbnb.PropertyService/Features/UpdateStatus",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized.",
+                "BusinessException: Cannot revert to Draft from current status."
+            ]
+        },
+        {
+            "FeatureName": "UpdateLocation",
+            "Path": "/Airbnb.PropertyService/Features/UpdateLocation",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized."
+            ]
+        },
+        {
+            "FeatureName": "UpdateAmenityInfo",
+            "Path": "/Airbnb.PropertyService/Features/UpdateAmenityInfo",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized."
+            ]
+        },
+        {
+            "FeatureName": "BlockDates",
+            "Path": "/Airbnb.PropertyService/Features/ManageAvailability/BlockDates",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized."
+            ]
+        },
+        {
+            "FeatureName": "RemoveAvailability",
+            "Path": "/Airbnb.PropertyService/Features/ManageAvailability/RemoveAvailability",
+            "Exceptions": [
+                "NotFoundException: Property not found or unauthorized."
+            ]
+        },
+        {
+            "FeatureName": "GetPropertyBasicInfo",
+            "Path": "/Airbnb.PropertyService/Features/GetPropertyBasicInfo",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "GetProperty",
+            "Path": "/Airbnb.PropertyService/Features/GetProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "AddReview",
+            "Path": "/Airbnb.PropertyService/Features/AddReview",
+            "Exceptions": [
+                "BusinessException: You have already reviewed this booking.",
+                "NotFoundException: Booking not found.",
+                "BusinessException: You are not authorized to review this booking.",
+                "BusinessException: Booking must be Confirmed or Completed to review.",
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "UpdateReview",
+            "Path": "/Airbnb.PropertyService/Features/UpdateReview",
+            "Exceptions": [
+                "BusinessException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "DeleteReview",
+            "Path": "/Airbnb.PropertyService/Features/DeleteReview",
+            "Exceptions": [
+                "BusinessException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "GetReviews",
+            "Path": "/Airbnb.PropertyService/Features/GetReviews",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetPropertyDetail",
+            "Path": "/Airbnb.PropertyService/Features/Admin/GetPropertyDetail",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "GetNewListings",
+            "Path": "/Airbnb.PropertyService/Features/Admin/Reports/GetNewListings",
+            "Exceptions": [
+                "BusinessException: Invalid date range. Use yyyy-MM-dd."
+            ]
+        },
+        {
+            "FeatureName": "GetPendingBacklog",
+            "Path": "/Airbnb.PropertyService/Features/Admin/Reports/GetPendingBacklog",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetPriceDistribution",
+            "Path": "/Airbnb.PropertyService/Features/Admin/Reports/GetPriceDistribution",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetStatusFunnel",
+            "Path": "/Airbnb.PropertyService/Features/Admin/Reports/GetStatusFunnel",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetTypeDistribution",
+            "Path": "/Airbnb.PropertyService/Features/Admin/Reports/GetTypeDistribution",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "AdminDeleteProperty",
+            "Path": "/Airbnb.PropertyService/Features/AdminDeleteProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "GetAdminProperties",
+            "Path": "/Airbnb.PropertyService/Features/GetAdminProperties",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetAdminStats",
+            "Path": "/Airbnb.PropertyService/Features/GetAdminStats",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetNewPropertiesCount",
+            "Path": "/Airbnb.PropertyService/Features/GetNewPropertiesCount",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetPropertiesByIds",
+            "Path": "/Airbnb.PropertyService/Features/GetPropertiesByIds",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetPublishedCount",
+            "Path": "/Airbnb.PropertyService/Features/GetPublishedCount",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetRecentActivity",
+            "Path": "/Airbnb.PropertyService/Features/GetRecentActivity",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "RejectProperty",
+            "Path": "/Airbnb.PropertyService/Features/RejectProperty",
+            "Exceptions": [
+                "NotFoundException: Property not found."
+            ]
+        },
+        {
+            "FeatureName": "GetPublicProperties",
+            "Path": "/Airbnb.PropertyService/Features/GetPublicProperties",
+            "Exceptions": []
+        }
+    ],
+    "Airbnb.UserService": [
+        {
+            "FeatureName": "Register",
+            "Path": "/Airbnb.UserService/Features/RegisterUser/Register",
+            "Exceptions": [
+                "BusinessException: Email already exists."
+            ]
+        },
+        {
+            "FeatureName": "Verify",
+            "Path": "/Airbnb.UserService/Features/RegisterUser/Verify",
+            "Exceptions": [
+                "BusinessException: Verification code expired or not found.",
+                "BusinessException: Invalid verification code."
+            ]
+        },
+        {
+            "FeatureName": "Login",
+            "Path": "/Airbnb.UserService/Features/Login/Login",
+            "Exceptions": [
+                "BusinessException: Invalid email or password",
+                "InvalidOperationException: JWT Signing Key is missing."
+            ]
+        },
+        {
+            "FeatureName": "AdminLogin",
+            "Path": "/Airbnb.UserService/Features/Login/AdminLogin",
+            "Exceptions": [
+                "BusinessException: Email, password incorrect, or insufficient permissions.",
+                "BusinessException: Email, password incorrect, or insufficient permissions.",
+                "BusinessException: JWT signing key is not configured."
+            ]
+        },
+        {
+            "FeatureName": "Execute",
+            "Path": "/Airbnb.UserService/Features/GoogleAuth/Execute",
+            "Exceptions": [
+                "InvalidOperationException: Google ClientId is missing.",
+                "TimeoutException: Google token validation timed out after 10 seconds.",
+                "InvalidOperationException: JWT Signing Key is missing.",
+                "InvalidOperationException: User disappeared during concurrency retry."
+            ]
+        },
+        {
+            "FeatureName": "Execute",
+            "Path": "/Airbnb.UserService/Features/RefreshToken/Execute",
+            "Exceptions": [
+                "InvalidOperationException: JWT Signing Key is missing."
+            ]
+        },
+        {
+            "FeatureName": "Get",
+            "Path": "/Airbnb.UserService/Features/Profile/Get",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "Update",
+            "Path": "/Airbnb.UserService/Features/Profile/Update",
+            "Exceptions": [
+                "NotFoundException: User not found"
+            ]
+        },
+        {
+            "FeatureName": "GetPublic",
+            "Path": "/Airbnb.UserService/Features/Profile/GetPublic",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetSignature",
+            "Path": "/Airbnb.UserService/Features/Media/GetSignature",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetSessions",
+            "Path": "/Airbnb.UserService/Features/Account/GetSessions",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "RevokeSession",
+            "Path": "/Airbnb.UserService/Features/Account/RevokeSession",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "ChangePassword",
+            "Path": "/Airbnb.UserService/Features/Account/ChangePassword",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "ActivateUser",
+            "Path": "/Airbnb.UserService/Features/Admin/ActivateUser",
+            "Exceptions": [
+                "NotFoundException: User not found."
+            ]
+        },
+        {
+            "FeatureName": "BanUser",
+            "Path": "/Airbnb.UserService/Features/Admin/BanUser",
+            "Exceptions": [
+                "NotFoundException: User not found."
+            ]
+        },
+        {
+            "FeatureName": "GetReportSummary",
+            "Path": "/Airbnb.UserService/Features/Admin/GetReportSummary",
+            "Exceptions": [
+                "BusinessException: Invalid date range. Use yyyy-MM-dd."
+            ]
+        },
+        {
+            "FeatureName": "GetRevenueChart",
+            "Path": "/Airbnb.UserService/Features/Admin/GetRevenueChart",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetTopPropertiesReport",
+            "Path": "/Airbnb.UserService/Features/Admin/GetTopPropertiesReport",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetUserActivityReport",
+            "Path": "/Airbnb.UserService/Features/Admin/GetUserActivityReport",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetUserDetail",
+            "Path": "/Airbnb.UserService/Features/Admin/GetUserDetail",
+            "Exceptions": [
+                "NotFoundException: User not found."
+            ]
+        },
+        {
+            "FeatureName": "GetUserGrowthReport",
+            "Path": "/Airbnb.UserService/Features/Admin/GetUserGrowthReport",
+            "Exceptions": [
+                "BusinessException: Invalid date range. Use yyyy-MM-dd."
+            ]
+        },
+        {
+            "FeatureName": "GetUsers",
+            "Path": "/Airbnb.UserService/Features/Admin/GetUsers",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "SuspendUser",
+            "Path": "/Airbnb.UserService/Features/Admin/SuspendUser",
+            "Exceptions": [
+                "NotFoundException: User not found."
+            ]
+        },
+        {
+            "FeatureName": "GetSampleHosts",
+            "Path": "/Airbnb.UserService/Features/Internal/GetSampleHosts",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetUserBasicInfos",
+            "Path": "/Airbnb.UserService/Features/Internal/GetUserBasicInfos",
+            "Exceptions": []
+        }
+    ],
+    "Airbnb.BookingService": [
+        {
+            "FeatureName": "CreateBooking",
+            "Path": "/Airbnb.BookingService/Features/CreateBooking",
+            "Exceptions": [
+                "BusinessException: Missing UserId",
+                "BusinessException: Property not found or unavailable.",
+                "BusinessException: Property pricing is missing.",
+                "BusinessException: These dates are already booked.",
+                "BusinessException: CheckOut must be after CheckIn"
+            ]
+        },
+        {
+            "FeatureName": "GetGuestBookings",
+            "Path": "/Airbnb.BookingService/Features/GetGuestBookings",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetHostBookings",
+            "Path": "/Airbnb.BookingService/Features/GetHostBookings",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "ApproveBooking",
+            "Path": "/Airbnb.BookingService/Features/ApproveBooking",
+            "Exceptions": [
+                "NotFoundException: Booking not found."
+            ]
+        },
+        {
+            "FeatureName": "RejectBooking",
+            "Path": "/Airbnb.BookingService/Features/RejectBooking",
+            "Exceptions": [
+                "NotFoundException: Booking not found."
+            ]
+        },
+        {
+            "FeatureName": "CancelBooking",
+            "Path": "/Airbnb.BookingService/Features/CancelBooking",
+            "Exceptions": [
+                "NotFoundException: Booking not found."
+            ]
+        },
+        {
+            "FeatureName": "GetBookingBasicInfo",
+            "Path": "/Airbnb.BookingService/Features/GetBookingBasicInfo",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetBookingBasicInfos",
+            "Path": "/Airbnb.BookingService/Features/GetBookingBasicInfos",
+            "Exceptions": []
+        }
+    ],
+    "Airbnb.PaymentService": [
+        {
+            "FeatureName": "VnpayIpn",
+            "Path": "/Airbnb.PaymentService/Features/VnpayIpn",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "InitiatePayment",
+            "Path": "/Airbnb.PaymentService/Features/InitiatePayment",
+            "Exceptions": [
+                "BusinessException: Booking not found",
+                "BusinessException: You are not authorized to pay for this booking",
+                "BusinessException: Payment is already being processed. Please refresh."
+            ]
+        },
+        {
+            "FeatureName": "ApprovePayout",
+            "Path": "/Airbnb.PaymentService/Features/Admin/ApprovePayout",
+            "Exceptions": [
+                "NotFoundException: Payout not found."
+            ]
+        },
+        {
+            "FeatureName": "BootstrapHostBalances",
+            "Path": "/Airbnb.PaymentService/Features/Admin/BootstrapHostBalances",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetAdminPaymentDetail",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetAdminPaymentDetail",
+            "Exceptions": [
+                "NotFoundException: Payment not found."
+            ]
+        },
+        {
+            "FeatureName": "GetAdminPayments",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetAdminPayments",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetAdminPayoutDetail",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetAdminPayoutDetail",
+            "Exceptions": [
+                "NotFoundException: Payout not found."
+            ]
+        },
+        {
+            "FeatureName": "GetAdminPayouts",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetAdminPayouts",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetHostBalanceDetail",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetHostBalanceDetail",
+            "Exceptions": [
+                "NotFoundException: Host balance not found."
+            ]
+        },
+        {
+            "FeatureName": "GetHostBalances",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetHostBalances",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetPlatformSettings",
+            "Path": "/Airbnb.PaymentService/Features/Admin/GetPlatformSettings",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "MarkPayoutCompleted",
+            "Path": "/Airbnb.PaymentService/Features/Admin/MarkPayoutCompleted",
+            "Exceptions": [
+                "NotFoundException: Payout not found."
+            ]
+        },
+        {
+            "FeatureName": "UpdatePlatformSettings",
+            "Path": "/Airbnb.PaymentService/Features/Admin/UpdatePlatformSettings",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "RefundPayment",
+            "Path": "/Airbnb.PaymentService/Features/Admin/RefundPayment",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetRevenueOverview",
+            "Path": "/Airbnb.PaymentService/Features/Admin/Reports/GetRevenueOverview",
+            "Exceptions": [
+                "BusinessException: Invalid date range. Use yyyy-MM-dd."
+            ]
+        },
+        {
+            "FeatureName": "GetRevenueSeries",
+            "Path": "/Airbnb.PaymentService/Features/Admin/Reports/GetRevenueSeries",
+            "Exceptions": [
+                "BusinessException: Invalid date range. Use yyyy-MM-dd."
+            ]
+        }
+    ],
+    "Airbnb.SearchService": [
+        {
+            "FeatureName": "SearchProperties",
+            "Path": "/Airbnb.SearchService/Features/SearchProperties",
+            "Exceptions": [
+                "BusinessException: Search failed: "
+            ]
+        }
+    ],
+    "Airbnb.ChatService": [
+        {
+            "FeatureName": "Create",
+            "Path": "/Airbnb.ChatService/Features/Conversations/Create",
+            "Exceptions": [
+                "NotFoundException: Property not found.",
+                "BusinessException: Host cannot start a conversation as a guest for their own property."
+            ]
+        },
+        {
+            "FeatureName": "SendMessage",
+            "Path": "/Airbnb.ChatService/Features/Conversations/SendMessage",
+            "Exceptions": [
+                "NotFoundException: Conversation not found.",
+                "BusinessException: You are not a participant in this conversation.",
+                "BusinessException: Users cannot send system messages."
+            ]
+        },
+        {
+            "FeatureName": "GetInbox",
+            "Path": "/Airbnb.ChatService/Features/Conversations/GetInbox",
+            "Exceptions": []
+        },
+        {
+            "FeatureName": "GetMessages",
+            "Path": "/Airbnb.ChatService/Features/Conversations/GetMessages",
+            "Exceptions": [
+                "BusinessException: You do not have access to this conversation."
+            ]
+        },
+        {
+            "FeatureName": "MarkAsRead",
+            "Path": "/Airbnb.ChatService/Features/Conversations/MarkAsRead",
+            "Exceptions": [
+                "BusinessException: You do not have access to this conversation."
+            ]
+        },
+        {
+            "FeatureName": "Archive",
+            "Path": "/Airbnb.ChatService/Features/Conversations/Archive",
+            "Exceptions": [
+                "BusinessException: You do not have access to this conversation."
+            ]
+        },
+        {
+            "FeatureName": "GetAttachments",
+            "Path": "/Airbnb.ChatService/Features/Conversations/GetAttachments",
+            "Exceptions": [
+                "BusinessException: You are not a participant in this conversation.",
+                "BusinessException: Invalid attachment type. Must be Image or File."
+            ]
+        },
+        {
+            "FeatureName": "GetUserStatus",
+            "Path": "/Airbnb.ChatService/Features/GetUserStatus",
+            "Exceptions": []
+        }
+    ]
+}

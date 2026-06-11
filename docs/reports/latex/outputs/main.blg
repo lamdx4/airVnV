@@ -1,0 +1,14 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'outputs/main.blg'
+[38] biber:342> INFO - === Thu Jun 11, 2026, 16:51:07
+[46] Biber.pm:421> INFO - Reading 'outputs/main.bcf'
+[78] Biber.pm:999> INFO - Using all citekeys in bib section 0
+[86] Biber.pm:4487> INFO - Processing section 0
+[91] Biber.pm:4678> INFO - Looking for bibtex file 'appendix/tai_lieu_tham_khao.bib' for section 0
+[91] bibtex.pm:1713> INFO - LaTeX decoding ...
+[96] bibtex.pm:1519> INFO - Found BibTeX data source 'appendix/tai_lieu_tham_khao.bib'
+[156] UCollate.pm:68> INFO - Overriding locale 'vi-VN' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[156] UCollate.pm:68> INFO - Overriding locale 'vi-VN' defaults 'variable = shifted' with 'variable = non-ignorable'
+[156] Biber.pm:4307> INFO - Sorting list 'none/global//global/global/global' of type 'entry' with template 'none' and locale 'vi-VN'
+[162] bbl.pm:676> INFO - Writing 'outputs/main.bbl' with encoding 'UTF-8'
+[164] bbl.pm:779> INFO - Output to outputs/main.bbl

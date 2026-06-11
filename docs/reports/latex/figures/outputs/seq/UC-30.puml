@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor "Chủ nhà" as host
+boundary "Màn hình Ví Điện tử" as walletUI
+control "Xử lý Ví Host" as paymentController
+entity "HostBalance" as balance
+
+host -> walletUI: 1. Nhập Số tài khoản và Ngân hàng
+activate walletUI
+walletUI -> paymentController: 2. Gửi yêu cầu lưu thông tin Payout
+activate paymentController
+paymentController -> paymentController: 3. Kiểm tra định dạng ngân hàng
+alt Dữ liệu hợp lệ
+    paymentController -> paymentController: 4. Mã hóa Số tài khoản (AES256)
+    paymentController -> balance: 5. Lưu thông tin thanh toán vào DB
+    activate balance
+    balance --> paymentController: 6. Lưu thành công
+    deactivate balance
+    paymentController --> walletUI: 7. Phản hồi cập nhật thành công
+    walletUI --> host: 8. Hiển thị thông báo thành công
+else Số tài khoản sai định dạng
+    paymentController --> walletUI: 4a. Báo lỗi "Invalid Bank Account Format"
+    walletUI --> host: 5a. Yêu cầu nhập lại
+end
+deactivate paymentController
+deactivate walletUI
+@enduml
