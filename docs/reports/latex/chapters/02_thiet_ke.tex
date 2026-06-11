@@ -184,6 +184,22 @@ User Service đóng vai trò là "Identity Provider" (Nhà cung cấp định da
   \label{fig:erd_user}
 \end{figure}
 
+\subsection{Thiết kế Dữ liệu Search Service (Elasticsearch)}
+Đặc thù của Search Service là không sử dụng Cơ sở dữ liệu quan hệ (PostgreSQL) mà sử dụng \textbf{Elasticsearch} đóng vai trò là một Read-Model (Mô hình phục vụ việc Đọc). Lược đồ dữ liệu ở đây không phải là Table (Bảng) mà là các Document (Tài liệu JSON) được thiết kế giải chuẩn hóa hoàn toàn nhằm tối ưu hóa cho tốc độ truy vấn phức tạp và tìm kiếm theo tọa độ không gian (Geo-spatial Search).
+
+\begin{itemize}
+  \item \textbf{PropertyDoc (Document Root):} Lưu trữ thông tin tổng hợp của một căn hộ, được đồng bộ tự động theo thời gian thực từ Property Service qua Debezium và Kafka. Dữ liệu này gom sẵn các trường \texttt{BasePrice}, \texttt{AverageRating}, và \texttt{ReviewCount} để phục vụ thao tác Lọc (Filtering) và Sắp xếp (Sorting) trực tiếp tại engine của Elasticsearch.
+  \item \textbf{Location (geo\_point):} Kiểu dữ liệu đặc thù của Elasticsearch, định dạng \texttt{"lat, lon"}. Trường này cho phép Search Service thực thi siêu tốc các truy vấn theo bán kính địa lý (Geo-Distance Queries) như: "Tìm căn hộ trong bán kính 5km quanh tọa độ X".
+  \item \textbf{AddressVO (Nested Document):} Một Object được nhúng (Embed) trực tiếp bên trong tài liệu gốc. Nó giúp phân mảnh các yếu tố của địa chỉ (\texttt{CountryCode}, \texttt{DisplayAddress}) thành các token để hỗ trợ tìm kiếm toàn văn bản (Full-text Search).
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth, keepaspectratio]{figures/outputs/erd_search_service.png}
+  \caption{Sơ đồ Lược đồ Tài liệu (Document Schema) của Search Service}
+  \label{fig:erd_search}
+\end{figure}
+
 \subsection{Thiết kế Dữ liệu Payment Service}
 Payment Service quản lý vòng đời thanh toán của người dùng và đối soát doanh thu cho chủ nhà (Host). Lược đồ CSDL được thiết kế theo dạng Event Sourcing thu nhỏ và Ledger (Sổ cái) để đảm bảo không bao giờ thất thoát dòng tiền.
 
