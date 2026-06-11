@@ -32,3 +32,11 @@ specs
 log.txt
 # Secrets
 firebase-service-account.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# LaTeX Outputs
+docs/reports/latex/outputs/

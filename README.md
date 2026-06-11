@@ -133,4 +133,6 @@ To generate a `docker-compose.yml` deployment from the .NET Aspire orchestration
 cd Airbnb.AppHost
 aspirate generate
 ```
+
 *Note: This will parse the AppHost graph and automatically scaffold your `docker-compose.yml` and `.env` files.*
+*Note: You must install the Aspirate CLI separately before running this command.*
