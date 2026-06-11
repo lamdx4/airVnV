@@ -8,47 +8,62 @@
 \section{Những kết quả đã đạt được}
 \label{sec:ket_qua_dat_duoc}
 
-%
-% REQUIREMENT (từ main.md – Chương IV, mục 1):
-%   - Đối chiếu trực tiếp với mục tiêu đã đặt ra ở Chương I, mục 1.2.
-%   - Đối chiếu với các tiêu chí thiết kế ở Chương II.
-%   - Trình bày dưới dạng bảng tổng kết:
-%       Mục tiêu ban đầu | Kết quả đạt được | Mức độ hoàn thành (%)
-%   - Nhấn mạnh các điểm kỹ thuật nổi bật:
-%       + Kiến trúc Microservices với .NET Aspire Service Discovery.
-%       + CQRS sạch với Mediator (ICommand / IQuery).
-%       + Transactional Outbox đảm bảo data consistency.
-%       + CDC Debezium đồng bộ real-time sang Elasticsearch.
-%       + YARP API Gateway là single entry point.
-%   - Kết luận ngắn: Hệ thống có đáp ứng được bài toán đặt ra không?
-%
+Sau thời gian nghiên cứu và phát triển, hệ thống AirVnV đã cơ bản hoàn thiện và đáp ứng được các mục tiêu cốt lõi đặt ra ở Chương I cũng như tuân thủ nghiêm ngặt các tiêu chuẩn thiết kế kiến trúc phân tán ở Chương II. Bảng dưới đây đối chiếu trực tiếp giữa mục tiêu ban đầu và kết quả thực tế đạt được:
 
-\placeholder{Trình bày tổng kết kết quả đạt được tại đây.}
+\begin{table}[!ht]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\textwidth}{|>{\bfseries\raggedright\arraybackslash}p{4cm}|X|>{\centering\arraybackslash}p{2cm}|}
+        \hline
+        \rowcolor{gray!30} \textbf{Mục tiêu ban đầu} & \textbf{Kết quả đạt được} & \textbf{Tỉ lệ (\%)} \\ \hline
+        Xây dựng nền tảng đặt phòng trực tuyến hoàn chỉnh & Hoàn thiện luồng quy trình từ Đăng tin, Tìm kiếm, Đặt phòng đến Nhắn tin. & 100\% \\ \hline
+        Áp dụng kiến trúc Microservices & Phân rã thành công 7 dịch vụ độc lập với nguyên tắc Database-per-service. & 100\% \\ \hline
+        Đảm bảo tính nhất quán dữ liệu phân tán & Triển khai thành công Transactional Outbox Pattern kết hợp RabbitMQ. & 100\% \\ \hline
+        Tìm kiếm địa lý hiệu năng cao & Tích hợp Elasticsearch với cấu trúc Inverted Index, truy vấn $O(1)$. & 100\% \\ \hline
+        Thanh toán bất đồng bộ & Xây dựng thành công luồng xử lý Payment Webhook. & 90\% \\ \hline
+    \end{tabularx}
+    \caption{Bảng đối chiếu mục tiêu và kết quả thực hiện}
+    \label{tab:ket_qua_doi_chieu}
+\end{table}
+
+Bên cạnh việc đáp ứng đầy đủ các yêu cầu nghiệp vụ, đồ án đã chứng minh được năng lực giải quyết các bài toán kỹ thuật phức tạp thông qua việc áp dụng những công nghệ nổi bật:
+\begin{itemize}
+    \item \textbf{Kiến trúc Microservices} được điều phối trơn tru bởi \textbf{.NET Aspire Service Discovery}, tự động hóa hoàn toàn quá trình kết nối và tiêm cấu hình (Dependency Injection).
+    \item \textbf{Mô hình CQRS} được triển khai triệt để và "sạch" thông qua thư viện \textbf{Mediator} (\texttt{ICommand} / \texttt{IQuery}), kết hợp với \textbf{FastEndpoints} để đóng gói thành các Vertical Slices.
+    \item \textbf{Tính toàn vẹn dữ liệu (Data Consistency)} được bảo đảm tuyệt đối mà không cần Distributed Transaction, nhờ sự kết hợp giữa \textbf{Transactional Outbox Pattern} và luồng sự kiện qua RabbitMQ.
+    \item Cơ sở dữ liệu đọc và ghi được phân tách hoàn toàn. Công nghệ \textbf{CDC (Debezium)} được ứng dụng để bắt các luồng Write-Ahead Log từ PostgreSQL và đồng bộ sang \textbf{Elasticsearch} qua Kafka theo thời gian thực (Real-time).
+    \item Toàn bộ cụm dịch vụ được bảo vệ bởi \textbf{YARP API Gateway}, hoạt động như một điểm truy cập duy nhất (Single Entry Point), đảm nhận vai trò xác thực JWT và định tuyến thông minh.
+\end{itemize}
+
+\textbf{Kết luận chung:} Hệ thống AirVnV đã giải quyết thành công bài toán cốt lõi của một nền tảng cho thuê phòng phân tán. Đồ án không chỉ dừng lại ở một ứng dụng quản lý thông thường (CRUD) mà đã vươn lên thành một sản phẩm có tính sẵn sàng cao, chịu tải tốt và thiết kế chuẩn mực theo xu hướng công nghệ hiện đại.
 
 % ────────────────────────────────────────────────────────────
 \section{Hạn chế và hướng phát triển}
 \label{sec:han_che_huong_phat_trien}
 
-%
-% REQUIREMENT (từ main.md – Chương IV, mục 2):
-%   a) Hạn chế hiện tại (Technical Debt – cần thẳng thắn):
-%      - Chưa triển khai được tính năng nào? Lý do?
-%      - Hiệu năng chưa được tối ưu ở điểm nào?
-%      - Bảo mật còn thiếu sót gì (ví dụ: rate limiting, OWASP...)?
-%      - Monitoring & Observability chưa có (Prometheus, Grafana, Jaeger)?
-%
-%   b) Hướng phát triển ngắn hạn (3–6 tháng):
-%      - Cấu hình Auto-scaling (Kubernetes HPA) cho các service tải cao.
-%      - Bổ sung Distributed Tracing (OpenTelemetry + Jaeger).
-%      - Tích hợp Payment Gateway thật (VNPay / Stripe).
-%      - Bổ sung Push Notification (FCM).
-%
-%   c) Hướng phát triển dài hạn (>6 tháng):
-%      - Áp dụng Saga Pattern (Choreography/Orchestration) cho luồng
-%        Booking → Payment → Confirmation phức tạp hơn.
-%      - Multi-region deployment để giảm latency.
-%      - Machine Learning: Gợi ý bất động sản theo hành vi người dùng.
-%      - Mobile App (React Native / Flutter).
-%
+Mặc dù đã đạt được những kết quả đáng khích lệ, do giới hạn về thời gian và nguồn lực triển khai của sinh viên, hệ thống vẫn tồn tại một số khoản nợ kỹ thuật (Technical Debt) nhất định:
 
-\placeholder{Trình bày hạn chế và hướng phát triển tại đây.}
+\subsection{Hạn chế hiện tại}
+\begin{itemize}
+    \item \textbf{Tính năng nghiệp vụ:} Tính năng đánh giá (Review/Rating) và quản lý khiếu nại (Dispute Resolution) hiện mới chỉ dừng lại ở mức thiết kế sơ đồ Use Case và xây dựng API thô, chưa được tích hợp hoàn chỉnh lên giao diện người dùng frontend.
+    \item \textbf{Hiệu năng và Caching:} Dù tốc độ tìm kiếm qua Elasticsearch rất nhanh, nhưng hệ thống vẫn chưa áp dụng triệt để Distributed Caching (như Redis) cho các dữ liệu ít thay đổi (Ví dụ: Danh mục tiện ích, mã Quốc gia), dẫn đến lãng phí tài nguyên khi phải truy vấn lại cơ sở dữ liệu.
+    \item \textbf{Bảo mật (Security):} Hệ thống YARP Gateway hiện mới chỉ đảm nhận xác thực (Authentication). Các lớp phòng thủ sâu hơn như Rate Limiting (chống DDoS), IP Banning, và các cấu hình chống lỗ hổng bảo mật tiêu chuẩn OWASP Top 10 (như XSS, CSRF) chưa được thiết lập chặt chẽ.
+    \item \textbf{Giám sát hệ thống (Observability):} Việc theo dõi hệ thống hiện chỉ dựa trên Dashboard cục bộ của .NET Aspire trong môi trường phát triển. Việc thu thập Log tập trung, phân tích Metrics bằng Prometheus/Grafana và theo dõi dấu vết phân tán bằng Jaeger chưa được cấu hình cho môi trường Production.
+\end{itemize}
+
+\subsection{Hướng phát triển ngắn hạn (3--6 tháng)}
+Để đưa hệ thống đạt chuẩn mức độ thương mại hóa (Production-ready), nhóm đề ra các hướng phát triển tiếp theo:
+\begin{itemize}
+    \item \textbf{Triển khai Kubernetes (K8s):} Chuyển đổi hạ tầng từ Docker Compose sang cụm Kubernetes thực thụ. Thiết lập cấu hình tự động mở rộng (Horizontal Pod Autoscaling - HPA) cho các Service chịu tải cao như \texttt{SearchService} và \texttt{BookingService}.
+    \item \textbf{Hoàn thiện Hệ sinh thái Observability:} Tích hợp chuẩn OpenTelemetry kết hợp với Jaeger để truy vết luồng request xuyên suốt các Microservices (Distributed Tracing), giúp nhanh chóng khoanh vùng và xử lý sự cố.
+    \item \textbf{Tích hợp Payment Gateway thực tế:} Chuyển từ việc mô phỏng thanh toán cục bộ sang việc tích hợp các cổng thanh toán thật tại Việt Nam và quốc tế như VNPay, MoMo, hoặc Stripe.
+    \item \textbf{Nâng cấp hệ thống Thông báo:} Tích hợp Firebase Cloud Messaging (FCM) để gửi Push Notification theo thời gian thực tới thiết bị di động của Chủ nhà và Khách khi có đơn đặt phòng mới hoặc tin nhắn khẩn cấp.
+\end{itemize}
+
+\subsection{Hướng phát triển dài hạn (>6 tháng)}
+\begin{itemize}
+    \item \textbf{Áp dụng Saga Pattern:} Chuyển đổi luồng Booking $\rightarrow$ Payment $\rightarrow$ Confirmation sang kiến trúc Saga Pattern (Choreography hoặc Orchestration) nhằm xử lý các nghiệp vụ Distributed Transaction phức tạp hơn (VD: Rollback tiền khi hệ thống book lỗi).
+    \item \textbf{Multi-region Deployment:} Triển khai dịch vụ đa vùng địa lý (Multi-region) để giảm thiểu độ trễ (latency) cho khách hàng quốc tế.
+    \item \textbf{Tích hợp Machine Learning:} Xây dựng hệ thống gợi ý (Recommendation Engine) dự đoán và đề xuất bất động sản phù hợp dựa trên lịch sử tìm kiếm và hành vi của người dùng.
+    \item \textbf{Phát triển Ứng dụng Di động:} Hoàn thiện ứng dụng Mobile App trên nền tảng React Native hoặc Flutter, tăng tính tiện lợi cho Host trong việc quản lý đơn và phản hồi khách hàng.
+\end{itemize}

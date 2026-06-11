@@ -1,0 +1,44 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    User {
+        uuid Id PK
+        string Email
+        string HashedPassword "Nullable"
+        string Role "Enum: User, Moderator, Admin"
+        string Status "Enum: Active, Suspended, Banned"
+        boolean IsVerified
+        datetime CreatedAt
+        datetime LastLoginAt
+        string SuspensionReason
+        string BanReason
+    }
+
+    UserProfile {
+        uuid UserId PK, FK
+        string FullName
+        string AvatarUrl
+        string PhoneNumber
+        string Bio
+    }
+
+    UserLogin {
+        uuid Id PK
+        uuid UserId FK
+        string Provider "Enum: Local, Google, Facebook"
+        string ProviderKey
+    }
+
+    UserRefreshToken {
+        uuid Id PK
+        uuid UserId FK
+        string Token
+        string UserAgent
+        string IpAddress
+        datetime ExpiresAt
+        datetime CreatedAt
+        datetime RevokedAt "Nullable"
+    }
+
+    User ||--|| UserProfile : "Sở hữu"
+    User ||--o{ UserLogin : "Đăng nhập bằng"
+    User ||--o{ UserRefreshToken : "Quản lý phiên"

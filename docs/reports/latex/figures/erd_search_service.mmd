@@ -1,0 +1,26 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '28px'}}}%%
+erDiagram
+    PropertyDoc {
+        uuid Id PK
+        uuid HostId
+        string Title
+        string Description
+        string Slug
+        int PropertyType
+        decimal BasePrice
+        decimal AverageRating
+        int ReviewCount
+        geo_point Location "Tọa độ không gian (Lat/Lon)"
+        datetime CreatedAt
+    }
+
+    AddressVO {
+        string CountryCode
+        string Admin1Code "Nullable"
+        string Admin2Code "Nullable"
+        string DisplayAddress
+        double Latitude
+        double Longitude
+    }
+
+    PropertyDoc ||--|| AddressVO : "Nhúng (Nested Document)"

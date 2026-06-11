@@ -11,6 +11,18 @@ public class Endpoint(IMediator mediator) : FastEndpoints.Endpoint<Request, ApiR
     {
         Post("/api/conversations");
         AllowAnonymous(); 
+        Summary(s =>
+        {
+            s.Summary = "Tạo mới cuộc trò chuyện";
+            s.Description = @"
+**Error Codes:**
+- **`CHAT_SELF_CONVERSATION`**: Host không thể tự tạo cuộc trò chuyện cho chính phòng của mình.
+- **`NOT_FOUND`**: Không tìm thấy Property yêu cầu.
+";
+            s.Responses[200] = "Thành công. Trả về Id của cuộc trò chuyện.";
+            s.Responses[400] = "Lỗi nghiệp vụ.";
+            s.Responses[404] = "Không tìm thấy dữ liệu liên quan.";
+        });
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

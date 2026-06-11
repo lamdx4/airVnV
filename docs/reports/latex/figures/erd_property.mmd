@@ -1,0 +1,83 @@
+erDiagram
+    properties {
+        uuid Id PK
+        uuid HostId FK "NOT NULL — ref to UserService.Users.Id"
+        varchar Title "NOT NULL"
+        varchar Description "NOT NULL"
+        varchar CountryCode "NOT NULL"
+        varchar Admin1Code "nullable"
+        varchar Admin2Code "nullable"
+        varchar DisplayAddress "NOT NULL"
+        jsonb AddressRaw "NOT NULL, default {}"
+        double Latitude "NOT NULL"
+        double Longitude "NOT NULL"
+        jsonb HouseRules "NOT NULL, default {}"
+        varchar Slug "NOT NULL"
+        integer Status "NOT NULL, default 0"
+        varchar SuspensionReason "nullable"
+        text RejectionReason "nullable"
+        text BookingMode "NOT NULL"
+        integer Type "NOT NULL, default 0 — PropertyType enum"
+        numeric AverageRating "NOT NULL, default 0"
+        integer ReviewCount "NOT NULL, default 0"
+        timestamptz CreatedAt "NOT NULL"
+        timestamptz UpdatedAt "nullable"
+        bigint Version "NOT NULL — optimistic concurrency"
+        integer capacity_bathroom_count "NOT NULL, default 0"
+        integer capacity_bed_count "NOT NULL, default 0"
+        integer capacity_bedroom_count "NOT NULL, default 0"
+        integer capacity_guest_count "NOT NULL, default 0"
+        numeric pricing_base_price "NOT NULL, default 0"
+        numeric pricing_cleaning_fee "NOT NULL, default 0"
+        varchar pricing_currency_code "NOT NULL"
+        numeric pricing_service_fee "NOT NULL, default 0"
+        numeric pricing_weekend_premium_percent "NOT NULL, default 0"
+    }
+
+    amenities {
+        uuid Id PK
+        varchar Name "NOT NULL"
+        varchar Category "NOT NULL"
+        varchar IconCode "nullable"
+    }
+
+    property_amenities {
+        uuid PropertyId PK, FK "NOT NULL"
+        uuid AmenityId PK, FK "NOT NULL"
+        varchar AdditionalInfo "nullable"
+    }
+
+    property_images {
+        uuid Id PK
+        uuid PropertyId FK "NOT NULL"
+        uuid UploadedBy FK "NOT NULL — ref to UserService.Users.Id"
+        varchar Url "NOT NULL"
+        text PublicId "NOT NULL — Cloudinary public ID"
+        varchar Type "NOT NULL"
+        integer DisplayOrder "NOT NULL"
+    }
+
+    property_availabilities {
+        uuid Id PK
+        uuid PropertyId FK "NOT NULL"
+        date StartDate "NOT NULL"
+        date EndDate "NOT NULL"
+        integer Type "NOT NULL — AvailabilityType enum"
+        varchar Note "nullable"
+    }
+
+    reviews {
+        uuid Id PK
+        uuid PropertyId FK "NOT NULL"
+        uuid BookingId FK "NOT NULL — ref to BookingService.Bookings.Id"
+        uuid GuestId FK "NOT NULL — ref to UserService.Users.Id"
+        integer Rating "NOT NULL"
+        varchar Comment "NOT NULL"
+        timestamptz CreatedAt "NOT NULL"
+    }
+
+    properties ||--o{ property_amenities : "has many (cascade)"
+    amenities ||--o{ property_amenities : "has many"
+    properties ||--o{ property_images : "has many (cascade)"
+    properties ||--o{ property_availabilities : "has many (cascade)"
+    properties ||--o{ reviews : "has many (cascade)"
