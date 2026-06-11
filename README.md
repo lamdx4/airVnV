@@ -44,7 +44,7 @@ To understand the deeper business logic and architectural decisions, refer to th
 | **Chat Service**      | [`src/Airbnb.ChatService`](./src/Airbnb.ChatService) | [Chat Domain & Endpoints](./src/Airbnb.ChatService/README.md) |
 | **User Service**      | [`src/Airbnb.UserService`](./src/Airbnb.UserService) | [Identity Domain & Endpoints](./src/Airbnb.UserService/README.md) |
 | **React Frontend**    | [`airbnb-web/`](./airbnb-web) | [Frontend Architecture Rules](./.agents/rules/frontend.md) |
-| **Admin Web Panel**   | [`airbnb-admin/`](./airbnb-admin) | [Admin Architecture & Features](./airbnb-admin/README.md) |
+| **Admin Web Panel**   | [`airbnb-admin/`](./airbnb-admin) | [Admin Architecture](./airbnb-admin/README.md) 🔹 [Features & API Map](./docs/Admin_Features.md) 🔹 [BA Specs](./docs/Admin_BA.md) |
 | **Engineering Rules** | `.agents/rules/` | [Backend Rules](./.agents/rules/backend.md) 🔹 [Project Rules](./.agents/rules/project.md) |
 
 ## Tech Stack
