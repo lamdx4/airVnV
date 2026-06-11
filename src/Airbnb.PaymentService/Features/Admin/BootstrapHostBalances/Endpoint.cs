@@ -1,143 +1,27 @@
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using Airbnb.PaymentService.Domain;
-using Airbnb.PaymentService.Infrastructure.HttpClients;
+using Mediator;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.PaymentService.Features.Admin.BootstrapHostBalances;
 
-public record Response(
-    int EntriesCreated,
-    int BalancesUpdated,
-    int PayoutsRebuilt,
-    string Message
-);
-
-/// <summary>
-/// Demo/dev tool: rebuilds Payouts, PayoutItems, HostBalances, BalanceEntries
-/// from existing Payment records. Each payment is credited to the ACTUAL host
-/// of the booking it belongs to (resolved via BookingService). Wipes existing
-/// payout/ledger data first.
-/// </summary>
-public class Endpoint(PaymentDbContext db, BookingServiceClient bookingClient)
-    : EndpointWithoutRequest<ApiResponse<Response>>
+public class Endpoint(IMediator mediator) : Endpoint<Request, ApiResponse<Response>>
 {
     public override void Configure()
     {
-        Get("/api/admin/host-balances/bootstrap"); // GET so easy to trigger from browser too
+        Get("/api/admin/host-balances/bootstrap");
         Post("/api/admin/host-balances/bootstrap");
         AllowAnonymous();
-        Summary(s => s.Summary = "Admin (dev tool): wipe + rebuild payouts + escrow ledger from existing payments");
+        Summary(s =>
+        {
+            s.Summary = "Admin (dev tool): wipe + rebuild payouts + escrow ledger from existing payments";
+            s.Description = "No error codes. Dev/demo tool that re-derives ledger data from Success payments.";
+            s.Responses[200] = "Bootstrap completed (or no-op when no payments)";
+        });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        const decimal feePercent = 0.10m;
-
-        // 1) Load all Success payments
-        var successPayments = await db.Payments.AsNoTracking()
-            .Where(p => p.Status == PaymentStatus.Success)
-            .OrderBy(p => p.CreatedAt)
-            .Select(p => new { p.Id, p.BookingId, p.Amount, p.Currency, p.CreatedAt })
-            .ToListAsync(ct);
-
-        if (successPayments.Count == 0)
-        {
-            await Send.ResponseAsync(
-                ApiResponse<Response>.SuccessResult(
-                    new Response(0, 0, 0, "No Success payments to bootstrap."),
-                    "No payments"),
-                cancellation: ct);
-            return;
-        }
-
-        // 2) Resolve real HostId per booking via BookingService.
-        var bookingInfos = await bookingClient.GetBasicInfosAsync(
-            successPayments.Select(p => p.BookingId), ct);
-
-        // 3) Filter to payments whose booking → host could be resolved.
-        var assignments = successPayments
-            .Where(p => bookingInfos.ContainsKey(p.BookingId))
-            .Select(p => new {
-                Payment = p,
-                HostId = bookingInfos[p.BookingId].HostId,
-                Fee = Math.Round(p.Amount * feePercent, 2),
-                HostPortion = p.Amount - Math.Round(p.Amount * feePercent, 2),
-            })
-            .ToList();
-
-        if (assignments.Count == 0)
-        {
-            await Send.ResponseAsync(
-                ApiResponse<Response>.SuccessResult(
-                    new Response(0, 0, 0, $"Could not resolve any host from {successPayments.Count} payments — BookingService unavailable?"),
-                    "No hosts resolvable"),
-                cancellation: ct);
-            return;
-        }
-
-        // 4) Wipe existing only after we know we have data to rebuild with.
-        await db.PayoutItems.ExecuteDeleteAsync(ct);
-        await db.Payouts.ExecuteDeleteAsync(ct);
-        await db.BalanceEntries.ExecuteDeleteAsync(ct);
-        await db.HostBalances.ExecuteDeleteAsync(ct);
-
-        // 5) Create Payouts (one per host+currency)
-        var payouts = new List<Payout>();
-        var payoutItems = new List<PayoutItem>();
-
-        var random = new Random(42);
-        foreach (var group in assignments.GroupBy(a => new { a.HostId, a.Payment.Currency }))
-        {
-            var items = group.Select(a => new PayoutItem(
-                a.Payment.BookingId,
-                a.Payment.Id,
-                a.Payment.Amount,
-                a.Fee,
-                checkIn: DateOnly.FromDateTime(a.Payment.CreatedAt.AddDays(-10).UtcDateTime),
-                checkOut: DateOnly.FromDateTime(a.Payment.CreatedAt.AddDays(-7).UtcDateTime),
-                propertyTitle: $"Cozy stay #{random.Next(1, 8)}",
-                guestName: $"Guest {random.Next(1, 12)}"
-            )).ToList();
-
-            var payout = Payout.Create(group.Key.HostId, group.Key.Currency, items);
-            payouts.Add(payout);
-            payoutItems.AddRange(items);
-        }
-
-        // 6) Build BalanceEntries
-        var entries = new List<BalanceEntry>();
-        foreach (var a in assignments)
-        {
-            entries.Add(BalanceEntry.PaymentReceived(
-                a.HostId, a.HostPortion, a.Payment.Currency, a.Payment.Id, a.Payment.BookingId));
-            entries.Add(BalanceEntry.BookingCheckedOut(
-                a.HostId, a.HostPortion, a.Payment.Currency, a.Payment.Id, a.Payment.BookingId));
-        }
-
-        // 7) Build HostBalance snapshots
-        var balances = new List<HostBalance>();
-        foreach (var g in entries.GroupBy(e => new { e.HostId, e.Currency }))
-        {
-            var balance = HostBalance.Create(g.Key.HostId, g.Key.Currency);
-            balance.Recompute(g.ToList());
-            balances.Add(balance);
-        }
-
-        db.Payouts.AddRange(payouts);
-        db.PayoutItems.AddRange(payoutItems);
-        db.BalanceEntries.AddRange(entries);
-        db.HostBalances.AddRange(balances);
-        await db.SaveChangesAsync(ct);
-
-        var skipped = successPayments.Count - assignments.Count;
-        var response = new Response(
-            entries.Count,
-            balances.Count,
-            payouts.Count,
-            $"Rebuilt: {payouts.Count} payouts, {entries.Count} ledger entries across {balances.Count} host wallets (skipped {skipped} payments with unresolved host)."
-        );
-
-        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(response, response.Message), cancellation: ct);
+        var result = await mediator.Send(req, ct);
+        Response = ApiResponse<Response>.SuccessResult(result, result.Message);
     }
 }

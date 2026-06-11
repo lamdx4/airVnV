@@ -1,10 +1,9 @@
 using FastEndpoints;
 using FluentValidation;
-using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.BanUser;
 
-public record Request(Guid Id, string Reason) : ICommand<ApiResponse<BanUserResponse>>;
+public record Request(Guid Id, string Reason) : Mediator.ICommand<BanUserResponse>;
 
 public record BanUserResponse(Guid Id, string Status, string Message);
 

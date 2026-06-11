@@ -8,38 +8,41 @@
 \section{Môi trường và công nghệ triển khai}
 \label{sec:moi_truong_cong_nghe}
 
-%
-% REQUIREMENT (từ main.md – Chương III, mục 1):
-%   Trình bày chi tiết stack công nghệ được sử dụng:
-%
-%   a) Ngôn ngữ & Framework:
-%      - Backend : .NET 9 / C# – FastEndpoints + Mediator (CQRS)
-%      - Frontend: React + TypeScript – Vite / Next.js
-%                  (TanStack Query, Zustand, ShadCN/UI)
-%      - ORM     : Entity Framework Core + EF Migrations
-%
-%   b) Cơ sở hạ tầng:
-%      - Database       : PostgreSQL (per service)
-%      - Search         : Elasticsearch (qua Debezium CDC)
-%      - Message Broker : Apache Kafka + Zookeeper
-%      - CDC            : Debezium
-%      - Container      : Docker + Docker Compose
-%      - Service Discovery: .NET Aspire
-%      - API Gateway    : YARP (Yet Another Reverse Proxy)
-%
-%   c) Môi trường chạy:
-%      - OS   : Ubuntu Server / Fedora (ghi rõ phiên bản)
-%      - Docker Engine: (ghi rõ phiên bản)
-%      - .NET SDK      : (ghi rõ phiên bản)
-%      - Node.js       : (ghi rõ phiên bản)
-%
-%   d) Công cụ phát triển:
-%      - IDE           : JetBrains Rider / VS Code
-%      - API Testing   : Scalar / Swagger UI
-%      - Version Control: Git + GitHub
-%
+Để triển khai hệ thống AirVnV, đồ án sử dụng một tập hợp các công nghệ hiện đại, chuyên biệt cho kiến trúc phân tán Microservices. Bảng dưới đây tóm tắt chi tiết các công cụ, ngôn ngữ và nền tảng được áp dụng trong toàn bộ vòng đời phát triển phần mềm.
 
-\placeholder{Trình bày bảng môi trường và phiên bản công nghệ tại đây.}
+\begin{table}[!ht]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\textwidth}{|>{\bfseries\cellcolor{gray!15}}p{4.5cm}|X|}
+        \hline
+        \multicolumn{2}{|c|}{\cellcolor{gray!30}\textbf{1. Ngôn ngữ \& Framework}} \\ \hline
+        Backend & \textbf{.NET 9 (C\#)} kết hợp thư viện \textbf{FastEndpoints} và \textbf{Mediator} phục vụ kiến trúc CQRS \& Vertical Slice. \\ \hline
+        Frontend & \textbf{React} với \textbf{TypeScript} (sử dụng Vite/Next.js). Quản lý state qua \textbf{TanStack Query} (Server State) và \textbf{Zustand} (Global State). Giao diện thiết kế bằng \textbf{ShadCN/UI}. \\ \hline
+        ORM & \textbf{Entity Framework Core 9} tích hợp cơ chế EF Migrations. \\ \hline
+        
+        \multicolumn{2}{|c|}{\cellcolor{gray!30}\textbf{2. Cơ sở hạ tầng \& Middleware}} \\ \hline
+        Hệ quản trị CSDL & \textbf{PostgreSQL} (Triển khai theo mô hình Database-per-service). \\ \hline
+        Search Engine & \textbf{Elasticsearch} (Tìm kiếm địa lý \& Full-text search). \\ \hline
+        Message Broker & \textbf{Apache Kafka} (Streaming dữ liệu) và \textbf{RabbitMQ} (Domain Events). \\ \hline
+        Change Data Capture & \textbf{Debezium} (Bắt sự kiện thay đổi dữ liệu từ PostgreSQL đẩy sang Kafka). \\ \hline
+        Containerization & \textbf{Docker} và \textbf{Docker Compose}. \\ \hline
+        Service Discovery & \textbf{.NET Aspire} (Quản lý và điều phối các dịch vụ trong môi trường phân tán). \\ \hline
+        API Gateway & \textbf{YARP} (Yet Another Reverse Proxy). \\ \hline
+
+        \multicolumn{2}{|c|}{\cellcolor{gray!30}\textbf{3. Môi trường hệ thống}} \\ \hline
+        Hệ điều hành & \textbf{Ubuntu 22.04 LTS} / \textbf{Fedora 40}. \\ \hline
+        Docker Engine & Version \textbf{24.0+}. \\ \hline
+        .NET SDK & Version \textbf{9.0.x}. \\ \hline
+        Node.js & Version \textbf{20.x LTS}. \\ \hline
+
+        \multicolumn{2}{|c|}{\cellcolor{gray!30}\textbf{4. Công cụ phát triển (DevTools)}} \\ \hline
+        Môi trường lập trình (IDE) & \textbf{JetBrains Rider} (Backend) và \textbf{Visual Studio Code} (Frontend/Infra). \\ \hline
+        Kiểm thử API & \textbf{Scalar} và \textbf{Swagger UI}. \\ \hline
+        Quản lý mã nguồn & \textbf{Git} lưu trữ trên \textbf{GitHub}. \\ \hline
+    \end{tabularx}
+    \caption{Tổng hợp Stack Công nghệ triển khai hệ thống AirVnV}
+    \label{tab:tech_stack}
+\end{table}
 
 % ────────────────────────────────────────────────────────────
 \section{Kết quả triển khai các chức năng chính}

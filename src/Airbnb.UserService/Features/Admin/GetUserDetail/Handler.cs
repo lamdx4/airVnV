@@ -6,9 +6,9 @@ using Airbnb.ServiceDefaults.Infrastructure;
 namespace Airbnb.UserService.Features.Admin.GetUserDetail;
 
 public sealed class GetUserDetailHandler(UserDbContext db)
-    : IQueryHandler<GetUserDetailRequest, ApiResponse<UserDetailResponse>?>
+    : IQueryHandler<GetUserDetailRequest, UserDetailResponse>
 {
-    public async ValueTask<ApiResponse<UserDetailResponse>?> Handle(GetUserDetailRequest req, CancellationToken ct)
+    public async ValueTask<UserDetailResponse> Handle(GetUserDetailRequest req, CancellationToken ct)
     {
         var user = await db.Users
             .AsNoTracking()
@@ -31,9 +31,6 @@ public sealed class GetUserDetailHandler(UserDbContext db)
             ))
             .FirstOrDefaultAsync(ct);
 
-        if (user is null)
-            return null;
-
-        return ApiResponse<UserDetailResponse>.SuccessResult(user, "User detail retrieved");
+        return user ?? throw new NotFoundException("User not found.");
     }
 }

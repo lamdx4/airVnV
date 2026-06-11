@@ -1,10 +1,9 @@
 using FastEndpoints;
 using FluentValidation;
-using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.UserService.Features.Admin.SuspendUser;
 
-public record Request(Guid Id, string Reason) : ICommand<ApiResponse<UserActionResponse>>;
+public record Request(Guid Id, string Reason) : Mediator.ICommand<UserActionResponse>;
 
 public record UserActionResponse(Guid Id, string Status, string Message);
 

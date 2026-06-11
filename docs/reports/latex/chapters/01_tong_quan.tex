@@ -115,13 +115,12 @@ Gateway đảm nhận các trách nhiệm:
 Đồ án sử dụng \textbf{YARP} (Yet Another Reverse Proxy) — một thư viện reverse proxy hiệu năng cao
 được phát triển bởi Microsoft, tích hợp tốt với .NET ecosystem và .NET Aspire.
 
-% ── 2.3 CQRS ────────────────────────────────────────────────
-\subsection{CQRS — Command Query Responsibility Segregation}
-\label{subsec:cqrs}
+% ── 2.3 CQRS và Mediator Pattern ────────────────────────────
+\subsection{CQRS và Mediator Pattern}
+\label{subsec:cqrs_mediator}
 
-CQRS là pattern tách biệt hoàn toàn luồng ghi dữ liệu (Command) và luồng đọc dữ liệu (Query).
-Mỗi thao tác nghiệp vụ được biểu diễn bằng một object (Command hoặc Query) và xử lý bởi một
-Handler tương ứng.
+\textbf{CQRS (Command Query Responsibility Segregation)} là pattern tách biệt hoàn toàn luồng ghi dữ liệu (Command) và luồng đọc dữ liệu (Query).
+Mỗi thao tác nghiệp vụ được biểu diễn bằng một object (Command hoặc Query) và xử lý bởi một Handler tương ứng.
 
 \begin{itemize}
     \item \textbf{Command:} Thay đổi trạng thái hệ thống. Ví dụ: \texttt{CreateBookingCommand},
@@ -130,9 +129,13 @@ Handler tương ứng.
     \texttt{SearchPropertiesQuery}.
 \end{itemize}
 
-Đồ án triển khai CQRS với thư viện \textbf{Mediator} (.NET) kết hợp \textbf{FastEndpoints} theo
-mô hình Vertical Slice — mỗi use case gồm một bộ file độc lập:
-\texttt{Endpoint.cs, Request.cs, Response.cs, Handler.cs, Validator.cs}.
+Để triển khai CQRS một cách hiệu quả và giảm thiểu sự phụ thuộc chéo (coupling) giữa các class, đồ án áp dụng \textbf{Mediator Pattern} (thông qua thư viện \texttt{Mediator.SourceGenerator}).
+Mediator Pattern đóng vai trò là một "người điều phối" trung tâm. Thay vì các Endpoint/Controller phải tiêm (inject) hàng loạt các Service/Repository gây ra tình trạng "God object",
+chúng chỉ cần gửi (Send) một \texttt{Request} tới Mediator. Mediator sẽ dựa vào kiểu dữ liệu của Request để tự động định tuyến tới đúng \texttt{Handler} duy nhất chịu trách nhiệm xử lý.
+
+Sự kết hợp giữa CQRS, Mediator Pattern và \textbf{FastEndpoints} giúp hệ thống hiện thực hóa mô hình kiến trúc cắt dọc (\textbf{Vertical Slice Architecture}).
+Theo đó, mỗi Use Case nghiệp vụ được gom cụm độc lập trong một thư mục duy nhất (gồm \texttt{Endpoint.cs, Request.cs, Response.cs, Handler.cs}),
+tối đa hóa tính gắn kết nội bộ (high cohesion) và hạn chế tối đa rủi ro khi thay đổi mã nguồn.
 
 % ── 2.4 Event-Driven Architecture ───────────────────────────
 \subsection{Kiến trúc Hướng sự kiện (Event-Driven Architecture)}
@@ -177,20 +180,24 @@ của PostgreSQL và publish các thay đổi vào Kafka. SearchService tiêu th
 cập nhật Elasticsearch, đảm bảo read-model luôn đồng bộ gần thời gian thực với dữ liệu giao dịch.
 
 % ── 2.7 Geo-Spatial Search ──────────────────────────────────
-\subsection{Tìm kiếm Địa lý với Elasticsearch}
+\subsection{Tìm kiếm và Chỉ mục với Elasticsearch}
 \label{subsec:geo_search}
 
-Elasticsearch là một search engine phân tán, hỗ trợ kiểu dữ liệu \texttt{geo\_point} cho phép
-thực hiện các truy vấn địa lý như:
+Elasticsearch là một công cụ tìm kiếm và phân tích phân tán (Distributed Search Engine) dựa trên Apache Lucene.
+Thay vì lưu dữ liệu dạng bảng như RDBMS và sử dụng phép toán \texttt{LIKE} vốn cực kỳ chậm chạp trên tập dữ liệu lớn,
+Elasticsearch sử dụng cấu trúc \textbf{Inverted Index} (Chỉ mục ngược). Cấu trúc này ánh xạ từng từ khóa (token)
+ngược lại với các tài liệu (documents) chứa từ khóa đó, giúp tốc độ tìm kiếm văn bản toàn văn (Full-text Search)
+nhanh gấp hàng trăm lần SQL.
 
+Bên cạnh đó, Elasticsearch hỗ trợ mạnh mẽ kiểu dữ liệu \texttt{geo\_point}, cho phép thực hiện các truy vấn
+không gian (Geo-Spatial) phức tạp như:
 \begin{itemize}
-    \item \textbf{Geo Distance Query:} Tìm tất cả bất động sản trong bán kính $r$ km
-    từ một tọa độ $(lat, lon)$.
-    \item \textbf{Geo Bounding Box:} Tìm bất động sản trong một vùng hình chữ nhật trên bản đồ.
+    \item \textbf{Geo Distance Query:} Tìm tất cả bất động sản trong bán kính $r$ km từ một tọa độ GPS $(lat, lon)$.
+    \item \textbf{Geo Bounding Box:} Lọc các bất động sản nằm lọt thỏm trong một vùng khung chữ nhật trên bản đồ.
 \end{itemize}
-
-Do SearchService chỉ đọc từ Elasticsearch (read-model), không bao giờ truy vấn vào DB giao dịch,
-hiệu năng tìm kiếm đạt được là hằng số $O(1)$ cho dù hệ thống có bao nhiêu bất động sản.
+Thông qua thư viện client \texttt{Aspire.Elastic.Clients.Elasticsearch}, \texttt{SearchService} thao tác trực tiếp với
+Elasticsearch dưới dạng Read-Model. Việc tách biệt hoàn toàn cơ sở dữ liệu đọc (Elasticsearch) và ghi (PostgreSQL)
+giúp hiệu năng tìm kiếm đạt được tốc độ cực cao, $O(1)$, bất chấp sự gia tăng của lượng dữ liệu.
 
 % ── 2.8 .NET Aspire ─────────────────────────────────────────
 \subsection{.NET Aspire — Service Discovery và Orchestration}
@@ -207,3 +214,67 @@ hardcode connection string và URL giữa các service, Aspire cung cấp:
     \item \textbf{Observability Dashboard:} Giao diện theo dõi logs, metrics và traces
     tập trung cho toàn bộ hệ thống.
 \end{itemize}
+
+% ── 2.9 Hệ quản trị CSDL PostgreSQL & ORM ───────────────────
+\subsection{Hệ quản trị Cơ sở dữ liệu PostgreSQL và ORM}
+\label{subsec:db_orm}
+
+\textbf{PostgreSQL} được lựa chọn làm hệ quản trị cơ sở dữ liệu quan hệ (RDBMS) chính cho các Microservices.
+Lý do chính bao gồm: tính tuân thủ ACID nghiêm ngặt giúp đảm bảo toàn vẹn dữ liệu tài chính (Booking, Payment),
+và khả năng hỗ trợ kiểu dữ liệu \texttt{JSONB} mạnh mẽ. \texttt{JSONB} cho phép lưu trữ các trường dữ liệu bán cấu trúc
+(semi-structured data) như danh sách tiện ích (amenities) hoặc bộ lọc tìm kiếm một cách linh hoạt mà không cần
+chuẩn hóa quá mức (over-normalization).
+
+Để giao tiếp với PostgreSQL, đồ án sử dụng \textbf{Entity Framework Core} (EF Core) thông qua thư viện \texttt{Npgsql.EntityFrameworkCore.PostgreSQL}.
+EF Core là một Object-Relational Mapper (ORM) mạnh mẽ, cung cấp cơ chế Code-First Migrations, giúp
+tự động hóa việc tạo và cập nhật schema cơ sở dữ liệu. Để đảm bảo nguyên tắc \textit{Database-per-service},
+mỗi Microservice duy trì một lịch sử Migration độc lập và tự động apply vào Logical Database của riêng nó
+ngay khi khởi động.
+
+% ── 2.10 Hệ thống Real-time với SignalR & Redis Backplane ───
+\subsection{Hệ thống Thời gian thực với SignalR và Redis Backplane}
+\label{subsec:signalr_redis}
+
+Chức năng nhắn tin (Chat) và thông báo (Notification) đòi hỏi kết nối hai chiều liên tục giữa Server và Client
+với độ trễ cực thấp. Để đáp ứng nhu cầu này, đồ án sử dụng \textbf{SignalR} (\texttt{Microsoft.AspNetCore.SignalR}).
+SignalR tự động quản lý các kết nối WebSocket (và fallback xuống Server-Sent Events hoặc Long Polling nếu cần),
+cho phép máy chủ đẩy dữ liệu (push) trực tiếp đến các client đang kết nối.
+
+Tuy nhiên, trong môi trường phân tán (Docker/Kubernetes), \texttt{ChatService} có thể được nhân bản (scale-out) thành nhiều node.
+Nếu User A kết nối tới Node 1 và User B kết nối tới Node 2, Node 1 sẽ không biết cách gửi tin nhắn trực tiếp cho User B.
+Để giải quyết rào cản này, \textbf{Redis Backplane} (\texttt{StackExchange.Redis}) được tích hợp.
+Mọi tin nhắn SignalR gửi ra sẽ được đẩy vào kênh Redis Pub/Sub; sau đó Redis sẽ broadcast tin nhắn này tới tất cả
+các node của \texttt{ChatService}, đảm bảo tin nhắn luôn đến đúng người nhận bất kể họ đang duy trì socket với node nào.
+
+% ── 2.11 Bảo mật, Định tuyến và Ánh xạ Dữ liệu ──────────────
+\subsection{Bảo mật, Thiết kế API và Ánh xạ dữ liệu}
+\label{subsec:security_mapping}
+
+\begin{itemize}
+    \item \textbf{Thiết kế API siêu tốc (FastEndpoints):} Thay vì sử dụng mô hình MVC/Controllers truyền thống vốn
+    cồng kềnh, hệ thống sử dụng thư viện \texttt{FastEndpoints}. Thư viện này triển khai kiến trúc REPR
+    (Request-Endpoint-Response), giúp nhóm (group) tất cả logic nghiệp vụ, validation và routing của một API vào một file duy nhất,
+    tối ưu tốc độ thực thi và cực kỳ dễ dàng bảo trì.
+    
+    \item \textbf{Bảo mật \& Xác thực (Security):} Hệ thống kết hợp \textbf{JSON Web Token (JWT)} để xác thực không
+    trạng thái (stateless authentication) qua YARP Gateway. Mật khẩu người dùng được băm (hash) an toàn bằng thuật toán bcrypt qua thư viện
+    \texttt{BCrypt.Net-Next}. Đồng thời, đồ án tích hợp hệ thống đăng nhập một chạm (SSO) qua Google nhờ các thư viện
+    \texttt{FirebaseAdmin} và \texttt{Google.Apis.Auth}.
+    
+    \item \textbf{Ánh xạ dữ liệu (Mapster):} Trong kiến trúc sạch, dữ liệu phải được ánh xạ liên tục giữa Entity và DTO. 
+    Thay vì dùng AutoMapper (dựa trên Reflection làm suy giảm hiệu năng), hệ thống sử dụng \texttt{Mapster}.
+    Mapster sinh mã trực tiếp lúc biên dịch (code generation), giúp tốc độ chuyển đổi dữ liệu đạt mức tối đa.
+\end{itemize}
+
+% ── 2.12 Tích hợp Thanh toán Ngoại vi ───────────────────────
+\subsection{Tích hợp Cổng thanh toán Ngoại vi (Payment Gateway)}
+\label{subsec:payment_gateway}
+
+Luồng thanh toán trong AirVnV không lưu trữ trực tiếp thông tin thẻ tín dụng nhằm giảm tải rủi ro pháp lý và
+đảm bảo tuân thủ tiêu chuẩn PCI-DSS. Thay vào đó, \texttt{PaymentService} tích hợp với nền tảng \textbf{Stripe} thông qua thư viện \texttt{Stripe.net} (hoặc VNPay).
+
+Khi khách hàng khởi tạo thanh toán, hệ thống sẽ sinh ra một Payment Session và điều hướng người dùng sang giao diện an toàn của đối tác.
+Mấu chốt của kiến trúc thanh toán phân tán là cơ chế \textbf{Webhook}: Hệ thống thanh toán sẽ gọi ngược (callback)
+về hệ thống AirVnV thông qua một API đặc biệt được bảo mật bằng chữ ký số (Webhook Signature) để báo cáo kết quả giao dịch.
+Nhờ luồng xử lý này, hệ thống backend không bao giờ bị "treo" (block) để chờ kết quả giao dịch, đảm bảo tính bất đồng bộ 
+và chống rớt đơn hàng hiệu quả kể cả khi kết nối mạng từ client bị ngắt ngang.
