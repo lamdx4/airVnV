@@ -56,7 +56,8 @@ To understand the deeper business logic and architectural decisions, refer to th
 
 ### Backend Services
 * **Framework:** .NET 8, C#
-* **Architecture:** CQRS (Mediator), REPR Pattern (FastEndpoints)
+* **Architecture:** Vertical Slice Architecture (VSA), CQRS (Mediator), REPR Pattern (FastEndpoints)
+* **Distributed Patterns:** Event-Driven Architecture (EDA), Transactional Outbox, Saga Choreography
 * **Orchestration:** .NET Aspire
 
 ### Infrastructure & Data
