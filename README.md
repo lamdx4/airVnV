@@ -106,10 +106,19 @@ cd src/Airbnb.AppHost
 dotnet run
 ```
 
-**2. Start the Frontend Application**
+**2. Start the Frontend Application (Guest/Host)**
 Open a new terminal session and start the React application.
 ```bash
 cd airbnb-web
 npm install
 npm run dev
 ```
+
+**3. Start the Admin Web Panel**
+Open another terminal session and start the Next.js Admin application.
+```bash
+cd airbnb-admin
+npm install
+npm run dev
+```
+*Note: The Admin Panel will be available at `http://localhost:9999`.*
