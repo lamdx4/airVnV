@@ -10,15 +10,14 @@ The system utilizes an API Gateway pattern with asynchronous event processing an
 %%{init: {'theme': 'base', 'look': 'handDrawn'}}%%
 graph TD
     Client["React Frontend"] --> GW["YARP Gateway"]
-    
+
     GW --> SS["Search Service"]
     GW --> PS["Property Service"]
     GW --> BS["Booking Service"]
     GW --> Pay["Payment Service"]
     GW --> CS["Chat Service"]
-    
     GW --> US["User Service"]
-    
+
     %% Database-per-Microservice
     SS --> ES[("Elasticsearch")]
     PS --> DB_Prop[("Property DB")]
@@ -26,10 +25,34 @@ graph TD
     Pay --> DB_Pay[("Payment DB")]
     CS --> DB_Chat[("Chat DB")]
     US --> DB_User[("User DB")]
-    
+
     %% Async Data Flows
     DB_Prop -.->|Debezium CDC| Kafka{{"Kafka"}}
     Kafka -.->|Sync| SS
+```
+
+### Observability Architecture
+
+```mermaid
+%%{init: {'theme': 'base', 'look': 'handDrawn'}}%%
+graph LR
+    subgraph Services
+        GW["Gateway"]
+        PS["Property"]
+        BS["Booking"]
+        Pay["Payment"]
+        CS["Chat"]
+        US["User"]
+        SS["Search"]
+    end
+
+    Services -->|OTLP| OC["OTel Collector"]
+
+    OC -->|remote_write| Prom[("Prometheus")]
+    OC -->|otlphttp| Loki[("Loki")]
+    OC -->|otlp| Tempo[("Tempo")]
+
+    Prom & Loki & Tempo --> Grafana["📊 Grafana\n:3000"]
 ```
 
 ## 🗺️ Source Map & Documentation
@@ -57,16 +80,24 @@ To understand the deeper business logic and architectural decisions, refer to th
 * **Styling & UI:** Tailwind CSS, Shadcn/UI
 
 ### Backend Services
-* **Framework:** .NET 8, C#
+* **Framework:** .NET 10, C#
 * **Architecture:** Vertical Slice Architecture (VSA), CQRS (Mediator), REPR Pattern (FastEndpoints)
 * **Distributed Patterns:** Event-Driven Architecture (EDA), Transactional Outbox, Saga Choreography
-* **Orchestration:** .NET Aspire
+* **Orchestration:** .NET Aspire 13
 
 ### Infrastructure & Data
 * **Databases:** PostgreSQL, Redis (Caching & SignalR Backplane)
 * **Search Engine:** Elasticsearch
 * **Message Brokers:** RabbitMQ (Domain Events), Apache Kafka (Data Streaming)
 * **Change Data Capture:** Debezium
+
+### Observability (Grafana LGTM Stack)
+* **Collection:** OpenTelemetry Collector — single ingress point fan-outing Logs, Metrics & Traces
+* **Logs:** Grafana Loki — structured log aggregation with 3-day retention
+* **Traces:** Grafana Tempo — distributed tracing across all microservices with TraceID linking
+* **Metrics:** Prometheus — time-series metrics scraped from OTel Collector
+* **Dashboard:** Grafana — unified UI with pre-provisioned datasources, zero manual configuration
+* **Protocol:** All services emit OTLP natively via `ServiceDefaults`; zero instrumentation code in business logic
 
 ## Core Features & Business Logic
 
@@ -92,21 +123,33 @@ To understand the deeper business logic and architectural decisions, refer to th
 * **Secure Transactions:** Manages payment intents and webhooks, integrating seamlessly with external payment gateways (e.g., Stripe, VNPay).
 * **Asynchronous Fulfillment:** Emits `PaymentCompletedEvent` to RabbitMQ upon success, triggering downstream actions like booking confirmation and host notifications without stalling the client.
 
+### 6. Observability & Monitoring
+* **Zero-Touch Instrumentation:** All services are instrumented via the shared `ServiceDefaults` project using the OpenTelemetry SDK — no per-service boilerplate required.
+* **Unified Telemetry Pipeline:** An OTel Collector aggregates Logs, Distributed Traces, and Metrics from every microservice, then fans out to the appropriate backend.
+* **End-to-End Tracing:** A single HTTP request generates a correlated trace spanning Gateway → Service → DB, all navigable from Grafana Tempo. Clicking a TraceID in a Loki log jumps directly to the corresponding trace.
+* **Production-Ready Budgets:** All 5 monitoring containers are constrained to ~128 MB RAM each via `GOGC=50` + `GOMAXPROCS=1`, bringing the full observability stack overhead to ~500 MB.
+
 ## Getting Started
 
 ### Prerequisites
-* [.NET 8 SDK](https://dotnet.microsoft.com/download)
+* [.NET 10 SDK](https://dotnet.microsoft.com/download)
 * [Node.js 18+](https://nodejs.org/)
 * Docker Desktop (Required for .NET Aspire to provision infrastructure containers)
 
 ### Running the Project
 
-**1. Start the Backend Infrastructure**
-Navigate to the Aspire AppHost project and run it. This will automatically spin up all required containers (Postgres, Redis, Kafka, RabbitMQ, Elasticsearch) and backend services.
+**1. Start the Backend & Observability Stack**
+Navigate to the root and run the Aspire AppHost. This automatically provisions all infrastructure containers (Postgres, Redis, Kafka, RabbitMQ, Elasticsearch) **plus the full Grafana monitoring stack** (OTel Collector, Loki, Tempo, Prometheus, Grafana).
 ```bash
-cd src/Airbnb.AppHost
-dotnet run
+dotnet watch run --project Airbnb.AppHost
 ```
+
+| Service | URL |
+|---------|-----|
+| Aspire Dashboard | `https://localhost:17xxx` (printed in console) |
+| Grafana | `http://localhost:3000` (no login required in dev) |
+| RabbitMQ UI | `http://localhost:15672` |
+| Kafka UI | `http://localhost:8080` |
 
 **2. Start the Frontend Application (Guest/Host)**
 Open a new terminal session and start the React application.
