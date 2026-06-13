@@ -1,0 +1,43 @@
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: warn
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:9096   # Internal only — OTel Collector → Tempo (not published to host)
+
+ingester:
+  trace_idle_period: 10s
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 72h  # 3 days
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/blocks
+    wal:
+      path: /tmp/tempo/wal
+
+querier:
+  max_concurrent_queries: 5
+
+query_frontend:
+  max_retries: 2
+  search:
+    max_duration: 0s
+
+metrics_generator:
+  registry:
+    stale_duration: 15m
+
+# Keep memory footprint small
+usage_report:
+  reporting_enabled: false
