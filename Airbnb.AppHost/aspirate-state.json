@@ -7,70 +7,83 @@
   "containerBuilder": "docker",
   "outputFormat": "compose",
   "privateRegistryEmail": "aspir8@aka.ms",
-  "includeDashboard": true,
+  "includeDashboard": false,
   "secrets": {
-    "salt": "fIH0O8c0SpLovrcB",
-    "hash": "QynJd6SVwxrgaNyP6siYNsXnpiG8eHufQAZsJni27sk=",
+    "salt": "1X3Zri87Gdgcem7u",
+    "hash": "6zzbM5zcEbxG2fqsaNhZILyM8a8fZ466q43833lqFu0=",
     "secrets": {
       "postgres-password": {
-        "value": "fIH0O8c0SpLovrcBv9XTXVA8m0UoOO/WRJXrTr80BoCDwOMMigoo1/4Lp7oGcch/oTk="
+        "value": "1X3Zri87Gdgcem7uQRzcqhNohWhz6d5Kn/N1JxD2cCeuDNGql3QGnlCLamrnt\u002BatNgg="
       },
       "rabbit-password": {
-        "value": "fIH0O8c0SpLovrcBfhhlPTV7pwaH2\u002BhcfGwMtpssKqeS/cVPlzQXhuJQzbVHba9s4Ag="
+        "value": "1X3Zri87Gdgcem7ugbEGcCpRasIps7h7j2RVEjvFOH2QCO6bvGoaomT7dG7utPO1GQE="
       },
       "elasticsearch-password": {
-        "value": "fIH0O8c0SpLovrcB/Vx4sCsln3dQoLB7npI0b4gtHqWfyqYNs1gHtqE95JRMcPpd5yo="
+        "value": "1X3Zri87Gdgcem7uHvrTQM62UV8ah2luoTyXTAWqeiuaE8eRr0xdnWn9e1j7uc6bOSg="
       },
       "redis-password": {
-        "value": "fIH0O8c0SpLovrcBSrw2IkAhfZjQ7MQ/mSzWJ784AaGP4PBFqRMmnKUGv7o3bsRf8QQ="
+        "value": "1X3Zri87Gdgcem7u/9yOqhNVtGMkhUMQSRoAnhqrcHeEMar4tXteo2T9OG3ak4CtIyI="
       },
       "postgres": {
-        "POSTGRES_PASSWORD": "fIH0O8c0SpLovrcBv9XTXVA8m0UoOO/WRJXrTr80BoCDwOMMigoo1/4Lp7oGcch/oTk="
+        "POSTGRES_PASSWORD": "1X3Zri87Gdgcem7uQRzcqhNohWhz6d5Kn/N1JxD2cCeuDNGql3QGnlCLamrnt\u002BatNgg="
       },
       "userdb": {},
+      "userdb-mcp": {},
       "propdb": {},
+      "propdb-mcp": {},
       "bookdb": {},
+      "bookdb-mcp": {},
       "paydb": {},
+      "paydb-mcp": {},
       "chatdb": {},
+      "chatdb-mcp": {},
       "kafka": {},
       "rabbit": {},
       "elasticsearch": {},
+      "elasticvue": {},
       "redis": {},
       "debezium": {
-        "ConnectionStrings__postgres": "fIH0O8c0SpLovrcB\u002BqU4c78UT2TlTwC7zqYGArEBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4Uqk=",
-        "ConnectionStrings__kafka": "fIH0O8c0SpLovrcBylkkvG3McKMDUV4xZ7LdpZIPNb60iaoF3FI=",
-        "POSTGRES_PASSWORD": "fIH0O8c0SpLovrcBv9XTXVA8m0UoOO/WRJXrTr80BoCDwOMMigoo1/4Lp7oGcch/oTk="
+        "ConnectionStrings__postgres": "1X3Zri87Gdgcem7uZYnM3YVWkTNAQt0LHlIaCQHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXA=",
+        "ConnectionStrings__kafka": "1X3Zri87Gdgcem7uBKt\u002BbSowWa947zpmkJN99CL8ZiW2Xa349Dhd",
+        "POSTGRES_PASSWORD": "1X3Zri87Gdgcem7uQRzcqhNohWhz6d5Kn/N1JxD2cCeuDNGql3QGnlCLamrnt\u002BatNgg="
       },
       "debezium-configurator": {},
-      "userservice": {
-        "ConnectionStrings__userdb": "fIH0O8c0SpLovrcBJz8ExuYJXjMljXJk79wfWrEBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4UqmsW4qigSS4bvxkCEGimsyz",
-        "ConnectionStrings__rabbit": "fIH0O8c0SpLovrcBP6zmsCgnkTHNYsAYvm0cY5gDIqXvnLxSkAU9kasK9IEcRvVcux27XLItPEFIc\u002BYG6QDrmTZj8CNJGQcfXn8SxPgrWP8iKhdv3NGeJw=="
-      },
       "propertyservice": {
-        "ConnectionStrings__propdb": "fIH0O8c0SpLovrcB2N1iMnrQZkJ9X2TXB8GZCrEBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4UqmsW4qigSS4bvxkDUComMyz",
-        "ConnectionStrings__rabbit": "fIH0O8c0SpLovrcBP6zmsCgnkTHNYsAYvm0cY5gDIqXvnLxSkAU9kasK9IEcRvVcux27XLItPEFIc\u002BYG6QDrmTZj8CNJGQcfXn8SxPgrWP8iKhdv3NGeJw=="
+        "ConnectionStrings__propdb": "1X3Zri87Gdgcem7u3StOC6haO5GFR4\u002B7lspzVQHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXBwZTWINMQy\u002BNKKymdquiNQ",
+        "ConnectionStrings__rabbit": "1X3Zri87Gdgcem7uxNdh4pMMfHC6bksXwOrAaijwcT7tSLCmsWQcmQa3c2PqkN2MYRuq1bf0dw5lgKPgP/xIkQyF2nqvG/SEfYLsGSrjX6azTMolp1g3UQ=="
       },
       "bookingservice": {
-        "ConnectionStrings__bookdb": "fIH0O8c0SpLovrcBTaWgQCL23DkMzyzI2WsfKrEBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4UqmsW4qigSS4bvxkH12og8yz",
-        "ConnectionStrings__rabbit": "fIH0O8c0SpLovrcBP6zmsCgnkTHNYsAYvm0cY5gDIqXvnLxSkAU9kasK9IEcRvVcux27XLItPEFIc\u002BYG6QDrmTZj8CNJGQcfXn8SxPgrWP8iKhdv3NGeJw==",
-        "ConnectionStrings__kafka": "fIH0O8c0SpLovrcBylkkvG3McKMDUV4xZ7LdpZIPNb60iaoF3FI="
+        "ConnectionStrings__bookdb": "1X3Zri87Gdgcem7uPxG2bJYrACrdmBJTQF0W8QHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXBwZTWINMQy\u002BNKK2HpqoSNQ",
+        "ConnectionStrings__rabbit": "1X3Zri87Gdgcem7uxNdh4pMMfHC6bksXwOrAaijwcT7tSLCmsWQcmQa3c2PqkN2MYRuq1bf0dw5lgKPgP/xIkQyF2nqvG/SEfYLsGSrjX6azTMolp1g3UQ==",
+        "ConnectionStrings__kafka": "1X3Zri87Gdgcem7uBKt\u002BbSowWa947zpmkJN99CL8ZiW2Xa349Dhd"
+      },
+      "userservice": {
+        "ConnectionStrings__userdb": "1X3Zri87Gdgcem7uQt1vN8gk4W8l4q3T1608wwHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXBwZTWINMQy\u002BNKKz2ZguCNQ",
+        "ConnectionStrings__rabbit": "1X3Zri87Gdgcem7uxNdh4pMMfHC6bksXwOrAaijwcT7tSLCmsWQcmQa3c2PqkN2MYRuq1bf0dw5lgKPgP/xIkQyF2nqvG/SEfYLsGSrjX6azTMolp1g3UQ=="
       },
       "paymentservice": {
-        "ConnectionStrings__paydb": "fIH0O8c0SpLovrcBLH1MjbYTa39fL7IEwOIsbLEBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4UqmsW4qigSS4bvxkDVO\u002BjMo=",
-        "ConnectionStrings__rabbit": "fIH0O8c0SpLovrcBP6zmsCgnkTHNYsAYvm0cY5gDIqXvnLxSkAU9kasK9IEcRvVcux27XLItPEFIc\u002BYG6QDrmTZj8CNJGQcfXn8SxPgrWP8iKhdv3NGeJw=="
+        "ConnectionStrings__paydb": "1X3Zri87Gdgcem7uatrLEbUsXu/33Xn8BiRC8AHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXBwZTWINMQy\u002BNKKynR8riU=",
+        "ConnectionStrings__rabbit": "1X3Zri87Gdgcem7uxNdh4pMMfHC6bksXwOrAaijwcT7tSLCmsWQcmQa3c2PqkN2MYRuq1bf0dw5lgKPgP/xIkQyF2nqvG/SEfYLsGSrjX6azTMolp1g3UQ=="
       },
       "searchservice": {
-        "ConnectionStrings__elasticsearch": "fIH0O8c0SpLovrcBvQiXuLFw9/V5pSyTeKKJfZEaJ6XvnLxQiQE9kfgSvJE9aexi71jiefkTAANgPOdG1Ev7hhJM8SpMRAUXUXkS2Mo6Uad5cVNl",
-        "ConnectionStrings__kafka": "fIH0O8c0SpLovrcBylkkvG3McKMDUV4xZ7LdpZIPNb60iaoF3FI="
+        "ConnectionStrings__elasticsearch": "1X3Zri87Gdgcem7uTSKUmJqXgJjtsAcQoompryHpdD7tSLCkqGAcmVWvO06/iNG1ODObzYmxaCkw14zhHatOiiyq23OqRvaMcoTsBRjyVv7oF44v",
+        "ConnectionStrings__kafka": "1X3Zri87Gdgcem7uBKt\u002BbSowWa947zpmkJN99CL8ZiW2Xa349Dhd",
+        "ConnectionStrings__redis": "1X3Zri87Gdgcem7uHnHLtr9yurlZvla6L1HWwTv4ZCekXany8zhDnV2/cnXngNDFH127n5fVLUVw1\u002BfcDuAUkD2LikqkfA=="
       },
       "chatservice": {
-        "ConnectionStrings__chatdb": "fIH0O8c0SpLovrcBwUwumB\u002BBQO9v3Kjm9cDOp7EBIKHow/xGkQc8gOJK1o8MUKEdol7vFJQpNkFCP/4RvV3hhCFr5iNeDCEfQXkA1so9BNsaFjYDmpeQei2RiN\u002BQX8ctgZc4UqmsW4qigSS4bvxkHlqmnMyz",
-        "ConnectionStrings__rabbit": "fIH0O8c0SpLovrcBP6zmsCgnkTHNYsAYvm0cY5gDIqXvnLxSkAU9kasK9IEcRvVcux27XLItPEFIc\u002BYG6QDrmTZj8CNJGQcfXn8SxPgrWP8iKhdv3NGeJw==",
-        "ConnectionStrings__redis": "fIH0O8c0SpLovrcBPCm2TSKr8gsnraOAPPM8iYsLN7ymiaUG0llilfAC9ZcRVvgV0DuIW5sJMENgLfsNtFq3rRxGzDFKXg=="
+        "ConnectionStrings__chatdb": "1X3Zri87Gdgcem7uPmgI2v1\u002BPuuyolkPoOh20wHyczrqF/CysGYdiE/3UW36honNeFj\u002BnZHwfQ5vzLv3a6FCjBuNzHq4DtKEYoT\u002BCxj1A526Vddm\u002BSBrMDMFKpDg2li9AcX4\u002BXBwZTWINMQy\u002BNKK2X1kviNQ",
+        "ConnectionStrings__rabbit": "1X3Zri87Gdgcem7uxNdh4pMMfHC6bksXwOrAaijwcT7tSLCmsWQcmQa3c2PqkN2MYRuq1bf0dw5lgKPgP/xIkQyF2nqvG/SEfYLsGSrjX6azTMolp1g3UQ==",
+        "ConnectionStrings__redis": "1X3Zri87Gdgcem7uHnHLtr9yurlZvla6L1HWwTv4ZCekXany8zhDnV2/cnXngNDFH127n5fVLUVw1\u002BfcDuAUkD2LikqkfA=="
       },
       "gateway": {},
+      "airbnb-web": {},
+      "airbnb-admin": {},
+      "otel-collector": {},
+      "loki": {},
+      "tempo": {},
+      "prometheus": {},
+      "grafana": {},
       "cond-redis-bindings-tcp-tlsenabled-d148d83a": {}
     }
-  },
-  "processAllComponents": true
+  }
 }

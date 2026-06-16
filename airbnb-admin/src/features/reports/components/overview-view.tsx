@@ -133,7 +133,7 @@ export function OverviewView({ from, to, groupBy }: OverviewViewProps) {
               />
               <Tooltip
                 {...tooltipProps}
-                formatter={(value: number, name: string) => [formatVnd(value), name]}
+                formatter={(value: any, name: any) => [formatVnd(Number(value)), String(name)]}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="gmv" name="GMV" stroke="#ff385c" strokeWidth={2} dot={false} />

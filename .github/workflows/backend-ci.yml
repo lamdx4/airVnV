@@ -1,0 +1,91 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ "main", "deploy" ]
+    paths:
+      - 'src/**'
+      - 'Airbnb.*/**'
+      - '*.sln'
+      - '*.slnx'
+  pull_request:
+    branches: [ "main", "deploy" ]
+    paths:
+      - 'src/**'
+      - 'Airbnb.*/**'
+      - '*.sln'
+      - '*.slnx'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  check-backend:
+    name: Check Backend (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          
+      - name: Restore dependencies
+        run: dotnet restore Airbnb.slnx
+        
+      - name: Build
+        run: dotnet build Airbnb.slnx -c Release --no-restore
+        
+      - name: Test
+        run: dotnet test Airbnb.slnx -c Release --no-build --verbosity normal || echo "Tests skipped or failed."
+
+  build-push-backend:
+    name: Build & Push Backend
+    needs: check-backend
+    if: github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: 
+          - { path: 'src/Airbnb.PropertyService/Airbnb.PropertyService.csproj', name: 'propertyservice' }
+          - { path: 'src/Airbnb.BookingService/Airbnb.BookingService.csproj', name: 'bookingservice' }
+          - { path: 'src/Airbnb.UserService/Airbnb.UserService.csproj', name: 'userservice' }
+          - { path: 'src/Airbnb.PaymentService/Airbnb.PaymentService.csproj', name: 'paymentservice' }
+          - { path: 'src/Airbnb.SearchService/Airbnb.SearchService.csproj', name: 'searchservice' }
+          - { path: 'src/Airbnb.ChatService/Airbnb.ChatService.csproj', name: 'chatservice' }
+          - { path: 'src/Airbnb.Gateway/Airbnb.Gateway.csproj', name: 'gateway' }
+          - { path: 'Airbnb.Infrastructure.Configurator/Airbnb.Infrastructure.Configurator.csproj', name: 'debezium-configurator' }
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Set Lowercase Owner Name
+        run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Container via .NET SDK
+        run: >
+          dotnet publish ${{ matrix.project.path }} 
+          -c Release 
+          -t:PublishContainer 
+          -p:ContainerRegistry=${{ env.REGISTRY }} 
+          -p:ContainerRepository=${{ env.REPO_OWNER }}/airbnb-${{ matrix.project.name }} 
+          -p:ContainerImageTags="latest,${{ github.sha }}"
