@@ -89,4 +89,3 @@ jobs:
           -p:ContainerRegistry=${{ env.REGISTRY }} 
           -p:ContainerRepository=${{ env.REPO_OWNER }}/${{ github.event.repository.name }}/${{ matrix.project.name }} 
           -p:ContainerImageTag=latest
-          "-p:ContainerLabel-org.opencontainers.image.source=https://github.com/${{ github.repository }}"

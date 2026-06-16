@@ -5,4 +5,9 @@
          Fix lỗi SSL UntrustedRoot (mcr.microsoft.com) trên Fedora. -->
     <ContainerSkipImagePull>true</ContainerSkipImagePull>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Add OCI source label so GitHub links the packages to the repository -->
+    <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/lamdx4/Airbnb" />
+  </ItemGroup>
 </Project>
