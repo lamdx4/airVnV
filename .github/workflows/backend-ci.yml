@@ -73,19 +73,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push images using Aspire CLI
+      - name: Build, Push and Generate Compose (Single Source of Truth)
         env:
           REGISTRY_ENDPOINT: ${{ env.REGISTRY }}
           REGISTRY_REPOSITORY: ${{ github.repository }}
-        run: aspire -p Airbnb.AppHost do push
-
-      - name: Generate Docker Compose Manifest (AppHost)
-        env:
           DOTNET_ENVIRONMENT: Production
-        run: dotnet run --project Airbnb.AppHost/Airbnb.AppHost.csproj --no-launch-profile --publisher docker-compose --output-path ./compose
+        run: aspire -p Airbnb.AppHost do publish --output docker-compose
 
       - name: Upload Compose File as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: production-compose
-          path: compose/
+          path: Airbnb.AppHost/compose/
