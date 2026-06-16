@@ -11,6 +11,9 @@ if (!builder.Environment.IsDevelopment())
     builder.AddContainerRegistry("ghcr", "ghcr.io", "lamdx4/airvnv");
 }
 
+// Enable native docker-compose publisher
+builder.AddDockerComposeEnvironment("env");
+
 // 1. Data Infrastructure (Postgres, Kafka, RabbitMQ, ElasticSearch, Redis, Debezium)
 var infrastructure = builder.AddInfrastructure();
 
