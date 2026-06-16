@@ -79,17 +79,13 @@ jobs:
           REGISTRY_REPOSITORY: ${{ github.repository }}
         run: aspire -p Airbnb.AppHost do push
 
-      - name: Generate Docker Compose Manifest (Aspirate)
+      - name: Generate Docker Compose Manifest (AppHost)
         env:
           DOTNET_ENVIRONMENT: Production
-          ASPIRATE_SECRET_PASSWORD: "AirVnV2026!"
-        run: |
-          dotnet tool install -g aspirate
-          cd Airbnb.AppHost
-          aspirate generate --output-format compose --non-interactive --skip-build --include-dashboard false
+        run: dotnet run --project Airbnb.AppHost/Airbnb.AppHost.csproj --no-launch-profile --publisher docker-compose --output-path ./compose
 
       - name: Upload Compose File as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: production-compose
-          path: Airbnb.AppHost/aspirate-output/docker-compose.yaml
+          path: compose/
