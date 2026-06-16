@@ -2,19 +2,19 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main", "release" ]
+    branches: ["main", "release"]
     paths:
-      - 'src/**'
-      - 'Airbnb.*/**'
-      - '*.sln'
-      - '*.slnx'
+      - "src/**"
+      - "Airbnb.*/**"
+      - "*.sln"
+      - "*.slnx"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'src/**'
-      - 'Airbnb.*/**'
-      - '*.sln'
-      - '*.slnx'
+      - "src/**"
+      - "Airbnb.*/**"
+      - "*.sln"
+      - "*.slnx"
   workflow_dispatch:
 
 env:
@@ -26,18 +26,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
-          
+          dotnet-version: "10.0.x"
+
       - name: Restore dependencies
         run: dotnet restore Airbnb.slnx
-        
+
       - name: Build
         run: dotnet build Airbnb.slnx -c Release --no-restore
-        
+
       - name: Test
         run: dotnet test Airbnb.slnx -c Release --no-build --verbosity normal || echo "Tests skipped or failed."
 
@@ -52,11 +52,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
 
       - name: Install Aspire CLI
         run: |
@@ -81,16 +81,13 @@ jobs:
           aspire do push \
             --apphost Airbnb.AppHost/Airbnb.AppHost.csproj
 
-      - name: Generate Docker Compose Manifest (Aspirate)
-        env:
-          DOTNET_ENVIRONMENT: Production
+      - name: Generate Docker Compose Manifest
         run: |
-          dotnet tool install -g aspirate
-          cd Airbnb.AppHost
-          aspirate generate --output-format compose --non-interactive --skip-build --include-dashboard false
+          aspire publish \
+            --apphost Airbnb.AppHost/Airbnb.AppHost.csproj
 
       - name: Upload Compose File as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: production-compose
-          path: Airbnb.AppHost/aspirate-output/docker-compose.yaml
+          path: Airbnb.AppHost/aspire-output/
