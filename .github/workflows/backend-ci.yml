@@ -87,5 +87,6 @@ jobs:
           -c Release 
           -t:PublishContainer 
           -p:ContainerRegistry=${{ env.REGISTRY }} 
-          -p:ContainerRepository=${{ env.REPO_OWNER }}/airbnb-${{ matrix.project.name }} 
+          -p:ContainerRepository=${{ env.REPO_OWNER }}/${{ github.event.repository.name }}/${{ matrix.project.name }} 
           -p:ContainerImageTags="latest,${{ github.sha }}"
+          "-p:ContainerLabel-org.opencontainers.image.source=https://github.com/${{ github.repository }}"
