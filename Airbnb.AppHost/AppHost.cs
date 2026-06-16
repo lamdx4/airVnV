@@ -5,10 +5,10 @@ using Microsoft.Extensions.Hosting;
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Container Registry (GHCR) – dùng cho Aspire 9 native publisher
-// Format: ghcr.io/lamdx4/airvnv/<servicename>
+// Format: ghcr.io/lamdx4/Airbnb/<servicename>
 if (!builder.Environment.IsDevelopment())
 {
-    builder.AddContainerRegistry("ghcr", "ghcr.io", "lamdx4/airvnv");
+    builder.AddContainerRegistry("ghcr", "ghcr.io", "lamdx4/Airbnb");
 }
 
 // 1. Data Infrastructure (Postgres, Kafka, RabbitMQ, ElasticSearch, Redis, Debezium)

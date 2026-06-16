@@ -76,7 +76,5 @@ jobs:
       - name: Build and push images using Aspire CLI
         env:
           REGISTRY_ENDPOINT: ${{ env.REGISTRY }}
-          REGISTRY_REPOSITORY: lamdx4/airvnv
-        run: |
-          cd Airbnb.AppHost
-          aspire do push
+          REGISTRY_REPOSITORY: ${{ github.repository }}
+        run: aspire -p Airbnb.AppHost do push

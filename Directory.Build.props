@@ -8,6 +8,6 @@
 
   <ItemGroup>
     <!-- Add OCI source label so GitHub links the packages to the repository -->
-    <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/lamdx4/airVnV" />
+    <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/lamdx4/Airbnb" />
   </ItemGroup>
 </Project>
