@@ -14,6 +14,7 @@ RUN npm run build
 
 # Use Nginx to serve the built static files
 FROM nginx:alpine
+LABEL org.opencontainers.image.source="https://github.com/lamdx4/Airbnb"
 
 # Copy built assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
