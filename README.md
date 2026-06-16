@@ -118,6 +118,7 @@ To understand the deeper business logic and architectural decisions, refer to th
 ### 4. Context-Based Communications (Chat Service)
 * **Domain-Bound Threads:** Conversations are strictly tied to a `Property` or `Booking` context, eliminating arbitrary P2P messaging.
 * **Event-Driven System Messages:** Listens to integration events (e.g., `BookingConfirmed` via RabbitMQ) to automatically inject un-editable system notifications into the chat thread.
+* **WebRTC Signaling:** Provides a lightweight signaling mechanism via SignalR to negotiate P2P Audio/Video calls between hosts and guests without routing media streams through the backend.
 
 ### 5. Payment Processing (Payment Service)
 * **Secure Transactions:** Manages payment intents and webhooks, integrating seamlessly with external payment gateways (e.g., Stripe, VNPay).

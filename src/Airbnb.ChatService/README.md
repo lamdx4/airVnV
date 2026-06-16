@@ -191,5 +191,19 @@ erDiagram
 | **POST**| `/api/chat/conversations/{id}/messages` | Send a new text/image message. |
 | **POST**| `/api/chat/conversations/{id}/read` | Update the read-receipt watermark. |
 
-## 📡 SignalR Hubs
-* `/hubs/chat` - Real-time WebSocket connection for receiving incoming messages instantly.
+## 📡 SignalR Hubs (`/hubs/chat`)
+
+The service provides a robust real-time WebSocket connection using SignalR, which handles both instant messaging and **WebRTC Signaling** for Audio/Video calls.
+
+### Chat Events
+* `UserTyping`: Broadcasts typing indicators to conversation participants.
+
+### WebRTC Signaling (P2P Calling)
+The `ChatHub` acts as a signaling server to negotiate Peer-to-Peer (P2P) connections between Hosts and Guests without storing the video/audio streams on the server.
+* `InitCall(targetUserId, offer, isVideoCall)` -> Emits `IncomingCall`
+* `AnswerCall(targetUserId, answer)` -> Emits `CallAnswered`
+* `SendIceCandidate(targetUserId, candidate)` -> Emits `ReceiveIceCandidate`
+* `RejectCall(targetUserId)` -> Emits `CallRejected`
+* `EndCall(targetUserId)` -> Emits `CallEnded`
+
+*Note: WebRTC signaling payloads (SDP Offers/Answers and ICE candidates) are transient and forwarded instantly via the Redis Backplane to the connected client. They are **not** persisted to the PostgreSQL database.*
