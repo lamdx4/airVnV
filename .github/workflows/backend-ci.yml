@@ -77,7 +77,7 @@ jobs:
         env:
           REGISTRY_ENDPOINT: ${{ env.REGISTRY }}
           REGISTRY_REPOSITORY: ${{ github.repository }}
-        run: aspire -p Airbnb.AppHost do push
+        run: aspire do push --apphost Airbnb.AppHost
 
       - name: Generate Docker Compose Manifest (AppHost)
         env:
