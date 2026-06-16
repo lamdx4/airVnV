@@ -12,7 +12,11 @@ if (!builder.Environment.IsDevelopment())
 }
 
 // Enable native docker-compose publisher
-builder.AddDockerComposeEnvironment("env");
+builder.AddDockerComposeEnvironment("compose")
+    .WithProperties(env =>
+    {
+        env.DashboardEnabled = true;
+    });
 
 // 1. Data Infrastructure (Postgres, Kafka, RabbitMQ, ElasticSearch, Redis, Debezium)
 var infrastructure = builder.AddInfrastructure();
