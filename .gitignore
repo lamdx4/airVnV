@@ -40,3 +40,10 @@ __pycache__/
 
 # LaTeX Outputs
 docs/reports/latex/outputs/
+
+# Aspire generated output
+Airbnb.AppHost/aspire-output/
+Airbnb.AppHost/compose/
+Airbnb.AppHost/compose_test/
+Airbnb.AppHost/manifest.json
+Airbnb.AppHost/compose/aspire-manifest.json
