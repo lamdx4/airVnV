@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Bỏ qua pull base image từ MCR khi publish container.
+         .NET SDK sẽ dùng image đã có sẵn trong local Docker daemon.
+         Fix lỗi SSL UntrustedRoot (mcr.microsoft.com) trên Fedora. -->
+    <ContainerSkipImagePull>true</ContainerSkipImagePull>
+  </PropertyGroup>
+</Project>
