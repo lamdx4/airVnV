@@ -92,6 +92,14 @@ builder.Services.AddMassTransit(x =>
                 h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
             });
         }
+
+        cfg.UseMessageRetry(r => 
+        {
+            r.Exponential(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(3));
+            r.Ignore<Airbnb.ServiceDefaults.Infrastructure.BusinessException>();
+            r.Ignore<Airbnb.ServiceDefaults.Infrastructure.NotFoundException>();
+        });
+
         // UserService không có Consumer → không cần declare queues
         // cfg.ConfigureEndpoints(ctx); ← đây là nguyên nhân gây deadlock
     });

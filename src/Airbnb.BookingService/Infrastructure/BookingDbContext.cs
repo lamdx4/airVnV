@@ -9,7 +9,6 @@ public class BookingDbContext(
     IDomainEventPolicyExecutor policyExecutor) : AppDbContextBase(options, bridge, policyExecutor)
 {
     public DbSet<Booking> Bookings => Set<Booking>();
-    public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,7 +28,6 @@ public class BookingDbContext(
         booking.HasIndex(b => b.GuestId).HasDatabaseName("idx_bookings_guest_id");
         booking.HasIndex(b => b.HostId).HasDatabaseName("idx_bookings_host_id");
         
-        modelBuilder.Entity<ProcessedEvent>().ToTable("ProcessedEvents").HasKey(x => x.EventId);
 
         // MassTransit Inbox/Outbox configuration
         modelBuilder.AddInboxStateEntity();

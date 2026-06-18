@@ -17,21 +17,11 @@ public class PaymentRefundedConsumer(
     public async Task Consume(ConsumeContext<PaymentRefundedEvent> context)
     {
         var message = context.Message;
-        var eventId = context.MessageId ?? Guid.NewGuid();
-
         if (!message.IsFullRefund)
         {
             logger.LogInformation(
                 "Partial refund for Booking {BookingId}, no booking state change.",
                 message.BookingId);
-            return;
-        }
-
-        bool alreadyProcessed = await dbContext.ProcessedEvents
-            .AnyAsync(e => e.EventId == eventId, context.CancellationToken);
-        if (alreadyProcessed)
-        {
-            logger.LogWarning("Event {EventId} already processed. Skipping.", eventId);
             return;
         }
 
@@ -50,12 +40,6 @@ public class PaymentRefundedConsumer(
         {
             booking.AdminCancel();
         }
-
-        dbContext.ProcessedEvents.Add(new ProcessedEvent
-        {
-            EventId = eventId,
-            EventType = nameof(PaymentRefundedEvent)
-        });
 
         await dbContext.SaveChangesAsync(context.CancellationToken);
 

@@ -13,17 +13,7 @@ public class PaymentFailedConsumer(
     public async Task Consume(ConsumeContext<PaymentFailedEvent> context)
     {
         var message = context.Message;
-        var eventId = context.MessageId ?? Guid.NewGuid();
-
         logger.LogInformation("Processing PaymentFailedEvent for Booking {BookingId}", message.BookingId);
-
-        // Idempotency check
-        bool alreadyProcessed = await dbContext.ProcessedEvents.AnyAsync(e => e.EventId == eventId, context.CancellationToken);
-        if (alreadyProcessed)
-        {
-            logger.LogWarning("Event {EventId} already processed. Skipping.", eventId);
-            return;
-        }
 
         var booking = await dbContext.Bookings.FindAsync([message.BookingId], context.CancellationToken);
         if (booking == null)
@@ -33,13 +23,6 @@ public class PaymentFailedConsumer(
         }
 
         booking.Cancel(booking.GuestId);
-
-        // Đánh dấu đã xử lý
-        dbContext.ProcessedEvents.Add(new ProcessedEvent 
-        { 
-            EventId = eventId, 
-            EventType = nameof(PaymentFailedEvent)
-        });
 
         await dbContext.SaveChangesAsync(context.CancellationToken);
         

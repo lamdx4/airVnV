@@ -60,6 +60,13 @@ builder.Services.AddMassTransit(x =>
             });
         }
 
+        cfg.UseMessageRetry(r => 
+        {
+            r.Exponential(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(3));
+            r.Ignore<Airbnb.ServiceDefaults.Infrastructure.BusinessException>();
+            r.Ignore<Airbnb.ServiceDefaults.Infrastructure.NotFoundException>();
+        });
+
         cfg.ConfigureEndpoints(ctx);
     });
 });
