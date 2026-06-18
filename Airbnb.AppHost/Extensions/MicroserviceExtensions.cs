@@ -71,5 +71,5 @@ public static class MicroserviceExtensions
             searchSvc,
             chatSvc
         );
-}
+    }
 }

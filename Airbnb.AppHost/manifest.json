@@ -624,52 +624,6 @@
         }
       }
     },
-    "airbnb-web": {
-      "type": "container.v1",
-      "build": {
-        "context": "../airbnb-web",
-        "dockerfile": "../airbnb-web/Dockerfile"
-      },
-      "env": {
-        "GATEWAY_HTTP": "{gateway.bindings.http.url}",
-        "services__gateway__http__0": "{gateway.bindings.http.url}",
-        "GATEWAY_HTTPS": "{gateway.bindings.https.url}",
-        "services__gateway__https__0": "{gateway.bindings.https.url}",
-        "VITE_API_GATEWAY_URL": "{gateway.bindings.http.url}"
-      },
-      "bindings": {
-        "http": {
-          "scheme": "http",
-          "protocol": "tcp",
-          "transport": "http",
-          "port": 3001,
-          "targetPort": 80
-        }
-      }
-    },
-    "airbnb-admin": {
-      "type": "container.v1",
-      "build": {
-        "context": "../airbnb-admin",
-        "dockerfile": "../airbnb-admin/Dockerfile"
-      },
-      "env": {
-        "GATEWAY_HTTP": "{gateway.bindings.http.url}",
-        "services__gateway__http__0": "{gateway.bindings.http.url}",
-        "GATEWAY_HTTPS": "{gateway.bindings.https.url}",
-        "services__gateway__https__0": "{gateway.bindings.https.url}",
-        "NEXT_PUBLIC_API_GATEWAY_URL": "{gateway.bindings.http.url}"
-      },
-      "bindings": {
-        "http": {
-          "scheme": "http",
-          "protocol": "tcp",
-          "transport": "http",
-          "port": 9999,
-          "targetPort": 3000
-        }
-      }
-    },
     "otel-collector": {
       "type": "container.v0",
       "image": "otel/opentelemetry-collector-contrib:0.128.0",

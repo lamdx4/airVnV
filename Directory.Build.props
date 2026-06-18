@@ -1,13 +1,10 @@
 <Project>
   <PropertyGroup>
-    <!-- Bỏ qua pull base image từ MCR khi publish container.
-         .NET SDK sẽ dùng image đã có sẵn trong local Docker daemon.
-         Fix lỗi SSL UntrustedRoot (mcr.microsoft.com) trên Fedora. -->
     <ContainerSkipImagePull>true</ContainerSkipImagePull>
+    <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Add OCI source label so GitHub links the packages to the repository -->
-    <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/lamdx4/Airvnv" />
+    <!-- <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/lamdx4/Airvnv" /> -->
   </ItemGroup>
 </Project>

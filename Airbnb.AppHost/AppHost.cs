@@ -18,20 +18,16 @@ builder.AddDockerComposeEnvironment("compose")
         env.DashboardEnabled = true;
     });
 
-// 1. Data Infrastructure (Postgres, Kafka, RabbitMQ, ElasticSearch, Redis, Debezium)
+// 1. Infrastructure
 var infrastructure = builder.AddInfrastructure();
 
-// 2. Microservices (VSA Architecture)
+// 2. Microservices
 var microservices = builder.AddMicroservices(infrastructure);
 
-// 3. API Gateway (YARP)
-var gateway = builder.AddGateway(microservices);
+// 3. API Gateway
+builder.AddGateway(microservices);
 
-// 4. Frontends (React Web App & Next.js Admin Panel)
-// Tạm thời tắt để tiết kiệm tài nguyên VPS (Đã deploy lên Vercel)
-// builder.AddFrontends(gateway);
-
-// 5. Observability Stack (Grafana, Loki, Tempo, Prometheus, OTel Collector)
+// 4. Observability
 builder.AddMonitoring();
 
 builder.Build().Run();
