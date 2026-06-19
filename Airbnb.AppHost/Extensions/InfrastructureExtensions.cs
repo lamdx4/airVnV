@@ -120,7 +120,7 @@ public static class InfrastructureExtensions
         }
         else
         {
-            var resolveIpCmd = "IP=$(ping -c 1 $ROOT_DOMAIN | awk -F'[()]' '/PING/{print $2}') && echo \"Resolved DDNS IP: $IP\" && turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$ROOT_DOMAIN --external-ip=$IP";
+            var resolveIpCmd = "IP=$(getent ahosts $ROOT_DOMAIN | awk '{print $1}' | head -n 1) && echo \"Resolved DDNS IP: $IP\" && turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$ROOT_DOMAIN --external-ip=$IP";
             coturn.WithArgs("-c", resolveIpCmd);
         }
 
