@@ -17,7 +17,7 @@ public class UserDomainEventPolicyExecutor(IMediator mediator) : IDomainEventPol
         }
     }
 
-    private INotification MapToNotification(IDomainEvent @event) => @event switch
+    private INotification? MapToNotification(IDomainEvent @event) => @event switch
     {
         UserProfileUpdatedDomainEvent e => new UserProfileUpdatedNotification(e),
         _ => null

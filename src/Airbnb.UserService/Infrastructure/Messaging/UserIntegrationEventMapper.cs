@@ -10,6 +10,6 @@ public class UserIntegrationEventMapper : IIntegrationEventMapper
     public object Map(IDomainEvent domainEvent) => domainEvent switch
     {
         UserProfileUpdatedDomainEvent e => new UserProfileUpdatedEvent(e.UserId, e.FullName, e.AvatarUrl),
-        _ => null
+        _ => null!
     };
 }

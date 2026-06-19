@@ -68,13 +68,16 @@ jobs:
       - name: Build, Push and Generate Compose (Native Aspire 9)
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+          # Cài đặt bộ công cụ Aspire CLI chính chủ từ Microsoft
+          dotnet tool install -g aspire.cli --prerelease
           
           DOTNET_ENVIRONMENT=Production \
           ContainerRegistry=${{ env.REGISTRY }} \
           ContainerRepositoryPrefix=$REPO_LOWER \
           ContainerImageTag=latest \
-          dotnet run --project Airbnb.AppHost/Airbnb.AppHost.csproj \
-            --no-launch-profile \
+          aspire publish \
+            --project Airbnb.AppHost/Airbnb.AppHost.csproj \
             --publisher docker-compose \
             --output-path ./release-artifact
 

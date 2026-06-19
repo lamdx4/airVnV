@@ -19,7 +19,11 @@ namespace Airbnb.BookingService.Infrastructure;
 [JsonSerializable(typeof(Airbnb.BookingService.Features.CancelBooking.Request), TypeInfoPropertyName = "CancelBookingRequest")]
 [JsonSerializable(typeof(Airbnb.BookingService.Features.ApproveBooking.Request), TypeInfoPropertyName = "ApproveBookingRequest")]
 [JsonSerializable(typeof(Airbnb.BookingService.Features.RejectBooking.Request), TypeInfoPropertyName = "RejectBookingRequest")]
+[JsonSerializable(typeof(Airbnb.BookingService.Features.GetGuestBookings.BookingDto), TypeInfoPropertyName = "GuestBookingDto")]
+[JsonSerializable(typeof(List<Airbnb.BookingService.Features.GetGuestBookings.BookingDto>), TypeInfoPropertyName = "ListGuestBookingDto")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.BookingService.Features.GetGuestBookings.BookingDto>>), TypeInfoPropertyName = "ApiResponseGuestBookings")]
+[JsonSerializable(typeof(Airbnb.BookingService.Features.GetHostBookings.BookingDto), TypeInfoPropertyName = "HostBookingDto")]
+[JsonSerializable(typeof(List<Airbnb.BookingService.Features.GetHostBookings.BookingDto>), TypeInfoPropertyName = "ListHostBookingDto")]
 [JsonSerializable(typeof(Airbnb.ServiceDefaults.Infrastructure.ApiResponse<List<Airbnb.BookingService.Features.GetHostBookings.BookingDto>>), TypeInfoPropertyName = "ApiResponseHostBookings")]
 [JsonSerializable(typeof(FastEndpoints.ErrorResponse))]
 internal partial class BookingJsonContext : JsonSerializerContext { }

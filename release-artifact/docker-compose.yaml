@@ -1,0 +1,590 @@
+services:
+  compose-dashboard:
+    image: "mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest"
+    ports:
+      - "18888"
+    expose:
+      - "18889"
+      - "18890"
+    networks:
+      - "aspire"
+    restart: "always"
+  postgres:
+    image: "docker.io/library/postgres:17.6"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "-c wal_level=logical"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    expose:
+      - "5432"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/postgresql/data"
+        source: "airbnb_pg_data"
+        read_only: false
+    networks:
+      - "aspire"
+  userdb-mcp:
+    image: "docker.io/crystaldba/postgres-mcp:0.3.0"
+    command:
+      - "--access-mode=unrestricted"
+      - "--transport=sse"
+    environment:
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/userdb"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  propdb-mcp:
+    image: "docker.io/crystaldba/postgres-mcp:0.3.0"
+    command:
+      - "--access-mode=unrestricted"
+      - "--transport=sse"
+    environment:
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/propdb"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  bookdb-mcp:
+    image: "docker.io/crystaldba/postgres-mcp:0.3.0"
+    command:
+      - "--access-mode=unrestricted"
+      - "--transport=sse"
+    environment:
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdb"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  paydb-mcp:
+    image: "docker.io/crystaldba/postgres-mcp:0.3.0"
+    command:
+      - "--access-mode=unrestricted"
+      - "--transport=sse"
+    environment:
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/paydb"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  chatdb-mcp:
+    image: "docker.io/crystaldba/postgres-mcp:0.3.0"
+    command:
+      - "--access-mode=unrestricted"
+      - "--transport=sse"
+    environment:
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/chatdb"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  kafka:
+    image: "docker.io/confluentinc/confluent-local:8.1.1"
+    environment:
+      KAFKA_LISTENERS: "PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:9093"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092,PLAINTEXT_INTERNAL://kafka:9093"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+      KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
+    expose:
+      - "9092"
+      - "9093"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/kafka/data"
+        source: "airbnb_kafka_data"
+        read_only: false
+    networks:
+      - "aspire"
+  rabbit:
+    image: "docker.io/library/rabbitmq:4.2-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "${RABBIT_PASSWORD}"
+    expose:
+      - "5672"
+      - "15672"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/rabbitmq"
+        source: "airbnb_rabbit_data"
+        read_only: false
+    networks:
+      - "aspire"
+  elasticsearch:
+    image: "docker.io/library/elasticsearch:8.17.3"
+    environment:
+      discovery.type: "single-node"
+      xpack.security.enabled: "true"
+      ELASTIC_PASSWORD: "${ELASTICSEARCH_PASSWORD}"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      http.cors.enabled: "true"
+      http.cors.allow-origin: "http://localhost:8080"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      http.cors.allow-credentials: "true"
+    expose:
+      - "9200"
+      - "9300"
+    volumes:
+      - type: "volume"
+        target: "/usr/share/elasticsearch/data"
+        source: "airbnb_es_data"
+        read_only: false
+    networks:
+      - "aspire"
+  elasticvue:
+    image: "cars10/elasticvue:latest"
+    environment:
+      ELASTICVUE_CLUSTERS: "[{\"name\": \"Airbnb Dev Cluster\", \"uri\": \"http://localhost:9200\", \"username\": \"elastic\", \"password\": \"G*mY0b+Wr*}m!FmC!cznYb\"}]"
+    expose:
+      - "8080"
+    networks:
+      - "aspire"
+  redis:
+    image: "docker.io/library/redis:8.6"
+    command:
+      - "-c"
+      - "redis-server --requirepass $$REDIS_PASSWORD --save 60 1"
+    entrypoint:
+      - "/bin/sh"
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    expose:
+      - "6379"
+    volumes:
+      - type: "volume"
+        target: "/data"
+        source: "airbnb_redis_data"
+        read_only: false
+    networks:
+      - "aspire"
+  debezium:
+    image: "docker.io/debezium/connect:2.5"
+    environment:
+      BOOTSTRAP_SERVERS: "tcp://kafka:9093"
+      GROUP_ID: "1"
+      CONFIG_STORAGE_TOPIC: "my_connect_configs"
+      OFFSET_STORAGE_TOPIC: "my_connect_offsets"
+      STATUS_STORAGE_TOPIC: "my_connect_statuses"
+      KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      ConnectionStrings__postgres: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_USERNAME: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432"
+      POSTGRES_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432"
+      ConnectionStrings__kafka: "kafka:9092"
+      KAFKA_HOST: "kafka"
+      KAFKA_PORT: "9092"
+    expose:
+      - "8083"
+    depends_on:
+      kafka:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  debezium-configurator:
+    image: "${DEBEZIUM_CONFIGURATOR_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      DEBEZIUM_HTTP: "tcp://debezium:8083"
+      services__debezium__tcp__0: "tcp://debezium:8083"
+      PG_PASSWORD: "r2CW)CAKmw~EBkuf5cXBPm"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "debezium-configurator"
+    depends_on:
+      debezium:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  propertyservice:
+    image: "${PROPERTYSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${PROPERTYSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__propdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=propdb"
+      PROPDB_HOST: "postgres"
+      PROPDB_PORT: "5432"
+      PROPDB_USERNAME: "postgres"
+      PROPDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      PROPDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/propdb"
+      PROPDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/propdb"
+      PROPDB_DATABASENAME: "propdb"
+      ConnectionStrings__rabbit: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "${RABBIT_PASSWORD}"
+      RABBIT_URI: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "propertyservice"
+    expose:
+      - "${PROPERTYSERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbit:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  bookingservice:
+    image: "${BOOKINGSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${BOOKINGSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__bookdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=bookdb"
+      BOOKDB_HOST: "postgres"
+      BOOKDB_PORT: "5432"
+      BOOKDB_USERNAME: "postgres"
+      BOOKDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      BOOKDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdb"
+      BOOKDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/bookdb"
+      BOOKDB_DATABASENAME: "bookdb"
+      ConnectionStrings__rabbit: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "${RABBIT_PASSWORD}"
+      RABBIT_URI: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      ConnectionStrings__kafka: "kafka:9092"
+      KAFKA_HOST: "kafka"
+      KAFKA_PORT: "9092"
+      PROPERTYSERVICE_HTTP: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      services__propertyservice__http__0: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      PROPERTYSERVICE_HTTPS: "https://propertyservice:${PROPERTYSERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "bookingservice"
+    expose:
+      - "${BOOKINGSERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbit:
+        condition: "service_started"
+      kafka:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  userservice:
+    image: "${USERSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${USERSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__userdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=userdb"
+      USERDB_HOST: "postgres"
+      USERDB_PORT: "5432"
+      USERDB_USERNAME: "postgres"
+      USERDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      USERDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/userdb"
+      USERDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/userdb"
+      USERDB_DATABASENAME: "userdb"
+      ConnectionStrings__rabbit: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "${RABBIT_PASSWORD}"
+      RABBIT_URI: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      PROPERTYSERVICE_HTTP: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      services__propertyservice__http__0: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      PROPERTYSERVICE_HTTPS: "https://propertyservice:${PROPERTYSERVICE_PORT}"
+      BOOKINGSERVICE_HTTP: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      services__bookingservice__http__0: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      BOOKINGSERVICE_HTTPS: "https://bookingservice:${BOOKINGSERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "userservice"
+    expose:
+      - "${USERSERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbit:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  paymentservice:
+    image: "${PAYMENTSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${PAYMENTSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__paydb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=paydb"
+      PAYDB_HOST: "postgres"
+      PAYDB_PORT: "5432"
+      PAYDB_USERNAME: "postgres"
+      PAYDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      PAYDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/paydb"
+      PAYDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/paydb"
+      PAYDB_DATABASENAME: "paydb"
+      ConnectionStrings__rabbit: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "${RABBIT_PASSWORD}"
+      RABBIT_URI: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      PROPERTYSERVICE_HTTP: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      services__propertyservice__http__0: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      PROPERTYSERVICE_HTTPS: "https://propertyservice:${PROPERTYSERVICE_PORT}"
+      USERSERVICE_HTTP: "http://userservice:${USERSERVICE_PORT}"
+      services__userservice__http__0: "http://userservice:${USERSERVICE_PORT}"
+      USERSERVICE_HTTPS: "https://userservice:${USERSERVICE_PORT}"
+      BOOKINGSERVICE_HTTP: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      services__bookingservice__http__0: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      BOOKINGSERVICE_HTTPS: "https://bookingservice:${BOOKINGSERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "paymentservice"
+    expose:
+      - "${PAYMENTSERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbit:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  searchservice:
+    image: "${SEARCHSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${SEARCHSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__elasticsearch: "http://elastic:${ELASTICSEARCH_PASSWORD}@elasticsearch:9200"
+      ConnectionStrings__kafka: "kafka:9092"
+      KAFKA_HOST: "kafka"
+      KAFKA_PORT: "9092"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "searchservice"
+    expose:
+      - "${SEARCHSERVICE_PORT}"
+    depends_on:
+      elasticsearch:
+        condition: "service_started"
+      kafka:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  chatservice:
+    image: "${CHATSERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${CHATSERVICE_PORT}"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__chatdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=chatdb"
+      CHATDB_HOST: "postgres"
+      CHATDB_PORT: "5432"
+      CHATDB_USERNAME: "postgres"
+      CHATDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      CHATDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/chatdb"
+      CHATDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/chatdb"
+      CHATDB_DATABASENAME: "chatdb"
+      ConnectionStrings__rabbit: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "${RABBIT_PASSWORD}"
+      RABBIT_URI: "amqp://guest:${RABBIT_PASSWORD}@rabbit:5672"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      PROPERTYSERVICE_HTTP: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      services__propertyservice__http__0: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      PROPERTYSERVICE_HTTPS: "https://propertyservice:${PROPERTYSERVICE_PORT}"
+      USERSERVICE_HTTP: "http://userservice:${USERSERVICE_PORT}"
+      services__userservice__http__0: "http://userservice:${USERSERVICE_PORT}"
+      USERSERVICE_HTTPS: "https://userservice:${USERSERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "chatservice"
+    expose:
+      - "${CHATSERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbit:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  gateway:
+    image: "${GATEWAY_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${GATEWAY_PORT}"
+      DOTNET_gcServer: "0"
+      USERSERVICE_HTTP: "http://userservice:${USERSERVICE_PORT}"
+      services__userservice__http__0: "http://userservice:${USERSERVICE_PORT}"
+      USERSERVICE_HTTPS: "https://userservice:${USERSERVICE_PORT}"
+      PROPERTYSERVICE_HTTP: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      services__propertyservice__http__0: "http://propertyservice:${PROPERTYSERVICE_PORT}"
+      PROPERTYSERVICE_HTTPS: "https://propertyservice:${PROPERTYSERVICE_PORT}"
+      BOOKINGSERVICE_HTTP: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      services__bookingservice__http__0: "http://bookingservice:${BOOKINGSERVICE_PORT}"
+      BOOKINGSERVICE_HTTPS: "https://bookingservice:${BOOKINGSERVICE_PORT}"
+      PAYMENTSERVICE_HTTP: "http://paymentservice:${PAYMENTSERVICE_PORT}"
+      services__paymentservice__http__0: "http://paymentservice:${PAYMENTSERVICE_PORT}"
+      PAYMENTSERVICE_HTTPS: "https://paymentservice:${PAYMENTSERVICE_PORT}"
+      SEARCHSERVICE_HTTP: "http://searchservice:${SEARCHSERVICE_PORT}"
+      services__searchservice__http__0: "http://searchservice:${SEARCHSERVICE_PORT}"
+      SEARCHSERVICE_HTTPS: "https://searchservice:${SEARCHSERVICE_PORT}"
+      CHATSERVICE_HTTP: "http://chatservice:${CHATSERVICE_PORT}"
+      services__chatservice__http__0: "http://chatservice:${CHATSERVICE_PORT}"
+      CHATSERVICE_HTTPS: "https://chatservice:${CHATSERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "gateway"
+    expose:
+      - "${GATEWAY_PORT}"
+    networks:
+      - "aspire"
+  otel-collector:
+    image: "otel/opentelemetry-collector-contrib:0.128.0"
+    environment:
+      GOGC: "50"
+      GOMAXPROCS: "1"
+    expose:
+      - "4317"
+      - "4318"
+      - "8889"
+    volumes:
+      - type: "bind"
+        target: "/etc/otelcol-contrib/config.yaml"
+        source: "${OTEL_COLLECTOR_BINDMOUNT_0}"
+        read_only: true
+    networks:
+      - "aspire"
+  loki:
+    image: "grafana/loki:3.5.0"
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    environment:
+      GOGC: "50"
+      GOMAXPROCS: "1"
+    expose:
+      - "3100"
+    volumes:
+      - type: "bind"
+        target: "/etc/loki/local-config.yaml"
+        source: "${LOKI_BINDMOUNT_0}"
+        read_only: true
+    networks:
+      - "aspire"
+  tempo:
+    image: "grafana/tempo:2.7.2"
+    command:
+      - "-config.file=/etc/tempo/tempo-config.yaml"
+    environment:
+      GOGC: "50"
+      GOMAXPROCS: "1"
+    expose:
+      - "3200"
+    volumes:
+      - type: "bind"
+        target: "/etc/tempo/tempo-config.yaml"
+        source: "${TEMPO_BINDMOUNT_0}"
+        read_only: true
+    networks:
+      - "aspire"
+  prometheus:
+    image: "prom/prometheus:v3.4.0"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=3d"
+      - "--storage.tsdb.retention.size=400MB"
+      - "--web.enable-remote-write-receiver"
+      - "--log.level=warn"
+    expose:
+      - "9090"
+    volumes:
+      - type: "bind"
+        target: "/etc/prometheus/prometheus.yml"
+        source: "${PROMETHEUS_BINDMOUNT_0}"
+        read_only: true
+    depends_on:
+      otel-collector:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  grafana:
+    image: "grafana/grafana-oss:12.0.1"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_LOG_LEVEL: "warn"
+    expose:
+      - "3000"
+    volumes:
+      - type: "bind"
+        target: "/etc/grafana/provisioning"
+        source: "${GRAFANA_BINDMOUNT_0}"
+        read_only: true
+    depends_on:
+      loki:
+        condition: "service_started"
+      tempo:
+        condition: "service_started"
+      prometheus:
+        condition: "service_started"
+    networks:
+      - "aspire"
+networks:
+  aspire:
+    driver: "bridge"
+volumes:
+  airbnb_pg_data:
+    driver: "local"
+  airbnb_kafka_data:
+    driver: "local"
+  airbnb_rabbit_data:
+    driver: "local"
+  airbnb_es_data:
+    driver: "local"
+  airbnb_redis_data:
+    driver: "local"
