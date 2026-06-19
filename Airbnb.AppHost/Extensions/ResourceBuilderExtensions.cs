@@ -6,6 +6,7 @@ public static class ResourceBuilderExtensions
     /// Áp dụng các cấu hình mặc định bắt buộc cho tất cả microservices:
     /// - Sử dụng Workstation GC để tiết kiệm RAM.
     /// - Tự động nạp Linux OS CA bundle để tránh lỗi Aspire DCP ghi đè SSL_CERT_DIR.
+    /// </summary>
     public static IResourceBuilder<T> WithDefaultServiceConfig<T>(this IResourceBuilder<T> builder, string memoryLimit = "768m") where T : IResourceWithEnvironment
     {
         // 1. Tối ưu RAM cho môi trường dev

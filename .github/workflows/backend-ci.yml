@@ -72,6 +72,7 @@ jobs:
           DOTNET_ENVIRONMENT=Production \
           ContainerRegistry=${{ env.REGISTRY }} \
           ContainerRepositoryPrefix=$REPO_LOWER \
+          ContainerImageTag=latest \
           dotnet run --project Airbnb.AppHost/Airbnb.AppHost.csproj \
             --no-launch-profile \
             --publisher docker-compose \
