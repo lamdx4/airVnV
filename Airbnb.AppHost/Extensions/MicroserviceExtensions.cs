@@ -7,6 +7,10 @@ public static class MicroserviceExtensions
 {
     public static AppMicroservices AddMicroservices(this IDistributedApplicationBuilder builder, AppInfrastructure infra)
     {
+        var frontendUrl = builder.AddParameter("frontend-url");
+        
+        var isDev = builder.Environment.IsDevelopment();
+
         var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
             .WithDefaultServiceConfig()
             .WithReference(infra.PropDb)
@@ -35,6 +39,7 @@ public static class MicroserviceExtensions
 
         var paySvc = builder.AddProject<Projects.Airbnb_PaymentService>("paymentservice")
             .WithDefaultServiceConfig()
+            .WithEnvironment("FrontendUrl", frontendUrl)
             .WithReference(infra.PayDb)
             .WithReference(infra.RabbitMq)
             .WithReference(propSvc)   // for country master-data (tax, gateway)
@@ -54,6 +59,9 @@ public static class MicroserviceExtensions
 
         var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
             .WithDefaultServiceConfig()
+            .WithEnvironment("WebRTC__TurnUrl", isDev ? "turn:localhost:3478" : "turn:airvnv.lamdx4.servebeer.com:3478")
+            .WithEnvironment("WebRTC__TurnUsername", "lamdx4")
+            .WithEnvironment("WebRTC__TurnPassword", "airvnv-secret")
             .WithReference(infra.ChatDb)
             .WithReference(infra.RabbitMq)
             .WithReference(infra.Redis)

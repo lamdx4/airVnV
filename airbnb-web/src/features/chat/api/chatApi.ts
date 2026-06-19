@@ -101,11 +101,15 @@ export const chatApi = {
     );
   },
 
-  /**
-   * Lấy trạng thái online của user
-   */
   getUserStatus: async (userId: string): Promise<{ isOnline: boolean }> => {
     return api.get<any, { isOnline: boolean }>(`/api/conversations/users/${userId}/status`);
+  },
+
+  /**
+   * Lấy cấu hình WebRTC (STUN/TURN) từ Backend
+   */
+  getWebRtcCredentials: async (): Promise<{ iceServers: any[] }> => {
+    return api.get<any, { iceServers: any[] }>("/api/chat/webrtc-credentials");
   },
 
   /**

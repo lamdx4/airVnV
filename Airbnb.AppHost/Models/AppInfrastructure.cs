@@ -13,5 +13,6 @@ public record AppInfrastructure(
     IResourceBuilder<RabbitMQServerResource> RabbitMq,
     IResourceBuilder<ElasticsearchResource> Elasticsearch,
     IResourceBuilder<RedisResource> Redis,
-    IResourceBuilder<ContainerResource> Debezium
+    IResourceBuilder<ContainerResource> Debezium,
+    IResourceBuilder<ContainerResource> Coturn
 );

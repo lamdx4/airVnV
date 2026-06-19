@@ -14,7 +14,8 @@ public class VnpayProvider(IConfiguration config, ILogger<VnpayProvider> logger)
         var vnp_TmnCode = config["Vnpay:TmnCode"];
         var vnp_HashSecret = config["Vnpay:HashSecret"];
         var vnp_Url = config["Vnpay:Url"];
-        var vnp_ReturnUrl = $"http://localhost:5173/payment/callback";
+        var frontendUrl = config["FrontendUrl"] ?? "http://localhost:5173";
+        var vnp_ReturnUrl = $"{frontendUrl.TrimEnd('/')}/payment/callback";
 
         vnpay.AddRequestData("vnp_Version", "2.1.0");
         vnpay.AddRequestData("vnp_Command", "pay");

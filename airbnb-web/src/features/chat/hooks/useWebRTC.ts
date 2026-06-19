@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type * as signalR from '@microsoft/signalr';
+import { chatApi } from '../api/chatApi';
 
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected';
 
@@ -9,7 +10,7 @@ export interface IncomingCallInfo {
   isVideoCall: boolean;
 }
 
-const rtcConfig: RTCConfiguration = {
+const defaultRtcConfig: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
@@ -26,6 +27,23 @@ export const useWebRTC = (
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const currentTargetId = useRef<string | null>(null);
   const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
+  const rtcConfigRef = useRef<RTCConfiguration>(defaultRtcConfig);
+
+  // Lấy cấu hình TURN/STUN từ Backend khi Hook mount
+  useEffect(() => {
+    const fetchCredentials = async () => {
+      try {
+        const data = await chatApi.getWebRtcCredentials();
+        if (data && data.iceServers && data.iceServers.length > 0) {
+          rtcConfigRef.current = { iceServers: data.iceServers };
+          console.log('Fetched WebRTC ICE Servers successfully.');
+        }
+      } catch (e) {
+        console.error('Failed to fetch WebRTC credentials, falling back to default STUN', e);
+      }
+    };
+    fetchCredentials();
+  }, []);
 
   // Hàm nội bộ để reset state
   const cleanupCallState = useCallback(() => {
@@ -54,7 +72,7 @@ export const useWebRTC = (
 
   // Khởi tạo PeerConnection
   const createPeerConnection = useCallback((targetUserId: string) => {
-    const pc = new RTCPeerConnection(rtcConfig);
+    const pc = new RTCPeerConnection(rtcConfigRef.current);
 
     pc.onicecandidate = (event) => {
       if (event.candidate && connection) {

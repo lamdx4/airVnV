@@ -106,6 +106,30 @@ public static class InfrastructureExtensions
             .WithReference(debezium.GetEndpoint("http"))
             .WithEnvironment("PG_PASSWORD", builder.Configuration["Parameters:postgres-password"] ?? "6t.*gWySwyQkbEr0T5rPby")
             .WaitFor(debezium);
+            
+        // 4. Coturn (WebRTC STUN/TURN)
+        var turnPublicIp = builder.AddParameter("turn-public-ip");
+        var coturn = builder.AddContainer("coturn", "coturn/coturn")
+            .WithLifetime(ContainerLifetime.Persistent)
+            .WithEnvironment("TURN_PUBLIC_IP", turnPublicIp)
+            .WithEntrypoint("sh");
+
+        if (isDev)
+        {
+            coturn.WithArgs("-c", "turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=localhost --external-ip=127.0.0.1");
+        }
+        else
+        {
+            coturn.WithArgs("-c", "turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=airvnv.lamdx4.servebeer.com --external-ip=$TURN_PUBLIC_IP");
+        }
+
+        coturn.WithEndpoint(3478, 3478, scheme: "tcp", name: "turn-tcp")
+              .WithEndpoint(3478, 3478, scheme: "udp", name: "turn-udp");
+
+        for (int i = 49152; i <= 49162; i++)
+        {
+            coturn.WithEndpoint(i, i, scheme: "udp", name: $"turn-media-{i}");
+        }
     
 
         return new AppInfrastructure(
@@ -119,7 +143,8 @@ public static class InfrastructureExtensions
             rabbit,
             elasticsearch,
             redis,
-            debezium
+            debezium,
+            coturn
         );
     }
 }
