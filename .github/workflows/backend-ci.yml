@@ -69,8 +69,30 @@ jobs:
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
 
+          declare -A PROJECTS=(
+            ["src/Airbnb.PropertyService/Airbnb.PropertyService.csproj"]="propertyservice"
+            ["src/Airbnb.UserService/Airbnb.UserService.csproj"]="userservice"
+            ["src/Airbnb.BookingService/Airbnb.BookingService.csproj"]="bookingservice"
+            ["src/Airbnb.PaymentService/Airbnb.PaymentService.csproj"]="paymentservice"
+            ["src/Airbnb.SearchService/Airbnb.SearchService.csproj"]="searchservice"
+            ["src/Airbnb.Gateway/Airbnb.Gateway.csproj"]="gateway"
+            ["src/Airbnb.ChatService/Airbnb.ChatService.csproj"]="chatservice"
+            ["Airbnb.Infrastructure.Configurator/Airbnb.Infrastructure.Configurator.csproj"]="debezium-configurator"
+          )
+
+          echo "🚀 BUILDING AND PUSHING DOCKER IMAGES..."
+          for proj in "${!PROJECTS[@]}"; do
+            SERVICE_NAME=${PROJECTS[$proj]}
+            echo "📦 Publishing $SERVICE_NAME..."
+            dotnet publish "$proj" -c Release /t:PublishContainer \
+              /p:ContainerRegistry=${{ env.REGISTRY }} \
+              /p:ContainerRepository=$REPO_LOWER/$SERVICE_NAME \
+              /p:ContainerImageTag=latest
+          done
+
+          echo "🚀 GENERATING DOCKER COMPOSE MANIFEST..."
           # Cài đặt bộ công cụ Aspire CLI chính chủ từ Microsoft
-          dotnet tool install -g aspire.cli --prerelease
+          dotnet tool install -g aspire.cli
           
           DOTNET_ENVIRONMENT=Production \
           ContainerRegistry=${{ env.REGISTRY }} \
