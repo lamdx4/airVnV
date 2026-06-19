@@ -6,11 +6,16 @@ public static class ResourceBuilderExtensions
     /// Áp dụng các cấu hình mặc định bắt buộc cho tất cả microservices:
     /// - Sử dụng Workstation GC để tiết kiệm RAM.
     /// - Tự động nạp Linux OS CA bundle để tránh lỗi Aspire DCP ghi đè SSL_CERT_DIR.
-    /// </summary>
-    public static IResourceBuilder<T> WithDefaultServiceConfig<T>(this IResourceBuilder<T> builder) where T : IResourceWithEnvironment
+    public static IResourceBuilder<T> WithDefaultServiceConfig<T>(this IResourceBuilder<T> builder, string memoryLimit = "768m") where T : IResourceWithEnvironment
     {
         // 1. Tối ưu RAM cho môi trường dev
         builder.WithEnvironment("DOTNET_gcServer", "0");
+
+        // Gán Hard Limit cho Container (có thể tuỳ chỉnh, mặc định 768m)
+        if (!string.IsNullOrEmpty(memoryLimit) && builder is IResourceBuilder<ProjectResource> projectBuilder)
+        {
+            projectBuilder.WithMemoryLimit(memoryLimit);
+        }
 
         // 2. Fix lỗi SSL_CERT_DIR bị ghi đè trên Linux (Aspire DCP bug)
         if (OperatingSystem.IsLinux())

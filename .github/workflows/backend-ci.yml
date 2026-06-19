@@ -47,7 +47,7 @@ jobs:
     if: github.ref == 'refs/heads/release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -58,14 +58,6 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Install Aspire CLI
-        run: |
-          curl -sSL https://aspire.dev/install.sh | bash
-          echo "$HOME/.aspire/bin" >> $GITHUB_PATH
-
-      - name: Output Aspire CLI version
-        run: aspire --version
-
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -73,21 +65,38 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push images using Aspire CLI
-        env:
-          REGISTRY_ENDPOINT: ${{ env.REGISTRY }}
-          REGISTRY_REPOSITORY: ${{ github.repository }}
+      - name: Build, Push and Generate Compose (Native Aspire 9)
         run: |
-          aspire do push \
-            --apphost Airbnb.AppHost/Airbnb.AppHost.csproj
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          
+          DOTNET_ENVIRONMENT=Production \
+          ContainerRegistry=${{ env.REGISTRY }} \
+          ContainerRepositoryPrefix=$REPO_LOWER \
+          dotnet run --project Airbnb.AppHost/Airbnb.AppHost.csproj \
+            --no-launch-profile \
+            --publisher docker-compose \
+            --output-path ./release-artifact
 
-      - name: Generate Docker Compose Manifest
+      - name: Create Zip Archive
         run: |
-          aspire publish \
-            --apphost Airbnb.AppHost/Airbnb.AppHost.csproj
+          mkdir -p release-artifact/infras
+          cp -r infras/monitoring release-artifact/infras/
+          cd release-artifact
+          zip -r ../airbnb-backend-release.zip .
 
-      - name: Upload Compose File as Artifact
+      - name: Upload as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: production-compose
-          path: Airbnb.AppHost/aspire-output/
+          name: airbnb-backend-release
+          path: airbnb-backend-release.zip
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: airbnb-backend-release.zip
+          tag_name: "v1.0.${{ github.run_number }}"
+          name: "Release v1.0.${{ github.run_number }}"
+          body: "Automated release containing Docker Compose and Env files for production."
+          draft: false
+          prerelease: false

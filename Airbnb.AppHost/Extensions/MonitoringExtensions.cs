@@ -7,7 +7,7 @@ public static class MonitoringExtensions
 {
     public static IDistributedApplicationBuilder AddMonitoring(this IDistributedApplicationBuilder builder)
     {
-        var monitoringPath = Path.GetFullPath(Path.Combine("..", "scripts", "monitoring"));
+        var monitoringPath = Path.GetFullPath(Path.Combine("..", "infras", "monitoring"));
         var isDev = builder.Environment.IsDevelopment();
 
         var otelCollector = builder.AddContainer("otel-collector", "otel/opentelemetry-collector-contrib", "0.128.0")
