@@ -9,14 +9,8 @@ public static class ResourceBuilderExtensions
     /// </summary>
     public static IResourceBuilder<T> WithDefaultServiceConfig<T>(this IResourceBuilder<T> builder, string memoryLimit = "768m") where T : IResourceWithEnvironment
     {
-        // 1. Tối ưu RAM cho môi trường dev
+        // Cấu hình RAM cho môi trường dev (Workstation GC giúp ứng dụng chỉ tốn ~100MB RAM)
         builder.WithEnvironment("DOTNET_gcServer", "0");
-
-        // Gán Hard Limit cho Container (có thể tuỳ chỉnh, mặc định 768m)
-        if (!string.IsNullOrEmpty(memoryLimit) && builder is IResourceBuilder<ProjectResource> projectBuilder)
-        {
-            projectBuilder.WithMemoryLimit(memoryLimit);
-        }
 
         // 2. Fix lỗi SSL_CERT_DIR bị ghi đè trên Linux (Aspire DCP bug)
         if (OperatingSystem.IsLinux())
