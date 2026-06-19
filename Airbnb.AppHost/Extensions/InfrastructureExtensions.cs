@@ -108,10 +108,10 @@ public static class InfrastructureExtensions
             .WaitFor(debezium);
             
         // 4. Coturn (WebRTC STUN/TURN)
-        var turnPublicIp = builder.AddParameter("turn-public-ip");
+        var rootDomain = builder.AddParameter("root-domain");
         var coturn = builder.AddContainer("coturn", "coturn/coturn")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithEnvironment("TURN_PUBLIC_IP", turnPublicIp)
+            .WithEnvironment("ROOT_DOMAIN", rootDomain)
             .WithEntrypoint("sh");
 
         if (isDev)
@@ -120,7 +120,8 @@ public static class InfrastructureExtensions
         }
         else
         {
-            coturn.WithArgs("-c", "turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=airvnv.lamdx4.servebeer.com --external-ip=$TURN_PUBLIC_IP");
+            var resolveIpCmd = "IP=$(ping -c 1 $ROOT_DOMAIN | awk -F'[()]' '/PING/{print $2}') && echo \"Resolved DDNS IP: $IP\" && turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$ROOT_DOMAIN --external-ip=$IP";
+            coturn.WithArgs("-c", resolveIpCmd);
         }
 
         coturn.WithEndpoint(3478, 3478, scheme: "tcp", name: "turn-tcp")

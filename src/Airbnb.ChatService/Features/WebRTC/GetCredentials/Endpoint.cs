@@ -14,7 +14,8 @@ public class Endpoint(IConfiguration config) : FastEndpoints.Endpoint<EmptyReque
 
     public override async Task HandleAsync(EmptyRequest req, CancellationToken ct)
     {
-        var turnUrl = config["WebRTC:TurnUrl"];
+        var turnDomain = config["WebRTC:TurnDomain"];
+        var turnUrl = string.IsNullOrEmpty(turnDomain) ? "turn:localhost:3478" : $"turn:{turnDomain}:3478";
         var turnUser = config["WebRTC:TurnUsername"];
         var turnPass = config["WebRTC:TurnPassword"];
 

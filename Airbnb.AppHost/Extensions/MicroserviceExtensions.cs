@@ -8,6 +8,7 @@ public static class MicroserviceExtensions
     public static AppMicroservices AddMicroservices(this IDistributedApplicationBuilder builder, AppInfrastructure infra)
     {
         var frontendUrl = builder.AddParameter("frontend-url");
+        var rootDomain = builder.AddParameter("root-domain");
         
         var isDev = builder.Environment.IsDevelopment();
 
@@ -59,7 +60,7 @@ public static class MicroserviceExtensions
 
         var chatSvc = builder.AddProject<Projects.Airbnb_ChatService>("chatservice")
             .WithDefaultServiceConfig()
-            .WithEnvironment("WebRTC__TurnUrl", isDev ? "turn:localhost:3478" : "turn:airvnv.lamdx4.servebeer.com:3478")
+            .WithEnvironment("WebRTC__TurnDomain", rootDomain)
             .WithEnvironment("WebRTC__TurnUsername", "lamdx4")
             .WithEnvironment("WebRTC__TurnPassword", "airvnv-secret")
             .WithReference(infra.ChatDb)
