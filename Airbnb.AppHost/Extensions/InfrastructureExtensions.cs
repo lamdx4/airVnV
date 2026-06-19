@@ -20,7 +20,7 @@ public static class InfrastructureExtensions
         // 1. Data Infrastructure
         var postgres = builder.AddPostgres("postgres")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithDataVolume("airbnb_pg_data")
+            .WithDataBindMount("./data/postgres")
             .WithEnvironment("POSTGRES_INITDB_ARGS", "-c wal_level=logical")
             .WithEndpoint("tcp", e => {
                 if (isDev) e.Port = 5435;
@@ -35,7 +35,7 @@ public static class InfrastructureExtensions
 
         var kafka = builder.AddKafka("kafka")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithDataVolume("airbnb_kafka_data")
+            .WithDataBindMount("./data/kafka")
             .WithKafkaUI()
             .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap)
             .WithEndpoint("tcp", e => {
@@ -46,7 +46,7 @@ public static class InfrastructureExtensions
         // RabbitMQ – Domain Events + MassTransit Saga
         var rabbit = builder.AddRabbitMQ("rabbit")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithDataVolume("airbnb_rabbit_data")
+            .WithDataBindMount("./data/rabbit")
             .WithEndpoint("tcp", e => {
                 if (isDev) e.Port = 5672;
                 e.TargetPort = 5672;
@@ -55,7 +55,7 @@ public static class InfrastructureExtensions
 
         var elasticsearch = builder.AddElasticsearch("elasticsearch")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithDataVolume("airbnb_es_data")
+            .WithDataBindMount("./data/elasticsearch")
             .WithEnvironment("ES_JAVA_OPTS", elasticHeap)
             .WithEnvironment("http.cors.enabled", "true")
             .WithEnvironment("http.cors.allow-origin", "http://localhost:8080")
@@ -79,7 +79,7 @@ public static class InfrastructureExtensions
 
         var redis = builder.AddRedis("redis")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithDataVolume("airbnb_redis_data")
+            .WithDataBindMount("./data/redis")
             .WithEndpoint("tcp", e => {
                 if (isDev) e.Port = 6379;
                 e.TargetPort = 6379;

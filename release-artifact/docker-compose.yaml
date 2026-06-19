@@ -19,9 +19,9 @@ services:
     expose:
       - "5432"
     volumes:
-      - type: "volume"
+      - type: "bind"
         target: "/var/lib/postgresql/data"
-        source: "airbnb_pg_data"
+        source: "${POSTGRES_BINDMOUNT_0}"
         read_only: false
     networks:
       - "aspire"
@@ -107,9 +107,9 @@ services:
       - "9092"
       - "9093"
     volumes:
-      - type: "volume"
+      - type: "bind"
         target: "/var/lib/kafka/data"
-        source: "airbnb_kafka_data"
+        source: "${KAFKA_BINDMOUNT_0}"
         read_only: false
     networks:
       - "aspire"
@@ -122,9 +122,9 @@ services:
       - "5672"
       - "15672"
     volumes:
-      - type: "volume"
+      - type: "bind"
         target: "/var/lib/rabbitmq"
-        source: "airbnb_rabbit_data"
+        source: "${RABBIT_BINDMOUNT_0}"
         read_only: false
     networks:
       - "aspire"
@@ -143,9 +143,9 @@ services:
       - "9200"
       - "9300"
     volumes:
-      - type: "volume"
+      - type: "bind"
         target: "/usr/share/elasticsearch/data"
-        source: "airbnb_es_data"
+        source: "${ELASTICSEARCH_BINDMOUNT_0}"
         read_only: false
     networks:
       - "aspire"
@@ -169,9 +169,9 @@ services:
     expose:
       - "6379"
     volumes:
-      - type: "volume"
+      - type: "bind"
         target: "/data"
-        source: "airbnb_redis_data"
+        source: "${REDIS_BINDMOUNT_0}"
         read_only: false
     networks:
       - "aspire"
@@ -225,12 +225,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${PROPERTYSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
-      Google__ClientId: "${GOOGLE_CLIENT_ID}"
-      Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
-      Media__CloudName: "${MEDIA_CLOUD_NAME}"
-      Media__ApiKey: "${MEDIA_API_KEY}"
-      Media__ApiSecret: "${MEDIA_API_SECRET}"
       ConnectionStrings__propdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=propdb"
       PROPDB_HOST: "postgres"
       PROPDB_PORT: "5432"
@@ -264,7 +258,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${BOOKINGSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
       ConnectionStrings__bookdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=bookdb"
       BOOKDB_HOST: "postgres"
       BOOKDB_PORT: "5432"
@@ -306,12 +299,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${USERSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
-      Google__ClientId: "${GOOGLE_CLIENT_ID}"
-      Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
-      Media__CloudName: "${MEDIA_CLOUD_NAME}"
-      Media__ApiKey: "${MEDIA_API_KEY}"
-      Media__ApiSecret: "${MEDIA_API_SECRET}"
       ConnectionStrings__userdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=userdb"
       USERDB_HOST: "postgres"
       USERDB_PORT: "5432"
@@ -351,7 +338,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${PAYMENTSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
       ConnectionStrings__paydb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=paydb"
       PAYDB_HOST: "postgres"
       PAYDB_PORT: "5432"
@@ -394,7 +380,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${SEARCHSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
       ConnectionStrings__elasticsearch: "http://elastic:${ELASTICSEARCH_PASSWORD}@elasticsearch:9200"
       ConnectionStrings__kafka: "kafka:9092"
       KAFKA_HOST: "kafka"
@@ -425,7 +410,6 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${CHATSERVICE_PORT}"
       DOTNET_gcServer: "0"
-      Jwt__SigningKey: "${JWT_SIGNING_KEY}"
       ConnectionStrings__chatdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=chatdb"
       CHATDB_HOST: "postgres"
       CHATDB_PORT: "5432"
@@ -470,7 +454,7 @@ services:
     environment:
       OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-      HTTP_PORTS: "${GATEWAY_PORT}"
+      HTTP_PORTS: "8080"
       DOTNET_gcServer: "0"
       USERSERVICE_HTTP: "http://userservice:${USERSERVICE_PORT}"
       services__userservice__http__0: "http://userservice:${USERSERVICE_PORT}"
@@ -493,6 +477,8 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "gateway"
+    ports:
+      - "8088:8080"
     expose:
       - "${GATEWAY_PORT}"
     networks:
@@ -593,14 +579,3 @@ services:
 networks:
   aspire:
     driver: "bridge"
-volumes:
-  airbnb_pg_data:
-    driver: "local"
-  airbnb_kafka_data:
-    driver: "local"
-  airbnb_rabbit_data:
-    driver: "local"
-  airbnb_es_data:
-    driver: "local"
-  airbnb_redis_data:
-    driver: "local"
