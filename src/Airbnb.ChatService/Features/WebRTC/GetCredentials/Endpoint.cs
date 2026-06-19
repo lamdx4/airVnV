@@ -1,5 +1,5 @@
 using FastEndpoints;
-using Airbnb.SharedKernel.Infrastructure;
+using Airbnb.ServiceDefaults.Infrastructure;
 using Microsoft.Extensions.Configuration;
 
 namespace Airbnb.ChatService.Features.WebRTC.GetCredentials;
