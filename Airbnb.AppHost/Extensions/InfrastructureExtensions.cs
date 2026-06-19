@@ -88,10 +88,7 @@ public static class InfrastructureExtensions
         // 2. Debezium (CDC)
         var debezium = builder.AddContainer("debezium", "docker.io/debezium/connect:2.5")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithEndpoint("http", e => {
-                if (isDev) e.Port = 8083;
-                e.TargetPort = 8083;
-            })
+            .WithHttpEndpoint(port: isDev ? 8083 : null, targetPort: 8083, name: "http")
             .WithEnvironment("BOOTSTRAP_SERVERS", kafka.GetEndpoint("internal"))
             .WithEnvironment("GROUP_ID", "1")
             .WithEnvironment("CONFIG_STORAGE_TOPIC", "my_connect_configs")

@@ -9,7 +9,7 @@ builder.AddServiceDefaults();
 
 // Aspire integration for Elasticsearch & Kafka
 builder.AddElasticsearchClient("elasticsearch");
-builder.AddRedisOutputCache("cache"); // Tích hợp Redis Cache của Aspire
+builder.AddRedisOutputCache("redis"); // Tích hợp Redis Cache của Aspire
 builder.AddKafkaConsumer<string, string>("kafka", options =>
 {
     options.Config.GroupId = "search-service-group";
