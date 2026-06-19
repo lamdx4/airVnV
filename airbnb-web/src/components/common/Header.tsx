@@ -222,6 +222,12 @@ export default function Header() {
                                     {t('header.manageListings')}
                                 </button>
                                 <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/host/reservations'); setIsMenuOpen(false); }}
+                                    className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
+                                >
+                                    {t('reservations.title')}
+                                </button>
+                                <button
                                     onClick={(e) => { e.stopPropagation(); logout(); setIsMenuOpen(false); }}
                                     className="text-left px-4 py-3 hover:bg-slate-50 text-sm font-normal text-slate-700 transition"
                                 >
