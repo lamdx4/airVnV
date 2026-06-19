@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Airbnb.ChatService.Features.WebRTC.GetCredentials;
 
-public class Endpoint(IConfiguration config) : EndpointWithoutRequest<ApiResponse<Response>>
+public class Endpoint(IConfiguration config) : FastEndpoints.Endpoint<EmptyRequest, ApiResponse<Response>>
 {
     public override void Configure()
     {
@@ -12,7 +12,7 @@ public class Endpoint(IConfiguration config) : EndpointWithoutRequest<ApiRespons
         AllowAnonymous(); // Mọi client đang connect vào app đều có thể lấy cấu hình để init call
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(EmptyRequest req, CancellationToken ct)
     {
         var turnUrl = config["WebRTC:TurnUrl"];
         var turnUser = config["WebRTC:TurnUsername"];
@@ -32,6 +32,6 @@ public class Endpoint(IConfiguration config) : EndpointWithoutRequest<ApiRespons
 
         var response = new Response(iceServers);
 
-        await SendAsync(ApiResponse<Response>.SuccessResult(response), cancellation: ct);
+        await Send.ResponseAsync(ApiResponse<Response>.SuccessResult(response), cancellation: ct);
     }
 }
