@@ -11,11 +11,10 @@ public static class InfrastructureExtensions
     public static AppInfrastructure AddInfrastructure(this IDistributedApplicationBuilder builder)
     {
         // Container Runtime Config
-        var containerRuntime = builder.Configuration["ContainerRuntime"] ?? "docker";
-        Environment.SetEnvironmentVariable("DOTNET_ASPIRE_CONTAINER_RUNTIME", containerRuntime);
+        Environment.SetEnvironmentVariable("DOTNET_ASPIRE_CONTAINER_RUNTIME", "docker");
 
-        var kafkaHeap = builder.Configuration["KafkaHeap"] ?? "-Xms256m -Xmx256m";
-        var elasticHeap = builder.Configuration["ElasticHeap"] ?? "-Xms256m -Xmx256m";
+        var kafkaHeap = "-Xms512m -Xmx512m";
+        var elasticHeap = "-Xms512m -Xmx512m";
         var isDev = builder.Environment.IsDevelopment();
 
         // 1. Data Infrastructure
