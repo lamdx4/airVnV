@@ -9,6 +9,7 @@ public static class GatewayExtensions
     {
         var gateway = builder.AddProject<Projects.Airbnb_Gateway>("gateway")
             .WithDefaultServiceConfig()
+            .WithExternalHttpEndpoints()
             .WithReference(services.UserSvc)
             .WithReference(services.PropSvc)
             .WithReference(services.BookSvc)
