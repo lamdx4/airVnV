@@ -145,7 +145,8 @@ public static class InfrastructureExtensions
             elasticsearch,
             redis,
             debezium,
-            coturn
+            coturn,
+            rootDomain
         );
     }
 }

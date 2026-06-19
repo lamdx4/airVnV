@@ -14,5 +14,6 @@ public record AppInfrastructure(
     IResourceBuilder<ElasticsearchResource> Elasticsearch,
     IResourceBuilder<RedisResource> Redis,
     IResourceBuilder<ContainerResource> Debezium,
-    IResourceBuilder<ContainerResource> Coturn
+    IResourceBuilder<ContainerResource> Coturn,
+    IResourceBuilder<ParameterResource> RootDomain
 );
