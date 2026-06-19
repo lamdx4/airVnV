@@ -78,7 +78,6 @@ jobs:
           ContainerImageTag=latest \
           aspire publish \
             --project Airbnb.AppHost/Airbnb.AppHost.csproj \
-            --publisher docker-compose \
             --output-path ./release-artifact
 
       - name: Create Zip Archive

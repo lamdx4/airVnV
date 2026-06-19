@@ -11,6 +11,12 @@ if (!builder.Environment.IsDevelopment())
     builder.AddContainerRegistry("ghcr", "ghcr.io", "lamdx4/airvnv");
 }
 
+builder.AddDockerComposeEnvironment("compose")
+ .WithProperties(env =>
+    {
+        env.DashboardEnabled = true;
+    });;
+
 // 1. Infrastructure
 var infrastructure = builder.AddInfrastructure();
 
