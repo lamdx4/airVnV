@@ -13,15 +13,9 @@ public sealed class Handler(BookingDbContext db) : ICommandHandler<Request>
         if (booking == null)
             throw new NotFoundException("Booking not found.");
 
-        // Domain method will check if HostId matches and if Status is Pending
-        try
-        {
-            booking.Approve(req.HostId);
-        }
-        catch (InvalidOperationException ex)
-        {
-            throw new BusinessException(ex.Message, "BOOKING_APPROVE_ERROR");
-        }
+        // Domain method checks HostId ownership; Approve() now calls AwaitForApproval()
+        // which raises BookingAwaitingApprovalDomainEvent → Saga triggers payment flow
+        booking.Approve(req.HostId);
 
         await db.SaveChangesAsync(ct);
         return Unit.Value;

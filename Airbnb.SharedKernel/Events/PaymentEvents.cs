@@ -29,3 +29,13 @@ public record PaymentRefundedEvent(
 {
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }
+
+/// <summary>
+/// Published by RefundPaymentCommandConsumer when a refund attempt is permanently failed
+/// (non-retryable: already paid out, payment not found, etc.).
+/// BookingStateMachine listens to this to transition Refunding → RefundFailed.
+/// </summary>
+public record RefundPaymentFailedEvent(Guid BookingId, string ErrorCode, string Reason)
+{
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+}

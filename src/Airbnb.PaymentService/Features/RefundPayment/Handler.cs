@@ -9,7 +9,6 @@ namespace Airbnb.PaymentService.Features.RefundPayment;
 
 public sealed class Handler(
     PaymentDbContext db,
-    BookingServiceClient bookingClient,
     ILogger<Handler> logger) : ICommandHandler<Command, Result>
 {
     public async ValueTask<Result> Handle(Command req, CancellationToken ct)
@@ -58,8 +57,7 @@ public sealed class Handler(
 
         if (receivedEntry is not null)
         {
-            var booking = await bookingClient.GetBookingBasicInfoAsync(payment.BookingId, ct);
-            var hostId = booking?.HostId ?? receivedEntry.HostId;
+            var hostId = receivedEntry.HostId;
 
             // Refund proportionally on host portion: (refundAmount / paymentAmount) * pendingDelta (host portion).
             var hostPortionTotal = receivedEntry.PendingDelta; // = host's share of the full payment

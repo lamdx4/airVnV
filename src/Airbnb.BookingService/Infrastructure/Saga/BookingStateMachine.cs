@@ -1,5 +1,6 @@
-using MassTransit;
+using Airbnb.BookingService.Domain.Enums;
 using Airbnb.SharedKernel.Events;
+using MassTransit;
 
 namespace Airbnb.BookingService.Infrastructure.Saga;
 
@@ -9,117 +10,180 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
     {
         InstanceState(x => x.CurrentState);
 
-        // Define Correlations
-        Event(() => BookingCreated, x => x.CorrelateById(m => m.Message.BookingId));
-        Event(() => PaymentSucceeded, x => x.CorrelateById(m => m.Message.BookingId));
-        Event(() => PaymentFailed, x => x.CorrelateById(m => m.Message.BookingId));
-        Event(() => BookingConfirmed, x => x.CorrelateById(m => m.Message.BookingId));
-        Event(() => BookingCancelled, x => x.CorrelateById(m => m.Message.BookingId));
+        // ── Correlations ─────────────────────────────────────────────────────
+        Event(() => BookingCreated,          x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => BookingAwaitingApproval, x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => PaymentSucceeded,        x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => PaymentFailed,           x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => BookingConfirmed,        x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => BookingCancelled,        x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => BookingRefunding,        x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => PaymentRefunded,         x => x.CorrelateById(m => m.Message.BookingId));
+        Event(() => RefundPaymentFailed,     x => x.CorrelateById(m => m.Message.BookingId));
 
-        // Schedule for 15-minute timeout
-        Schedule(() => PaymentTimeout, x => x.ExpirationTokenId, x =>
+        // ── Schedules ─────────────────────────────────────────────────────────
+        // Bug #3 Fix: each schedule maps to its own dedicated token field
+        Schedule(() => PaymentTimeout, x => x.PaymentTimeoutTokenId, x =>
         {
             x.Delay = TimeSpan.FromMinutes(15);
             x.Received = e => e.CorrelateById(context => context.Message.BookingId);
         });
 
-        // Schedule for 24-hour host approval timeout
-        Schedule(() => ApprovalTimeout, x => x.ExpirationTokenId, x =>
+        Schedule(() => ApprovalTimeout, x => x.ApprovalTimeoutTokenId, x =>
         {
             x.Delay = TimeSpan.FromHours(24);
             x.Received = e => e.CorrelateById(context => context.Message.BookingId);
         });
 
+        // ── Initially ─────────────────────────────────────────────────────────
+        // Bug #1 Fix: split on BookingMode — RequestToBook does NOT initiate payment here
         Initially(
-            When(BookingCreated)
-                .Then(context =>
+            // NHÁNH 1: InstantBook → kéo tiền ngay
+            When(BookingCreated, ctx => ctx.Message.BookingMode == BookingMode.InstantBook)
+                .Then(ctx =>
                 {
-                    context.Saga.BookingId = context.Message.BookingId;
-                    context.Saga.PropertyId = context.Message.PropertyId;
-                    context.Saga.GuestId = context.Message.GuestId;
-                    context.Saga.TotalPrice = context.Message.TotalPrice;
-                    context.Saga.CurrencyCode = context.Message.CurrencyCode;
-                    context.Saga.BookingMode = context.Message.BookingMode;
-                    context.Saga.CreatedAt = DateTimeOffset.UtcNow;
+                    ctx.Saga.BookingId    = ctx.Message.BookingId;
+                    ctx.Saga.PropertyId   = ctx.Message.PropertyId;
+                    ctx.Saga.GuestId      = ctx.Message.GuestId;
+                    ctx.Saga.TotalPrice   = ctx.Message.TotalPrice;
+                    ctx.Saga.CurrencyCode = ctx.Message.CurrencyCode;
+                    ctx.Saga.CountryCode  = ctx.Message.CountryCode;
+                    ctx.Saga.BookingMode  = ctx.Message.BookingMode;
+                    ctx.Saga.CreatedAt    = DateTimeOffset.UtcNow;
                 })
-                .Send(context => new InitiatePaymentCommand(
-                    context.Saga.BookingId,
-                    context.Saga.TotalPrice,
-                    context.Saga.CurrencyCode,
-                    context.Message.CountryCode,
-                    context.Saga.GuestId))
-                .Schedule(PaymentTimeout, context => new PaymentTimeoutEvent(context.Saga.BookingId))
-                .TransitionTo(AwaitingPayment)
+                .Send(ctx => new InitiatePaymentCommand(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.TotalPrice,
+                    ctx.Saga.CurrencyCode,
+                    ctx.Saga.CountryCode,
+                    ctx.Saga.GuestId))
+                .Schedule(PaymentTimeout, ctx => new PaymentTimeoutEvent(ctx.Saga.BookingId))
+                .TransitionTo(AwaitingPayment),
+
+            // NHÁNH 2: RequestToBook → chờ Host duyệt TRƯỚC, KHÔNG kéo tiền
+            When(BookingCreated, ctx => ctx.Message.BookingMode == BookingMode.RequestToBook)
+                .Then(ctx =>
+                {
+                    ctx.Saga.BookingId    = ctx.Message.BookingId;
+                    ctx.Saga.PropertyId   = ctx.Message.PropertyId;
+                    ctx.Saga.GuestId      = ctx.Message.GuestId;
+                    ctx.Saga.TotalPrice   = ctx.Message.TotalPrice;
+                    ctx.Saga.CurrencyCode = ctx.Message.CurrencyCode;
+                    ctx.Saga.CountryCode  = ctx.Message.CountryCode;
+                    ctx.Saga.BookingMode  = ctx.Message.BookingMode;
+                    ctx.Saga.CreatedAt    = DateTimeOffset.UtcNow;
+                })
+                .Schedule(ApprovalTimeout, ctx => new BookingApprovalTimeoutEvent(ctx.Saga.BookingId))
+                .TransitionTo(AwaitingHostApproval)
         );
 
+        // ── AwaitingPayment ───────────────────────────────────────────────────
         During(AwaitingPayment,
             When(PaymentSucceeded)
                 .Unschedule(PaymentTimeout)
-                .IfElse(context => context.Saga.BookingMode == Airbnb.BookingService.Domain.Enums.BookingMode.InstantBook,
-                    x => x.TransitionTo(Confirmed),
-                    x => x.Schedule(ApprovalTimeout, context => new BookingApprovalTimeoutEvent(context.Saga.BookingId))
-                          .TransitionTo(AwaitingHostApproval)),
+                .TransitionTo(Confirmed),
 
             When(PaymentFailed)
                 .Unschedule(PaymentTimeout)
-                .Publish(context => new BookingCancelledEvent(
-                    context.Saga.BookingId,
-                    context.Saga.PropertyId,
-                    $"Payment failed: {context.Message.ErrorCode}"))
+                .Publish(ctx => new BookingCancelledEvent(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.PropertyId,
+                    $"Payment failed: {ctx.Message.ErrorCode}"))
                 .TransitionTo(Cancelled),
 
             When(PaymentTimeout.AnyReceived)
-                .Publish(context => new BookingCancelledEvent(
-                    context.Saga.BookingId,
-                    context.Saga.PropertyId,
+                .Publish(ctx => new BookingCancelledEvent(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.PropertyId,
                     "Payment timeout (15 minutes exceeded)"))
                 .TransitionTo(Cancelled)
         );
 
+        // ── AwaitingHostApproval ──────────────────────────────────────────────
+        // Bug #1 Fix: Host approve → trigger payment flow (no money collected yet)
+        // Bug #6 Fix: Removed RefundPaymentCommand — no payment exists at this stage
         During(AwaitingHostApproval,
-            When(BookingConfirmed)
+            // Host duyệt → domain raises BookingAwaitingApprovalEvent → Saga kéo tiền
+            When(BookingAwaitingApproval)
                 .Unschedule(ApprovalTimeout)
-                .TransitionTo(Confirmed),
+                .Send(ctx => new InitiatePaymentCommand(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.TotalPrice,
+                    ctx.Saga.CurrencyCode,
+                    ctx.Saga.CountryCode,
+                    ctx.Saga.GuestId))
+                .Schedule(PaymentTimeout, ctx => new PaymentTimeoutEvent(ctx.Saga.BookingId))
+                .TransitionTo(AwaitingPayment),
 
+            // Host từ chối → Cancel, KHÔNG refund (tiền chưa thu)
             When(BookingCancelled)
                 .Unschedule(ApprovalTimeout)
-                .Send(context => new RefundPaymentCommand(context.Saga.BookingId, context.Message.Reason))
                 .TransitionTo(Cancelled),
 
+            // Timeout 24h → Cancel, KHÔNG refund (tiền chưa thu)
             When(ApprovalTimeout.AnyReceived)
-                // Saga tự bắn event để Consumer gọi DB Hủy, đồng thời gửi lệnh hoàn tiền luôn
-                .Publish(context => new BookingCancelledEvent(
-                    context.Saga.BookingId,
-                    context.Saga.PropertyId,
+                .Publish(ctx => new BookingCancelledEvent(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.PropertyId,
                     "Host approval timeout (24 hours exceeded)"))
-                .Send(context => new RefundPaymentCommand(context.Saga.BookingId, "Host approval timeout (24 hours exceeded)"))
                 .TransitionTo(Cancelled)
         );
 
-        // Guest hoặc Host cancel một booking đã Confirmed (đã thanh toán + đã được approve / InstantBook).
-        // Saga phải bắn lệnh refund để PaymentService trả tiền lại và trừ HostBalance.
+        // ── Confirmed ─────────────────────────────────────────────────────────
+        // When a confirmed booking receives a cancellation request that requires a refund,
+        // the domain raises BookingRefundingEvent. The Saga orchestrates the refund via
+        // RefundPaymentCommand and waits for the outcome before finalizing state.
         During(Confirmed,
-            When(BookingCancelled)
-                .Send(context => new RefundPaymentCommand(context.Saga.BookingId, context.Message.Reason))
-                .TransitionTo(Cancelled)
+            When(BookingRefunding)
+                .Send(ctx => new RefundPaymentCommand(ctx.Saga.BookingId, ctx.Message.Reason))
+                .TransitionTo(Refunding)
+        );
+
+        // ── Refunding ─────────────────────────────────────────────────────────
+        // Refund is in progress. The room is still locked. Two outcomes:
+        // 1. Refund succeeds → transition to Cancelled, publish BookingCancelledEvent.
+        // 2. Refund permanently fails → transition to RefundFailed for Admin review.
+        During(Refunding,
+            When(PaymentRefunded, ctx => ctx.Message.IsFullRefund)
+                .Publish(ctx => new BookingCancelledEvent(
+                    ctx.Saga.BookingId,
+                    ctx.Saga.PropertyId,
+                    "Cancelled after successful refund"))
+                .TransitionTo(Cancelled),
+
+            When(RefundPaymentFailed)
+                .TransitionTo(RefundFailed)
+        );
+
+        // ── RefundFailed ──────────────────────────────────────────────────────
+        // Terminal state requiring Admin intervention. Booking is NOT cancelled.
+        // The room stays locked until Admin manually resolves the refund.
+        During(RefundFailed
+            // No automatic transitions. Admin must trigger resolution out-of-band.
         );
     }
 
     // States
-    public State AwaitingPayment { get; private set; } = default!;
+    public State AwaitingPayment      { get; private set; } = default!;
     public State AwaitingHostApproval { get; private set; } = default!;
-    public State Confirmed { get; private set; } = default!;
-    public State Cancelled { get; private set; } = default!;
+    public State Confirmed            { get; private set; } = default!;
+    public State Refunding            { get; private set; } = default!;
+    public State RefundFailed         { get; private set; } = default!;
+    public State Cancelled            { get; private set; } = default!;
 
     // Events
-    public Event<BookingCreatedEvent> BookingCreated { get; private set; } = default!;
-    public Event<PaymentSucceededEvent> PaymentSucceeded { get; private set; } = default!;
-    public Event<PaymentFailedEvent> PaymentFailed { get; private set; } = default!;
-    public Event<BookingConfirmedEvent> BookingConfirmed { get; private set; } = default!;
-    public Event<BookingCancelledEvent> BookingCancelled { get; private set; } = default!;
+    public Event<BookingCreatedEvent>          BookingCreated          { get; private set; } = default!;
+    public Event<BookingAwaitingApprovalEvent> BookingAwaitingApproval { get; private set; } = default!;
+    public Event<PaymentSucceededEvent>        PaymentSucceeded        { get; private set; } = default!;
+    public Event<PaymentFailedEvent>           PaymentFailed           { get; private set; } = default!;
+    public Event<BookingConfirmedEvent>        BookingConfirmed        { get; private set; } = default!;
+    public Event<BookingCancelledEvent>        BookingCancelled        { get; private set; } = default!;
+    public Event<BookingRefundingEvent>        BookingRefunding        { get; private set; } = default!;
+    public Event<PaymentRefundedEvent>         PaymentRefunded         { get; private set; } = default!;
+    public Event<RefundPaymentFailedEvent>     RefundPaymentFailed     { get; private set; } = default!;
 
     // Schedules
-    public Schedule<BookingState, PaymentTimeoutEvent> PaymentTimeout { get; private set; } = default!;
+    public Schedule<BookingState, PaymentTimeoutEvent>         PaymentTimeout  { get; private set; } = default!;
     public Schedule<BookingState, BookingApprovalTimeoutEvent> ApprovalTimeout { get; private set; } = default!;
 }
 

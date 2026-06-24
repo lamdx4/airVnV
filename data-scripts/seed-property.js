@@ -3,7 +3,7 @@ const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 
-const API_BASE_URL = 'http://localhost:5136'; // YARP Gateway
+const API_BASE_URL = 'http://localhost:8088'; // YARP Gateway
 const EMAIL = 'seeder_host@airbnb.local';
 const PASSWORD = 'Password123!';
 

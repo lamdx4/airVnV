@@ -12,7 +12,6 @@ public static class GatewayExtensions
             .WithEndpoint("http", e =>
             {
                 e.Port = 8088; // Fix cứng port 8088 để tránh đụng với shopnexus trên VPS
-                e.TargetPort = 8080;
                 e.IsExternal = true;
             })
             .WithReference(services.UserSvc)

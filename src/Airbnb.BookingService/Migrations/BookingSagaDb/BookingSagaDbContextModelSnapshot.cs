@@ -27,8 +27,20 @@ namespace Airbnb.BookingService.Migrations.BookingSagaDb
                     b.Property<Guid>("CorrelationId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ApprovalTimeoutTokenId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("BookingMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -43,10 +55,10 @@ namespace Airbnb.BookingService.Migrations.BookingSagaDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<Guid?>("ExpirationTokenId")
+                    b.Property<Guid>("GuestId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("GuestId")
+                    b.Property<Guid?>("PaymentTimeoutTokenId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PropertyId")

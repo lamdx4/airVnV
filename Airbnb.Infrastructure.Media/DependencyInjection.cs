@@ -8,8 +8,15 @@ public static class DependencyInjection
     public static IServiceCollection AddMediaServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MediaOptions>(configuration.GetSection(MediaOptions.SectionName));
-        
-        services.AddSingleton<IMediaProvider, CloudinaryMediaProvider>();
+        var useMock = configuration.GetValue<bool>("Media:UseMock");
+        if (useMock)
+        {
+            services.AddSingleton<IMediaProvider, MockMediaProvider>();
+        }
+        else
+        {
+            services.AddSingleton<IMediaProvider, CloudinaryMediaProvider>();
+        }
 
         return services;
     }

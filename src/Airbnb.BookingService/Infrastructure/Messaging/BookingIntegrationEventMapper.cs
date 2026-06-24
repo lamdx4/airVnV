@@ -26,10 +26,23 @@ public class BookingIntegrationEventMapper : IIntegrationEventMapper
             new DateTimeOffset(e.CheckIn.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)), 
             new DateTimeOffset(e.CheckOut.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))),
 
+        // Bug #7 Fix: use actual PropertyId and Reason from domain event (no more hardcoded Guid.Empty)
         BookingCancelledDomainEvent e => new BookingCancelledEvent(
             e.BookingId, 
-            Guid.Empty, 
-            "Booking cancelled by system or host"),
+            e.PropertyId,
+            e.Reason),
+
+        // Bug #5 Fix: missing case would throw ArgumentException → Outbox publish fails
+        BookingAwaitingApprovalDomainEvent e => new BookingAwaitingApprovalEvent(
+            e.BookingId,
+            e.PropertyId,
+            e.HostId,
+            e.GuestId),
+
+        BookingRefundingDomainEvent e => new BookingRefundingEvent(
+            e.BookingId,
+            e.PropertyId,
+            e.Reason),
 
         _ => throw new ArgumentException($"Unhandled domain event type: {domainEvent.GetType().Name}", nameof(domainEvent))
     };

@@ -83,7 +83,7 @@ public class Payment : AggregateRoot
     }
 
     public bool IsStillValid() 
-        => Status == PaymentStatus.Pending && ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2);
+        => Status == PaymentStatus.Pending && ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(1);
 
     public void MarkAsRefunded(decimal refundAmount, string reason)
     {

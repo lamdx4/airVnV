@@ -13,6 +13,7 @@ public static class MicroserviceExtensions
 
         var propSvc = builder.AddProject<Projects.Airbnb_PropertyService>("propertyservice")
             .WithDefaultServiceConfig()
+            .WithEnvironment("Media__UseMock", isDev ? "true" : "false")
             .WithReference(infra.PropDb)
             .WithReference(infra.RabbitMq)
             .WaitFor(infra.PropDb)
@@ -30,6 +31,7 @@ public static class MicroserviceExtensions
 
         var userSvc = builder.AddProject<Projects.Airbnb_UserService>("userservice")
             .WithDefaultServiceConfig()
+            .WithEnvironment("Media__UseMock", isDev ? "true" : "false")
             .WithReference(infra.UserDb)
             .WithReference(infra.RabbitMq)
             .WithReference(propSvc)   // needed for dashboard: property stats + recent activity

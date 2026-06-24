@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Airbnb.ServiceDefaults.Infrastructure;
 
 namespace Airbnb.BookingService.Domain;
@@ -7,7 +6,7 @@ namespace Airbnb.BookingService.Domain;
 // Enums
 // ============================================================
 
-public enum BookingStatus { Pending, AwaitingApproval, Confirmed, Cancelled }
+public enum BookingStatus { Pending, AwaitingApproval, Confirmed, Refunding, RefundFailed, Cancelled }
 
 // ============================================================
 // Aggregate Root
@@ -19,7 +18,7 @@ public class Booking : AggregateRoot
     public Guid PropertyId { get; private set; }
     public Guid HostId { get; private set; }    
     public Guid GuestId { get; private set; }
-    public string CountryCode { get; private set; } = default!; // Added for payment routing
+    public string CountryCode { get; private set; } = default!;
     public string BookingMode { get; private set; } = default!;
     public DateOnly CheckIn { get; private set; }
     public DateOnly CheckOut { get; private set; }
@@ -34,6 +33,11 @@ public class Booking : AggregateRoot
     public BookingStatus Status { get; private set; }
     public Guid? CancelledBy { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+
+    // Bug #7 + Audit: track lifecycle timestamps and reason
+    public DateTimeOffset? ConfirmedAt { get; private set; }
+    public DateTimeOffset? CancelledAt { get; private set; }
+    public string? CancelReason { get; private set; }
 
     private Booking() { } // EF Core
 
@@ -82,11 +86,15 @@ public class Booking : AggregateRoot
         return booking;
     }
 
+    /// <summary>
+    /// Host approves: for RequestToBook, transitions to AwaitingApproval
+    /// so the Saga can trigger the payment flow.
+    /// </summary>
     public void Approve(Guid currentHostId)
     {
         if (currentHostId != HostId)
             throw new BusinessException("Only the host of this property can approve the booking.", "BOOKING_NOT_AUTHORIZED_HOST");
-        Confirm();
+        AwaitForApproval();
     }
 
     public void Confirm()
@@ -95,6 +103,7 @@ public class Booking : AggregateRoot
             throw new BusinessException("Only Pending or AwaitingApproval bookings can be confirmed.", "BOOKING_INVALID_STATUS_FOR_CONFIRM");
             
         Status = BookingStatus.Confirmed;
+        ConfirmedAt = DateTimeOffset.UtcNow;
         Version++;
         Raise(new BookingConfirmedDomainEvent(
             Id, 
@@ -106,6 +115,7 @@ public class Booking : AggregateRoot
             Version));
     }
 
+    // Bug #2 Fix: now raises BookingAwaitingApprovalDomainEvent so Saga can correlate
     public void AwaitForApproval()
     {
         if (Status != BookingStatus.Pending)
@@ -113,10 +123,10 @@ public class Booking : AggregateRoot
             
         Status = BookingStatus.AwaitingApproval;
         Version++;
-        // Ghi chú: Không có Domain Event mới ở đây vì Saga State Machine sẽ ghi nhận trạng thái.
-        // Có thể bổ sung event sau nếu các services khác cần theo dõi.
+        Raise(new BookingAwaitingApprovalDomainEvent(Id, PropertyId, HostId, GuestId, Version));
     }
 
+    // Bug #7 Fix: Reject now passes PropertyId and Reason into the domain event
     public void Reject(Guid currentHostId)
     {
         if (currentHostId != HostId)
@@ -126,10 +136,13 @@ public class Booking : AggregateRoot
             
         Status = BookingStatus.Cancelled;
         CancelledBy = currentHostId;
+        CancelledAt = DateTimeOffset.UtcNow;
+        CancelReason = "Rejected by host";
         Version++;
-        Raise(new BookingCancelledDomainEvent(Id, Version));
+        Raise(new BookingCancelledDomainEvent(Id, PropertyId, "Rejected by host", Version));
     }
 
+    // Bug #7 Fix: Cancel now passes PropertyId and Reason into the domain event
     public void Cancel(Guid cancelledBy)
     {
         if (cancelledBy != GuestId && cancelledBy != HostId)
@@ -137,21 +150,77 @@ public class Booking : AggregateRoot
         if (Status == BookingStatus.Cancelled)
              throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
 
+        var reason = cancelledBy == GuestId ? "Cancelled by guest" : "Cancelled by host";
+
         Status = BookingStatus.Cancelled;
         CancelledBy = cancelledBy;
+        CancelledAt = DateTimeOffset.UtcNow;
+        CancelReason = reason;
         Version++;
-        Raise(new BookingCancelledDomainEvent(Id, Version));
+        Raise(new BookingCancelledDomainEvent(Id, PropertyId, reason, Version));
     }
 
-    /// <summary>Admin override — bypasses guest/host ownership check.</summary>
+    /// <summary>
+    /// Called when a CONFIRMED booking is being cancelled and a refund must be processed first.
+    /// Transitions to Refunding state. The Saga will orchestrate the refund and then
+    /// transition to Cancelled once the refund is confirmed by PaymentService.
+    /// </summary>
+    public void CancelAndRequestRefund(Guid cancelledBy)
+    {
+        if (cancelledBy != GuestId && cancelledBy != HostId)
+            throw new BusinessException("Unauthorized cancellation.", "BOOKING_UNAUTHORIZED_CANCEL");
+        if (Status != BookingStatus.Confirmed)
+            throw new BusinessException("Only confirmed bookings can be refunded via this flow.", "BOOKING_INVALID_STATUS_FOR_REFUND");
+
+        var reason = cancelledBy == GuestId ? "Cancelled by guest" : "Cancelled by host";
+
+        Status = BookingStatus.Refunding;
+        CancelledBy = cancelledBy;
+        CancelledAt = DateTimeOffset.UtcNow;
+        CancelReason = reason;
+        Version++;
+        Raise(new BookingRefundingDomainEvent(Id, PropertyId, reason, Version));
+    }
+
+    /// <summary>
+    /// Called by the Saga (via PaymentRefundedConsumer) when the refund is confirmed.
+    /// This is the terminal transition into Cancelled from Refunding.
+    /// </summary>
+    public void CompleteRefundCancellation()
+    {
+        if (Status != BookingStatus.Refunding)
+            throw new BusinessException("Booking is not in Refunding state.", "BOOKING_INVALID_STATUS_FOR_COMPLETE_REFUND");
+
+        Status = BookingStatus.Cancelled;
+        Version++;
+        Raise(new BookingCancelledDomainEvent(Id, PropertyId, CancelReason ?? "Refund completed", Version));
+    }
+
+    /// <summary>
+    /// Called by the Saga when the refund attempt permanently failed (non-retryable).
+    /// Booking stays locked. Admin intervention is required.
+    /// </summary>
+    public void MarkRefundFailed()
+    {
+        if (Status != BookingStatus.Refunding)
+            throw new BusinessException("Booking is not in Refunding state.", "BOOKING_INVALID_STATUS_FOR_REFUND_FAILED");
+
+        Status = BookingStatus.RefundFailed;
+        Version++;
+    }
+
+    /// <summary>Admin override — bypasses guest/host ownership check (system timeouts, admin actions).</summary>
+    // Bug #4 Fix: BookingApprovalTimeoutConsumer must call AdminCancel(), not Cancel(Guid.Empty)
+    // Bug #7 Fix: passes PropertyId and Reason into the domain event
     public void AdminCancel()
     {
         if (Status == BookingStatus.Cancelled)
             throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
 
         Status = BookingStatus.Cancelled;
+        CancelledAt = DateTimeOffset.UtcNow;
+        CancelReason = "Cancelled by system";
         Version++;
-        Raise(new BookingCancelledDomainEvent(Id, Version));
+        Raise(new BookingCancelledDomainEvent(Id, PropertyId, "Cancelled by system", Version));
     }
 }
-

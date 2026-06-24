@@ -7,7 +7,7 @@ const { fakerVI: faker } = require('@faker-js/faker');
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const API_BASE_URL = 'http://localhost:5136'; // YARP Gateway
+const API_BASE_URL = 'http://localhost:8088'; // YARP Gateway
 const NUM_HOSTS = 5;
 const NUM_PROPERTIES_PER_HOST = 20;
 const CONCURRENCY_LIMIT = 3; // Limit parallel property creations to avoid overwhelming the Gateway/Cloudinary

@@ -32,12 +32,18 @@ public class PaymentRefundedConsumer(
             return;
         }
 
-        if (booking.Status == BookingStatus.Cancelled)
+        if (booking.Status == BookingStatus.Refunding)
+        {
+            // Happy path: Saga orchestrated the refund, now complete the cancellation.
+            booking.CompleteRefundCancellation();
+        }
+        else if (booking.Status == BookingStatus.Cancelled)
         {
             logger.LogInformation("Booking {BookingId} already cancelled.", message.BookingId);
         }
         else
         {
+            // Fallback for any other states (e.g., admin-triggered refunds out-of-band).
             booking.AdminCancel();
         }
 

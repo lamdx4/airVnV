@@ -54,7 +54,6 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<Airbnb.PaymentService.Infrastructure.Messaging.InitiatePaymentCommandConsumer>();
     x.AddConsumer<Airbnb.PaymentService.Features.Consumers.PaymentSucceededLedgerConsumer>();
     x.AddConsumer<Airbnb.PaymentService.Features.Consumers.RefundPaymentCommandConsumer>();
-    x.AddConsumer<Airbnb.PaymentService.Features.Consumers.BookingCancelledRefundConsumer>();
 
     x.AddEntityFrameworkOutbox<PaymentDbContext>(o =>
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,21 +14,13 @@ namespace Airbnb.BookingService.Migrations
             migrationBuilder.DropTable(
                 name: "ProcessedEvents");
 
-            migrationBuilder.AddColumn<string>(
-                name: "BookingMode",
-                table: "Bookings",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                defaultValue: "");
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "BookingMode",
-                table: "Bookings");
+
 
             migrationBuilder.CreateTable(
                 name: "ProcessedEvents",

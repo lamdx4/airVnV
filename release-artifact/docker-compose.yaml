@@ -113,6 +113,12 @@ services:
         read_only: false
     networks:
       - "aspire"
+  kafka-ui:
+    image: "docker.io/kafbat/kafka-ui:v1.4.2"
+    expose:
+      - "8080"
+    networks:
+      - "aspire"
   rabbit:
     image: "docker.io/library/rabbitmq:4.2-management"
     environment:
@@ -207,8 +213,8 @@ services:
     image: "${DEBEZIUM_CONFIGURATOR_IMAGE}"
     environment:
       OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
-      DEBEZIUM_HTTP: "tcp://debezium:8083"
-      services__debezium__tcp__0: "tcp://debezium:8083"
+      DEBEZIUM_HTTP: "http://debezium:8083"
+      services__debezium__http__0: "http://debezium:8083"
       PG_PASSWORD: "r2CW)CAKmw~EBkuf5cXBPm"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
@@ -216,6 +222,30 @@ services:
     depends_on:
       debezium:
         condition: "service_started"
+    networks:
+      - "aspire"
+  coturn:
+    image: "coturn/coturn:latest"
+    command:
+      - "-c"
+      - "IP=$(getent ahosts $$ROOT_DOMAIN | awk '{print $1}' | head -n 1) && echo \"Resolved DDNS IP: $$IP\" && turnserver -n --log-file=stdout -L 0.0.0.0 --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$$ROOT_DOMAIN --external-ip=$$IP"
+    entrypoint:
+      - "sh"
+    environment:
+      ROOT_DOMAIN: "${ROOT_DOMAIN}"
+    expose:
+      - "3478"
+      - "49152"
+      - "49153"
+      - "49154"
+      - "49155"
+      - "49156"
+      - "49157"
+      - "49158"
+      - "49159"
+      - "49160"
+      - "49161"
+      - "49162"
     networks:
       - "aspire"
   propertyservice:
@@ -338,6 +368,7 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${PAYMENTSERVICE_PORT}"
       DOTNET_gcServer: "0"
+      FrontendUrl: "${FRONTEND_URL}"
       ConnectionStrings__paydb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=paydb"
       PAYDB_HOST: "postgres"
       PAYDB_PORT: "5432"
@@ -410,6 +441,9 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       HTTP_PORTS: "${CHATSERVICE_PORT}"
       DOTNET_gcServer: "0"
+      WebRTC__TurnDomain: "${ROOT_DOMAIN}"
+      WebRTC__TurnUsername: "lamdx4"
+      WebRTC__TurnPassword: "airvnv-secret"
       ConnectionStrings__chatdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=chatdb"
       CHATDB_HOST: "postgres"
       CHATDB_PORT: "5432"
@@ -454,7 +488,7 @@ services:
     environment:
       OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-      HTTP_PORTS: "8080"
+      HTTP_PORTS: "${GATEWAY_PORT}"
       DOTNET_gcServer: "0"
       USERSERVICE_HTTP: "http://userservice:${USERSERVICE_PORT}"
       services__userservice__http__0: "http://userservice:${USERSERVICE_PORT}"
@@ -478,7 +512,7 @@ services:
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "gateway"
     ports:
-      - "8088:8080"
+      - "8088:${GATEWAY_PORT}"
     expose:
       - "${GATEWAY_PORT}"
     networks:

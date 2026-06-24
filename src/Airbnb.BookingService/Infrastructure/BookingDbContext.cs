@@ -18,7 +18,11 @@ public class BookingDbContext(
         booking.Property(b => b.BookingMode).HasMaxLength(20);
         booking.Property(b => b.CountryCode).HasMaxLength(2).IsRequired();
         booking.Property(b => b.CurrencyCode).HasMaxLength(3).IsRequired();
-
+        
+        // Bug #7 + Audit configs
+        booking.Property(b => b.CancelReason).HasMaxLength(500).IsRequired(false);
+        booking.Property(b => b.ConfirmedAt).IsRequired(false);
+        booking.Property(b => b.CancelledAt).IsRequired(false);
         // Index chống trùng lịch (Overlap check)
         booking.HasIndex(b => new { b.PropertyId, b.CheckIn, b.CheckOut })
                .HasFilter("\"Status\" != 'Cancelled'")

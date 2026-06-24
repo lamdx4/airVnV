@@ -24,6 +24,8 @@ public class VnpayProvider(IConfiguration config, ILogger<VnpayProvider> logger)
         var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(OperatingSystem.IsWindows() ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh");
         var vnNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
         vnpay.AddRequestData("vnp_CreateDate", vnNow.ToString("yyyyMMddHHmmss"));
+        // Thêm tham số vnp_ExpireDate báo cho VNPay biết link chỉ sống 5 phút
+        vnpay.AddRequestData("vnp_ExpireDate", vnNow.AddMinutes(5).ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", payment.Currency);
         vnpay.AddRequestData("vnp_IpAddr", ipAddress);
         vnpay.AddRequestData("vnp_Locale", "vn");
@@ -34,8 +36,8 @@ public class VnpayProvider(IConfiguration config, ILogger<VnpayProvider> logger)
 
         var paymentUrl = vnpay.CreateRequestUrl(vnp_Url!, vnp_HashSecret!);
         
-        // VNPay standard expiry is 15 minutes
-        return Task.FromResult(new PaymentUrlResult(paymentUrl, DateTimeOffset.UtcNow.AddMinutes(15)));
+        // Return 5 minutes expiry to match Saga
+        return Task.FromResult(new PaymentUrlResult(paymentUrl, DateTimeOffset.UtcNow.AddMinutes(5)));
     }
 
     public Task<WebhookResult> ProcessWebhookAsync(WebhookRequest request, CancellationToken ct)

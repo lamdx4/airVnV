@@ -36,7 +36,7 @@ public static class InfrastructureExtensions
         var kafka = builder.AddKafka("kafka")
             .WithLifetime(ContainerLifetime.Persistent)
             .WithDataBindMount("./data/kafka")
-            .WithKafkaUI()
+            .WithKafkaUI(ui => ui.WithAnnotation(new ManifestPublishingCallbackAnnotation(null)))
             .WithEnvironment("KAFKA_HEAP_OPTS", kafkaHeap)
             .WithEndpoint("tcp", e => {
                 if (isDev) e.Port = 29092;
@@ -111,25 +111,36 @@ public static class InfrastructureExtensions
         var rootDomain = builder.AddParameter("root-domain");
         var coturn = builder.AddContainer("coturn", "coturn/coturn")
             .WithLifetime(ContainerLifetime.Persistent)
-            .WithEnvironment("ROOT_DOMAIN", rootDomain)
-            .WithEntrypoint("sh");
+            .WithEnvironment("ROOT_DOMAIN", rootDomain);
 
         if (isDev)
         {
-            coturn.WithArgs("-c", "turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=localhost --external-ip=127.0.0.1");
+            // Use native args directly instead of sh -c to prevent arg parsing issues in Aspire 13+
+            // Pass keys and values as separate arguments to guarantee turnserver parses them correctly
+            coturn.WithArgs(
+                "-n", 
+                "--log-file", "stdout", 
+                "-L", "0.0.0.0",
+                "--min-port", "49152", 
+                "--max-port", "49162", 
+                "--user", "lamdx4:airvnv-secret", 
+                "--realm", "localhost", 
+                "--external-ip", "127.0.0.1"
+            );
         }
         else
         {
-            var resolveIpCmd = "IP=$(getent ahosts $ROOT_DOMAIN | awk '{print $1}' | head -n 1) && echo \"Resolved DDNS IP: $IP\" && turnserver -n --log-file=stdout --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$ROOT_DOMAIN --external-ip=$IP";
+            coturn.WithEntrypoint("sh");
+            var resolveIpCmd = "IP=$(getent ahosts $ROOT_DOMAIN | awk '{print $1}' | head -n 1) && echo \"Resolved DDNS IP: $IP\" && turnserver -n --log-file=stdout -L 0.0.0.0 --min-port=49152 --max-port=49162 --user=lamdx4:airvnv-secret --realm=$ROOT_DOMAIN --external-ip=$IP";
             coturn.WithArgs("-c", resolveIpCmd);
         }
 
-        coturn.WithEndpoint(3478, 3478, scheme: "tcp", name: "turn-tcp")
-              .WithEndpoint(3478, 3478, scheme: "udp", name: "turn-udp");
+        coturn.WithEndpoint(3478, 3478, scheme: "tcp", name: "turn-tcp", isProxied: false)
+              .WithEndpoint(3478, 3478, scheme: "udp", name: "turn-udp", isProxied: false);
 
         for (int i = 49152; i <= 49162; i++)
         {
-            coturn.WithEndpoint(i, i, scheme: "udp", name: $"turn-media-{i}");
+            coturn.WithEndpoint(i, i, scheme: "udp", name: $"turn-media-{i}", isProxied: false);
         }
     
 

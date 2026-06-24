@@ -37,15 +37,10 @@ builder.Services.AddDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingS
 // NOTE: AddKafkaConsumer removed — no actual Kafka consumers exist in BookingService.
 // All events are handled via MassTransit/RabbitMQ (MasterDataCacheInvalidationConsumer etc.)
 
-// Removed old polling-based timeout worker in favor of Saga timeouts
-// builder.Services.AddHostedService<Airbnb.BookingService.Infrastructure.Workers.BookingTimeoutWorker>();
 
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
-    x.AddConsumer<Airbnb.BookingService.Features.Consumers.BookingApprovalTimeoutConsumer>();
-    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentSucceededConsumer>();
-    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentFailedConsumer>();
     x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentRefundedConsumer>();
 
     // Saga Configuration
