@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant Client
+    participant API as YARP Gateway
+    participant Booking as BookingService
+    participant StateMachine as BookingStateMachine
+    participant RMQ as RabbitMQ
+    participant Payment as PaymentService
+    participant VNPay as Cổng VNPay
+    participant Property as PropertyService
+
+    Client->>API: Yêu cầu Hủy phòng (Booking đã Confirmed)
+    API->>Booking: Xử lý logic nghiệp vụ Hủy
+    
+    Booking-)RMQ: Publish: BookingRefundingEvent
+    
+    RMQ-)StateMachine: Consume: BookingRefundingEvent
+    StateMachine->>StateMachine: Chuyển state: Refunding
+    StateMachine-)RMQ: Send: RefundPaymentCommand
+    
+    RMQ-)Payment: Consume: RefundPaymentCommand
+    Payment->>VNPay: Gọi API Hoàn tiền (Refund API)
+    VNPay-->>Payment: VNPay xử lý hoàn tiền
+    Payment->>Payment: Lưu RefundRecord & Đảo ngược Sổ cái
+    
+    alt Hoàn tiền THÀNH CÔNG
+        Payment-)RMQ: Publish: PaymentRefundedEvent
+        RMQ-)StateMachine: Consume: PaymentRefundedEvent
+        StateMachine->>StateMachine: Chuyển state: Cancelled
+        StateMachine-)RMQ: Publish: BookingCancelledEvent
+        
+        RMQ-)Property: Consume: BookingCancelledEvent
+        Property->>Property: Mở lại lịch trống
+    else Hoàn tiền THẤT BẠI
+        Payment-)RMQ: Publish: RefundPaymentFailedEvent
+        RMQ-)StateMachine: Consume: RefundPaymentFailedEvent
+        StateMachine->>StateMachine: Chuyển state: RefundFailed<br>(Chờ Admin xử lý)
+    end

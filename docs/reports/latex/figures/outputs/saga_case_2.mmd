@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant Client
+    participant API as YARP Gateway
+    participant StateMachine as BookingStateMachine
+    participant RMQ as RabbitMQ
+    participant Payment as PaymentService
+    participant VNPay as Cổng VNPay
+
+    Note over Client, VNPay: Tiếp nối sau khi Khách hàng thanh toán xong
+    
+    VNPay->>API: Webhook (Thanh toán THÀNH CÔNG)
+    API->>Payment: Xử lý Webhook (Lưu DB + Outbox)
+    
+    Payment-)RMQ: Publish: PaymentSucceededEvent
+    
+    par Điều phối trung tâm
+        RMQ-)StateMachine: Bắt sự kiện PaymentSucceededEvent
+        StateMachine->>StateMachine: Hủy Timeout (Unschedule)<br>Chuyển state: Confirmed
+    and Xử lý Sổ cái
+        RMQ-)Payment: Bắt sự kiện PaymentSucceededEvent
+        Payment->>Payment: Ghi sổ cái (Ledger) tính hoa hồng
+    end

@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    actor Client
+    participant API as YARP Gateway
+    participant StateMachine as BookingStateMachine<br>(Orchestrator)
+    participant Property as PropertyService
+    participant RMQ as RabbitMQ
+    participant Payment as PaymentService
+    participant VNPay as Cổng VNPay
+
+    Client->>API: Đặt phòng (POST /api/bookings)
+    
+    rect rgb(235, 245, 255)
+    note right of StateMachine: 1. Giao tiếp Đồng bộ (REST API)
+    API->>Property: Kiểm tra phòng (GET /basic-info)
+    Property-->>API: Trả về trạng thái & giá
+    API->>StateMachine: Khởi tạo Booking & Lưu DB Outbox
+    end
+    
+    rect rgb(255, 245, 235)
+    note right of StateMachine: 2. Saga Orchestration (MassTransit)
+    StateMachine->>StateMachine: Chuyển state: AwaitingPayment<br>Đặt lịch Timeout (15 phút)
+    StateMachine-)RMQ: Send: InitiatePaymentCommand
+    API-->>Client: Trả về 201 (Kèm BookingID)
+    
+    RMQ-)Payment: Consume: InitiatePaymentCommand
+    end
+    
+    Payment->>VNPay: Sinh Payment Session
+    VNPay-->>Payment: Trả về URL Thanh toán
+    
+    Note over Client, VNPay: Người dùng thao tác thanh toán trên Web VNPay...

@@ -1,0 +1,62 @@
+graph TD
+    classDef client fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef gateway fill:#007acc,stroke:#fff,color:#fff,stroke-width:2px;
+    classDef service fill:#5C2D91,stroke:#fff,color:#fff,stroke-width:2px;
+    classDef db fill:#336791,stroke:#fff,color:#fff,stroke-width:2px;
+    classDef broker fill:#e67e22,stroke:#fff,color:#fff,stroke-width:2px;
+    classDef cdc fill:#c0392b,stroke:#fff,color:#fff,stroke-width:2px;
+
+    Client["Client Layer<br>(React / Shadcn UI)"]:::client
+    YARP["API Gateway Layer<br>(YARP Gateway)"]:::gateway
+
+    Client -->|HTTPS / REST API| YARP
+
+    subgraph "Service Discovery & Orchestration (.NET Aspire)"
+        direction TB
+        IdentitySvc["Identity Service<br>(Auth, Roles)"]:::service
+        PropertySvc["Property Service<br>(Properties, Avail)"]:::service
+        SearchSvc["Search Service<br>(Elasticsearch Sync)"]:::service
+        BookingSvc["Booking Service<br>(Saga State Machine)"]:::service
+        PaymentSvc["Payment Service<br>(VNPay/Stripe)"]:::service
+        ChatSvc["Chat Service<br>(Realtime)"]:::service
+        
+        YARP --> IdentitySvc
+        YARP --> PropertySvc
+        YARP --> SearchSvc
+        YARP --> BookingSvc
+        YARP --> PaymentSvc
+        YARP --> ChatSvc
+    end
+
+    subgraph "Database-per-Service (CQRS & MediatR)"
+        direction LR
+        IdDB[("PostgreSQL<br>Identity")]:::db
+        PropDB[("PostgreSQL<br>Property")]:::db
+        BookDB[("PostgreSQL<br>Booking")]:::db
+        PayDB[("PostgreSQL<br>Payment")]:::db
+        ChatDB[("PostgreSQL<br>Chat")]:::db
+        Elastic[("Elasticsearch<br>Search")]:::db
+
+        IdentitySvc -.-> IdDB
+        PropertySvc -.-> PropDB
+        BookingSvc -.-> BookDB
+        PaymentSvc -.-> PayDB
+        ChatSvc -.-> ChatDB
+        SearchSvc -.-> Elastic
+    end
+
+    subgraph "Message Brokers & Data Streaming"
+        direction LR
+        RMQ[["RabbitMQ<br>(Event-Driven & Saga)"]]:::broker
+        Kafka[["Apache Kafka<br>(Data Pipeline)"]]:::broker
+        Debezium(["Debezium CDC<br>(WAL Reader)"]):::cdc
+        
+        BookingSvc -.->|Pub/Sub| RMQ
+        PaymentSvc -.->|Pub/Sub| RMQ
+        PropertySvc -.->|Pub| RMQ
+        ChatSvc <-.-|Sub| RMQ
+        
+        PropDB -->|Capture Changes| Debezium
+        Debezium -->|Produce| Kafka
+        Kafka -->|Consume| SearchSvc
+    end

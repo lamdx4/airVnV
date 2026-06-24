@@ -273,7 +273,7 @@ Hệ thống được chia thành các thành phần cốt lõi như sau:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth, height=10cm, keepaspectratio]{outputs/system_arch.png}
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/system_arch.png}
   \caption{Sơ đồ Kiến trúc Tổng thể của hệ thống AirVnV}
   \label{fig:system_arch}
 \end{figure}
@@ -294,204 +294,85 @@ Sơ đồ trên (Hình~\ref{fig:system_arch}) minh họa sự phân chia rõ rà
   \item \textbf{Đồng bộ Dữ liệu Cấp cơ sở (Data-Level CDC):} Dành riêng cho bài toán luân chuyển dữ liệu lớn. Hệ thống sử dụng \textbf{Debezium} đọc trực tiếp tập tin Write-Ahead Log (WAL) từ PostgreSQL ở tầng hạ tầng, sau đó biến chúng thành luồng sự kiện (Stream) trên \textbf{Kafka}. \texttt{SearchService} đóng vai trò Kafka Consumer để đồng bộ dữ liệu vào Elasticsearch theo thời gian thực (Real-time). Việc dùng Kafka thay vì RabbitMQ ở đây là bắt buộc do đặc thù cần xử lý luồng dữ liệu thông lượng cực cao (High throughput) và lưu trữ log (Log retention).
 \end{itemize}
 
-\subsubsection{Bản đồ Giao tiếp Cụ thể Giữa Các Dịch vụ (Service Interaction Map)}
-Để làm rõ cơ chế trên, dưới đây là bản đồ giao tiếp chéo thực tế đang diễn ra trong hệ thống AirVnV, được tách biệt theo từng chức năng (Feature) độc lập nhằm minh họa rõ ràng dòng chảy dữ liệu.
+\subsubsection{Các Cơ chế Giao tiếp Cụ thể}
 
-\paragraph{1. Chức năng Đồng bộ Dữ liệu Tìm kiếm (Data-level CDC)}
+\paragraph{1. Giao Tiếp Đồng Bộ (REST API - Synchronous)}
 \mbox{}\\
-Luồng này phục vụ việc đồng bộ hóa dữ liệu từ cơ sở dữ liệu quan hệ sang bộ máy tìm kiếm tốc độ cao.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=7cm, keepaspectratio]{outputs/cdc_comm.png}
-  \caption{Sơ đồ Tuần tự minh họa giao tiếp Đồng bộ dữ liệu qua Kafka}
-  \label{fig:cdc_comm}
-\end{figure}
-
-Khi Chủ nhà tạo/sửa Bất động sản (\texttt{Property}), thay vì bắt \texttt{PropertyService} tự gọi API cập nhật, Debezium sẽ đọc trực tiếp từ lớp vật lý (WAL logs của PostgreSQL) và đẩy luồng sự kiện vào Kafka. \texttt{SearchService} hứng dữ liệu này và nạp vào Elasticsearch để tối ưu trải nghiệm tìm kiếm của Khách hàng.
-
-\paragraph{2. Chức năng Giao dịch Đặt phòng và Thanh toán}
-\mbox{}\\
-Đại diện cho nhóm xử lý luồng giao dịch nghiệp vụ chéo phức tạp thông qua cơ chế Event-Driven.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=7cm, keepaspectratio]{outputs/booking_comm.png}
-  \caption{Sơ đồ Tuần tự minh họa giao tiếp Đặt phòng qua RabbitMQ}
-  \label{fig:booking_comm}
-\end{figure}
-
-Khi Khách chốt phòng, \texttt{BookingService} khởi tạo đơn hàng ở trạng thái chờ (\texttt{Pending}) và phát sự kiện \texttt{BookingCreatedEvent} lên RabbitMQ. \texttt{PaymentService} hứng sự kiện để xử lý giao dịch. Tại đây, luồng phân tán (Saga) rẽ thành hai nhánh:
+Sử dụng \texttt{HttpClient} để truy vấn thông tin tham chiếu (Reference Data) tức thời. Giao tiếp đồng bộ chỉ được sử dụng cho các luồng không làm thay đổi trạng thái (Query) để tránh lỗi kẹt cổ chai.
 \begin{itemize}
-  \item \textbf{Thành công:} Phát sự kiện \texttt{PaymentCompletedEvent}. \texttt{BookingService} bắt sự kiện và chốt lịch đặt phòng (\texttt{Confirmed}).
-  \item \textbf{Thất bại (Compensation):} Nếu thanh toán lỗi, bị từ chối hoặc hết hạn, hệ thống phát sự kiện \texttt{PaymentFailedEvent}. \texttt{BookingService} bắt sự kiện và thực thi bù trừ (Rollback) bằng cách hủy bỏ đơn hàng (\texttt{Cancelled}), giải phóng phòng trống cho khách khác.
+    \item \textbf{Ví dụ thực tế từ mã nguồn:}
+    \begin{itemize}
+        \item \texttt{BookingService} $\rightarrow$ \texttt{PropertyService}: Gọi API \texttt{/api/properties/\{id\}/basic-info} để xác thực phòng trước khi đặt, lấy thông tin tính Thuế (\texttt{/api/internal/master-data/countries/\{code\}}).
+        \item \texttt{PaymentService} $\rightarrow$ \texttt{BookingService}: Gọi API \texttt{/api/internal/bookings/\{id\}} để đối soát số tiền thanh toán.
+        \item \texttt{ChatService} $\rightarrow$ \texttt{PropertyService} \& \texttt{UserService}: Lấy thông tin hiển thị Avatar và Ảnh thu nhỏ của phòng.
+    \end{itemize}
 \end{itemize}
-Cơ chế này đảm bảo tuyệt đối tính nhất quán dữ liệu cuối cùng (Eventual Consistency) mà không làm tắc nghẽn hoặc sập nguyên chuỗi hệ thống như lệnh gọi đồng bộ truyền thống.
 
-% ── 3.3 Áp dụng mẫu thiết kế ────────────────────────────────
-\subsection{Áp dụng Mẫu thiết kế (Design Patterns / Architectural Patterns)}
-\label{subsec:design_patterns}
-
-Hệ thống AirVnV là một dự án Microservices phức tạp, yêu cầu các tiêu chuẩn cao về tính bảo trì và khả năng mở rộng. Quá trình phát triển đã áp dụng linh hoạt cả các mẫu thiết kế kiến trúc (Architectural Patterns) để quản lý luồng dữ liệu hệ thống, lẫn các mẫu thiết kế hướng đối tượng (Object-Oriented Design Patterns) để giải quyết các bài toán logic cụ thể.
-
-\subsubsection{Các Mẫu Thiết kế Kiến trúc (Architectural Patterns)}
-
-\paragraph{1. REPR Pattern (Request-Endpoint-Response)}
+\paragraph{2. Giao Tiếp Bất Đồng Bộ \& Luồng Sự Kiện (Saga Orchestration)}
 \mbox{}\\
-Dự án loại bỏ hoàn toàn mô hình \texttt{Controller} cồng kềnh của kiến trúc MVC truyền thống. Thay vào đó, hệ thống áp dụng \textbf{REPR Pattern} thông qua thư viện \textbf{FastEndpoints}. Một Class sẽ đại diện duy nhất cho một API Endpoint, đi kèm với các cấu trúc \texttt{Request} và \texttt{Response} của riêng nó. Endpoint đóng vai trò vô cùng mỏng (thin), chỉ thực hiện nhiệm vụ duy nhất là tiếp nhận HTTP Request và chuyển giao công việc xuống tầng xử lý trung gian.
+Áp dụng \textbf{Event-Driven Architecture} qua \textbf{RabbitMQ} (kết hợp \textbf{MassTransit}). Hệ thống sử dụng \texttt{BookingStateMachine} làm Nhạc trưởng (Orchestrator) để điều hướng toàn bộ quy trình:
 
+\subparagraph{Case 1: Khởi tạo (Dùng chung cho đến đoạn thanh toán VNPay)}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth, height=7cm, keepaspectratio]{outputs/repr_pattern.png}
-  \caption{Sơ đồ Lớp (Class Diagram) cấu trúc REPR Pattern}
-  \label{fig:repr_pattern}
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/saga_case_1.png}
+  \caption{Sơ đồ Tuần tự: Khởi tạo Đơn đặt phòng}
+  \label{fig:saga_case_1}
 \end{figure}
 
-\paragraph{2. CQRS (Command Query Responsibility Segregation)}
-\mbox{}\\
-Luồng xử lý dữ liệu được phân tách hoàn toàn thành hai đường độc lập: Luồng Ghi (Command) và Luồng Đọc (Query), được điều phối bởi thư viện \textbf{MediatR}.
-
+\subparagraph{Case 2: Happy Path (Thanh toán thành công)}
+Tiếp nối luồng khởi tạo, sau khi Khách hàng thanh toán thành công trên cổng VNPay.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/cqrs_class.png}
-  \caption{Sơ đồ Lớp (Class Diagram) cấu trúc CQRS sử dụng Mediator}
-  \label{fig:cqrs_class}
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/saga_case_2.png}
+  \caption{Sơ đồ Tuần tự: Thanh toán thành công (Happy Path)}
+  \label{fig:saga_case_2}
 \end{figure}
 
-Như Sơ đồ Lớp (Hình~\ref{fig:cqrs_class}) thể hiện:
+\subparagraph{Case 3: Bad Case - Timeout (Quá hạn 15 phút)}
+Kịch bản khi hệ thống hết 15 phút đếm ngược mà không nhận được thông báo thanh toán từ khách hàng.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/saga_case_3.png}
+  \caption{Sơ đồ Tuần tự: Quá hạn thanh toán (Timeout)}
+  \label{fig:saga_case_3}
+\end{figure}
+
+\subparagraph{Case 4: Bad Case - Payment Failure (Thanh toán thất bại)}
+Kịch bản khi Khách hàng chủ động hủy giao dịch hoặc thẻ bị lỗi trên cổng VNPay.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/saga_case_4.png}
+  \caption{Sơ đồ Tuần tự: Thanh toán thất bại}
+  \label{fig:saga_case_4}
+\end{figure}
+
+\subparagraph{Case 5: Luồng Khách Hủy Phòng \& Hoàn Tiền (Guest Cancellation \& Refund)}
+Đây là kịch bản Giao dịch bù trừ (Compensation) diễn ra \textbf{sau khi} đơn đặt phòng đã thành công. 
+\textit{Luồng này tiếp tục sử dụng \textbf{Saga Orchestration} do BookingStateMachine điều phối vòng đời hoàn tiền cực kỳ chặt chẽ.}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, keepaspectratio]{outputs/saga_case_5.png}
+  \caption{Sơ đồ Tuần tự: Khách Hủy phòng và Hoàn tiền}
+  \label{fig:saga_case_5}
+\end{figure}
+
+
+\paragraph{3. Đảm bảo Tính nhất quán dữ liệu (Data Consistency)}
+\mbox{}\\
+Giải quyết triệt để bài toán Dual-Write và Phân mảnh dữ liệu:
 \begin{itemize}
-  \item \textbf{Luồng Ghi (Command):} Kế thừa từ giao diện \texttt{Mediator.ICommand}. Mọi thao tác thay đổi dữ liệu được cô lập trong \texttt{ICommandHandler}, đảm bảo không có logic bị rò rỉ ra ngoài Endpoint.
-  \item \textbf{Luồng Đọc (Query):} Kế thừa từ \texttt{Mediator.IQuery}, sử dụng LINQ cơ bản kết hợp \texttt{AsNoTracking} của Entity Framework Core để trả về dữ liệu nhanh nhất mà không cần theo dõi sự thay đổi (change tracking).
+    \item \textbf{Transactional Outbox Pattern (Đảm bảo gửi Message):} Lưu Event vào bảng \texttt{OutboxMessages} cùng 1 DB Transaction với logic nghiệp vụ. Tránh tình trạng lưu DB thành công nhưng lỗi mạng rớt RabbitMQ.
+    \item \textbf{Change Data Capture (CDC) với Debezium:} \texttt{PropertyService} thay đổi dữ liệu $\rightarrow$ Debezium đọc log (WAL) của PostgreSQL đẩy lên \textbf{Kafka} $\rightarrow$ \texttt{SearchService} (Elasticsearch) bắt event thô này từ Kafka để index ngay lập tức mà không cần gọi API đồng bộ. \textit{(Lưu ý: Hệ thống dùng RabbitMQ cho Saga nội bộ và Kafka chuyên biệt cho Data Pipeline / CDC)}.
+    \item \textbf{Event-based Cache Invalidation:} \texttt{BookingService} tự xóa Cache tính Thuế khi nhận được sự kiện \texttt{TaxUpdatedEvent} từ \texttt{PropertyService}.
 \end{itemize}
-\texttt{Endpoint} đóng vai trò cực kỳ mỏng, chỉ nhận HTTP Request và gọi \texttt{IMediator.Send()}, tách biệt hoàn toàn trách nhiệm xử lý logic.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/cqrs_pattern.png}
-  \caption{Sơ đồ Tuần tự (Sequence Diagram) minh họa luồng xử lý CQRS}
-  \label{fig:cqrs_seq}
+  \includegraphics[width=0.9\textwidth, keepaspectratio]{outputs/cdc_sync.png}
+  \caption{Sơ đồ Đồng bộ Dữ liệu Tốc độ cao (CDC) bằng Kafka và Debezium}
+  \label{fig:cdc_sync}
 \end{figure}
-
-\paragraph{3. Transactional Outbox Pattern \& Idempotent Consumer}
-\mbox{}\\
-Trong hệ thống phân tán, các Microservices giao tiếp thông qua sự kiện (Domain Events). Tuy nhiên, rủi ro mất mạng khi đang lưu Database và đẩy Event lên Message Broker là rất lớn. AirVnV giải quyết bài toán này bằng \textbf{Transactional Outbox Pattern}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/outbox_pattern.png}
-  \caption{Sơ đồ Tuần tự (Sequence Diagram) cơ chế Transactional Outbox}
-  \label{fig:outbox_seq}
-\end{figure}
-
-Theo Hình~\ref{fig:outbox_seq}:
-\begin{enumerate}
-  \item Lưu dữ liệu nghiệp vụ và thông tin sự kiện vào bảng \texttt{OutboxMessage} \textbf{trong cùng một Transaction của DB}.
-  \item Tiến trình ngầm (Background Worker) sử dụng MassTransit để quét bảng \texttt{OutboxMessage} và xuất bản sự kiện tới RabbitMQ (đảm bảo At-least-once Delivery).
-\end{enumerate}
-
-Để đối phó với việc sự kiện có thể được nhận lại nhiều lần, dịch vụ nhận áp dụng \textbf{Idempotent Consumer Pattern}: sử dụng bảng \texttt{ProcessedEvent} với ràng buộc duy nhất (\texttt{Unique Constraint}) tại tầng Database để chặn đứng xử lý trùng lặp và Race Condition (TOCTOU).
-
-\paragraph{4. Vertical Slice Architecture (Kiến trúc theo chiều dọc)}
-\mbox{}\\
-Thay vì tổ chức mã nguồn theo các tầng ngang (Controllers, Services, Repositories), dự án cấu trúc theo \textbf{Vertical Slice Architecture}. Mỗi tính năng (Use Case) được gom lại thành một thư mục duy nhất chứa tất cả thành phần cần thiết: \texttt{Endpoint.cs}, \texttt{Request.cs}, \texttt{Response.cs}, \texttt{Handler.cs}, \texttt{Validator.cs}. Kiến trúc này tối đa hóa tính gắn kết (High Cohesion) và dễ dàng bảo trì.
-
-\paragraph{5. Saga Pattern (Choreography)}
-\mbox{}\\
-Để xử lý các giao dịch phân tán kéo dài qua nhiều Microservices (tiêu biểu là luồng Đặt phòng - Thanh toán), hệ thống áp dụng \textbf{Saga Pattern} theo cơ chế điều phối không tập trung (Choreography) thông qua RabbitMQ. Thay vì dùng HTTP gọi đồng bộ dẫn tới kẹt cổ chai, các dịch vụ phản ứng lại dựa trên Sự kiện (Event).
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/saga_pattern.png}
-  \caption{Sơ đồ Tuần tự (Sequence Diagram) minh họa Saga Pattern giữa Booking và Payment}
-  \label{fig:saga_pattern}
-\end{figure}
-
-
-\subsubsection{Các Mẫu Thiết kế Hướng đối tượng (Object-Oriented Design Patterns)}
-
-\paragraph{1. Strategy Pattern \& Provider Resolver}
-\mbox{}\\
-Pattern này được áp dụng triệt để ở \texttt{PaymentService} để lựa chọn linh hoạt cổng thanh toán (VNPay, Stripe) vào thời điểm runtime mà không làm thay đổi luồng xử lý chính.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/strategy_class.png}
-  \caption{Sơ đồ Lớp (Class Diagram) mô hình Strategy Pattern tại PaymentService}
-  \label{fig:strategy_class}
-\end{figure}
-
-Như Hình~\ref{fig:strategy_class} thể hiện, \texttt{InitiatePaymentHandler} không gọi trực tiếp các lớp thanh toán cụ thể mà chỉ phụ thuộc vào giao diện \texttt{IPaymentProvider}. Thành phần \texttt{PaymentProviderResolver} đóng vai trò Factory, dựa vào dữ liệu cấu hình hệ thống để khởi tạo đúng loại cổng thanh toán (Strategy) tương ứng với từng giao dịch.
-
-\paragraph{2. Domain-Driven Design (DDD) \& Aggregate Root Pattern}
-\mbox{}\\
-Hệ thống loại trừ hoàn toàn Anemic Model (mô hình dữ liệu chỉ có get/set) để chuyển sang \textbf{Rich Domain Model}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/ddd_aggregate.png}
-  \caption{Sơ đồ Lớp (Class Diagram) mô tả Aggregate Root trong DDD}
-  \label{fig:ddd_aggregate}
-\end{figure}
-
-Các thay đổi trạng thái (ví dụ: \texttt{Submit()}, \texttt{Approve()} bất động sản) được thực thi trực tiếp bên trong các hàm của \textbf{Aggregate Root}, đảm bảo luật lệ nghiệp vụ (Invariants) được duy trì hoàn hảo mà không rò rỉ ra ngoài.
-
-\paragraph{3. Factory Method Pattern}
-\mbox{}\\
-Thay thế các constructor public bằng hàm \texttt{Create()} tĩnh (static) nhằm thực hiện toàn bộ quá trình xác thực dữ liệu (validation) trước khi khởi tạo Đối tượng Thực thể (Entity Object).
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth, height=9cm, keepaspectratio]{outputs/factory_method.png}
-  \caption{Sơ đồ Lớp (Class Diagram) của Factory Method Pattern}
-  \label{fig:factory_method}
-\end{figure}
-
-Điều này đảm bảo tuyệt đối không có đối tượng rác hay lỗi (invalid state) tồn tại trong bộ nhớ hoặc bị lưu vào cơ sở dữ liệu.
-
-\paragraph{4. Shared Kernel Pattern}
-\mbox{}\\
-Trích xuất các khối kiến trúc cốt lõi (như \texttt{IDomainEvent}, \texttt{AggregateRoot}, \texttt{ApiResponse<T>}) thành một thư viện độc lập (\texttt{Airbnb.SharedKernel}). Các Microservices tham chiếu đến thư viện này, giúp tái sử dụng mã nguồn mà không vi phạm nguyên tắc độc lập của Microservices.
-
-
-\subsubsection{Các Mẫu Thiết kế Giao diện Phía Khách (Frontend UI Patterns)}
-
-Bên cạnh việc áp dụng các thiết kế chuẩn mực ở tầng máy chủ (Backend), dự án cũng tiến hành chuẩn hóa kiến trúc mã nguồn ở giao diện người dùng (Frontend - React) nhằm đảm bảo tính mở rộng, khả năng bảo trì và kiểm soát độ phức tạp khi quy mô hệ thống gia tăng.
-
-\paragraph{1. Kiến trúc Module hóa (Modular / Feature-Based Architecture)}
-\mbox{}\\
-Thay vì chia cấu trúc thư mục theo loại tệp tin (ví dụ: gộp chung tất cả components, hooks, api), mã nguồn Frontend được tổ chức chặt chẽ theo từng tính năng nghiệp vụ (Feature-Sliced). Mỗi tính năng (ví dụ: \texttt{features/auth/}) sở hữu trọn vẹn lớp API, kiểu dữ liệu, logic xử lý và giao diện của riêng nó, đảm bảo tuyệt đối nguyên lý Đóng gói (Encapsulation).
-
-\paragraph{2. Adapter Pattern (Chuyển đổi Dữ liệu)}
-\mbox{}\\
-Giao diện (UI) được cách ly hoàn toàn khỏi cấu trúc dữ liệu trả về từ API (Data Transfer Object - DTO). \textbf{Adapter Pattern} được áp dụng thông qua các hàm thuần túy (Pure Functions) ở tầng trung gian để ánh xạ (map) DTO thành các \texttt{Model} chuẩn mực của UI. Điều này giúp Frontend không bị phá vỡ (break) khi cấu trúc cơ sở dữ liệu ở Backend thay đổi.
-
-\paragraph{3. Tách biệt Mối quan tâm (Separation of Concerns) \& Observer Pattern}
-\mbox{}\\
-Logic gọi API và quản lý trạng thái được tách rời hoàn toàn khỏi các UI Components thông qua cơ chế Custom Hooks. Thêm vào đó, hệ thống ứng dụng thư viện TanStack Query hoạt động dựa trên \textbf{Observer Pattern} để tự động theo dõi (subscribe) và đồng bộ hóa trạng thái dữ liệu từ máy chủ (Server State) xuống giao diện theo thời gian thực mà không làm nghẽn bộ nhớ cục bộ.
-
-\paragraph{4. Flux Architecture (Kiến trúc Luồng dữ liệu Một chiều)}
-\mbox{}\\
-Đối với các trạng thái ứng dụng xuyên suốt (Client State) như cấu hình giao diện (Theme) hay phiên đăng nhập (\texttt{AuthSession}), hệ thống loại bỏ sự phức tạp của việc truyền dữ liệu hai chiều (Two-way binding) để áp dụng \textbf{Flux Architecture}. Thông qua thư viện Zustand, mọi luồng cập nhật dữ liệu đều diễn ra theo một chiều duy nhất (One-way data flow), triệt tiêu hoàn toàn rủi ro xung đột trạng thái (Race conditions trên UI).
-
-\paragraph{5. Interceptor Pattern (Mẫu thiết kế Đánh chặn)}
-\mbox{}\\
-Mô hình \textbf{Interceptor Pattern} được thiết lập tại tầng cấu hình mạng (Axios). Mọi HTTP Request gửi đi đều bị chặn lại để tự động đính kèm \texttt{Bearer JWT Token}. Tương tự ở chiều về, hệ thống tự động bắt lỗi \texttt{401 Unauthorized} để kích hoạt tiến trình làm mới mã thông báo (Refresh Token) ngầm định, giúp giảm tải hoàn toàn độ phức tạp cho tầng giao diện người dùng.
-
-
-\subsubsection{Các Mẫu Cắt ngang và Đảm bảo An toàn (Cross-Cutting \& Safety Patterns)}
-
-\paragraph{1. Unified Response Envelope}
-\mbox{}\\
-Mọi API phản hồi thành công hoặc thất bại đều được bọc trong một vỏ bọc duy nhất (Envelope) tên là \texttt{ApiResponse<T>}, bao gồm \texttt{Data}, \texttt{Success (bool)}, \texttt{ErrorCode}, và \texttt{Timestamp}. Client Frontend chỉ cần phân tích cú pháp (parse) một cấu trúc duy nhất cho toàn bộ hệ thống.
-
-\paragraph{2. Exhaustiveness Check (CI Guard Pattern)}
-\mbox{}\\
-Đảm bảo chất lượng mã nguồn bằng Unit Test tự động. Mọi sự kiện (Domain Event) mới được lập trình viên tạo ra bắt buộc phải được khai báo trong bản đồ điều hướng (Topic Map). Nếu quên khai báo, Test sẽ báo lỗi (Fail) ngay lập tức trên máy chủ CI/CD, ngăn chặn lỗi phát sinh khi triển khai lên Production.
-
-\paragraph{3. Idempotency Guard (DB-Level Filtered Index)}
-\mbox{}\\
-Để ngăn chặn các rủi ro kẹp tiến trình (Race Condition) khi người dùng thao tác quá nhanh, hệ thống thiết lập \texttt{Unique Filtered Index} trực tiếp tại tầng CSDL. Việc này đảm bảo bằng toán học rằng một yêu cầu chỉ có thể sinh ra duy nhất một phiên xử lý, loại bỏ hoàn toàn hiện tượng tạo trùng dữ liệu (Double-booking).
-
 
 % ────────────────────────────────────────────────────────────
 \section{Thiết kế cấu hình các node và mạng}

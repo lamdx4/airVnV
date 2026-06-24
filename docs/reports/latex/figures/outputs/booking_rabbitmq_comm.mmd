@@ -1,0 +1,57 @@
+sequenceDiagram
+    autonumber
+    actor Client as Khách hàng
+    participant API as YARP Gateway
+    
+    box rgb(240, 248, 255) Booking Service
+    participant BookAPI as Booking Endpoint
+    participant Outbox as Outbox DB (Postgres)
+    participant Saga as BookingStateMachine
+    end
+    
+    participant RMQ as RabbitMQ (MassTransit)
+    
+    box rgb(255, 245, 238) Payment Service
+    participant InitPay as InitiatePaymentConsumer
+    participant PayEndpoint as Webhook Endpoint
+    participant Ledger as LedgerConsumer
+    participant PayDB as Payment DB
+    end
+    
+    participant VNPay as VNPay API
+
+    Client->>API: POST /api/bookings
+    API->>BookAPI: Định tuyến (Routing)
+    BookAPI->>Outbox: Lưu Booking & Publish BookingCreatedEvent
+    Note right of BookAPI: Cùng 1 Transaction (Outbox Pattern)
+    Outbox-->>RMQ: MassTransit đẩy Event lên Exchange
+
+    RMQ-)Saga: Consume: BookingCreatedEvent
+    Saga->>Saga: Khởi tạo Saga (Pending -> AwaitingPayment)<br>Đặt lịch Timeout (15 phút)
+    Saga->>Outbox: Send: InitiatePaymentCommand
+    Outbox-->>RMQ: MassTransit đẩy Command vào Queue
+
+    RMQ-)InitPay: Consume: InitiatePaymentCommand
+    InitPay->>VNPay: Gọi API tạo phiên thanh toán
+    VNPay-->>InitPay: Trả về Payment URL
+    InitPay->>PayDB: Khởi tạo Payment Record (Pending)
+    InitPay-->>Client: Trả về URL Thanh toán qua SignalR/HTTP
+
+    Note over Client, VNPay: Khách hàng tiến hành nhập thẻ trên cổng VNPay...
+
+    VNPay->>API: Gọi Webhook (IPN) báo Thành công
+    API->>PayEndpoint: Định tuyến Webhook
+    PayEndpoint->>PayDB: Cập nhật Payment = Success
+    PayEndpoint->>PayDB: Publish PaymentSucceededEvent
+    Note right of PayEndpoint: Ghi vào bảng Outbox của PaymentService
+    PayDB-->>RMQ: MassTransit đẩy Event lên Exchange
+
+    par Điều phối Saga (Booking)
+        RMQ-)Saga: Consume: PaymentSucceededEvent
+        Saga->>Saga: Hủy Timeout (Unschedule)
+        Saga->>Outbox: Chuyển trạng thái = Confirmed
+    and Xử lý Sổ cái (Payment)
+        RMQ-)Ledger: Consume: PaymentSucceededEvent
+        Ledger->>PayDB: Tính hoa hồng hệ thống
+        Ledger->>PayDB: Cập nhật HostBalance (Ghi Sổ cái)
+    end

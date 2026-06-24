@@ -19,24 +19,67 @@
 %   Gợi ý format bảng:
 %
 
-\begin{longtable}{|c|p{4cm}|p{7cm}|c|}
+\begin{longtable}{|c|p{3.2cm}|p{8.0cm}|c|}
   \hline
-  \textbf{STT} & \textbf{Họ và tên} & \textbf{Nhiệm vụ} & \textbf{Đóng góp} \\
+  \textbf{STT} & \textbf{Họ và tên / MSSV} & \textbf{Nhiệm vụ phân công chi tiết} & \textbf{Đóng góp} \\
   \hline
   \endfirsthead
 
   \hline
-  \textbf{STT} & \textbf{Họ và tên} & \textbf{Nhiệm vụ} & \textbf{Đóng góp} \\
+  \textbf{STT} & \textbf{Họ và tên / MSSV} & \textbf{Nhiệm vụ phân công chi tiết} & \textbf{Đóng góp} \\
   \hline
   \endhead
 
   \hline
   \endfoot
 
-  1 & \placeholder{Họ tên 1} & \placeholder{Nhiệm vụ} & \placeholder{X\%} \\
+  1 & \textbf{Đặng Xuân Lâm}\newline N22DCCN047 & 
+  \textbf{1. Phân tích \& Thiết kế:}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Thiết kế kiến trúc Microservices tổng thể và quy hoạch Database-per-service (PostgreSQL).
+      \item Phân tích luồng giao tiếp bất đồng bộ: Event-Driven Architecture, Saga Orchestration, luồng đồng bộ dữ liệu (Data Pipeline).
+      \item Thiết kế lược đồ CSDL cho hệ thống giao dịch cốt lõi (Booking, Payment).
+  \end{itemize}
+  \vspace{0.1cm}
+  \textbf{2. Lập trình (Backend/Infra):}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Xây dựng \texttt{BookingService}: Cài đặt MassTransit State Machine điều phối vòng đời đặt phòng khắt khe, xử lý concurrency chống Double-booking.
+      \item Xây dựng \texttt{PaymentService}: Tích hợp cổng thanh toán VNPay/Stripe, xử lý Webhook an toàn, đối soát giao dịch.
+      \item Thiết lập \textbf{RabbitMQ} (Exchange/Queue) và triển khai \textbf{Transactional Outbox Pattern}.
+      \item Cấu hình hạ tầng \textbf{Debezium \& Apache Kafka} phục vụ Change Data Capture (CDC).
+      \item Container hóa toàn bộ hệ thống bằng \textbf{Docker Compose}.
+  \end{itemize}
+  \vspace{0.1cm}
+  \textbf{3. Báo cáo \& Trình bày:}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Soạn thảo Báo cáo (Chương 2: Thiết kế hệ thống).
+      \item Thiết lập \textbf{.NET Aspire Dashboard} phục vụ Distributed Tracing (OpenTelemetry) cho buổi Demo.
+      \item Xây dựng kịch bản trình bày luồng Saga và xử lý bù trừ (Compensation).
+  \end{itemize} & 50\% \\
   \hline
-  2 & \placeholder{Họ tên 2} & \placeholder{Nhiệm vụ} & \placeholder{X\%} \\
-  \hline
-  3 & \placeholder{Họ tên 3} & \placeholder{Nhiệm vụ} & \placeholder{X\%} \\
+  2 & \textbf{Phan Nhật Minh}\newline N22DCCN054 & 
+  \textbf{1. Phân tích \& Thiết kế:}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Phân rã Bounded Contexts, thiết kế hợp đồng API (API Contracts) cho hệ sinh thái.
+      \item Thiết kế kiến trúc API Gateway làm điểm chạm duy nhất (Single Point of Entry).
+      \item Thiết kế UX/UI cho ứng dụng Frontend (Admin Dashboard \& Guest Portal).
+      \item Thiết kế cấu trúc dữ liệu NoSQL (Inverted Index) phục vụ tối ưu hóa tìm kiếm.
+  \end{itemize}
+  \vspace{0.1cm}
+  \textbf{2. Lập trình (Backend/Frontend):}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Cài đặt \textbf{YARP API Gateway}: Định tuyến (Routing), xác thực (Auth offloading), Rate Limiting.
+      \item Xây dựng \texttt{SearchService}: Tích hợp \textbf{Elasticsearch}, lập chỉ mục (Indexing) realtime từ Kafka, xử lý truy vấn tọa độ \& bộ lọc đa chiều.
+      \item Xây dựng \texttt{PropertyService} (Quản lý phòng/thuế), \texttt{UserService} (Identity/JWT), và \texttt{ChatService} (Real-time message).
+      \item Áp dụng triệt để kiến trúc \textbf{CQRS} (MediatR) và \textbf{FastEndpoints} cho mọi API.
+      \item Hoàn thiện toàn bộ giao diện \textbf{Frontend (React, Zustand, TanStack Query, Shadcn/UI)}.
+  \end{itemize}
+  \vspace{0.1cm}
+  \textbf{3. Báo cáo \& Trình bày:}
+  \begin{itemize}[leftmargin=*, nosep, topsep=0pt]
+      \item Viết Báo cáo (Chương 3: Triển khai \& Chương 4: Kết luận).
+      \item Cấu trúc lại source code theo Clean Architecture, thiết kế Slide thuyết trình.
+      \item Trình diễn giao diện người dùng và giải thích cấu trúc CQRS trong buổi bảo vệ.
+  \end{itemize} & 50\% \\
   \hline
 \end{longtable}

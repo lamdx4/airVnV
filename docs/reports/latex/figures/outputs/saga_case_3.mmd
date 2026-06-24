@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant Client
+    participant StateMachine as BookingStateMachine
+    participant RMQ as RabbitMQ
+    participant Property as PropertyService
+    participant Chat as ChatService
+
+    Note over StateMachine: Hết 15 phút không nhận được thông báo thanh toán
+    StateMachine->>StateMachine: Bộ đếm giờ tự động kích hoạt sự kiện Timeout
+    StateMachine->>StateMachine: Chuyển state: Cancelled
+    StateMachine-)RMQ: Publish: BookingCancelledEvent
+    
+    par Nhả phòng
+        RMQ-)Property: Consume: BookingCancelledEvent
+        Property->>Property: Mở lại lịch trống
+    and Thông báo
+        RMQ-)Chat: Consume: BookingCancelledEvent
+        Chat->>Client: Bắn tin nhắn báo hủy đơn do quá hạn
+    end

@@ -1,0 +1,10 @@
+graph LR
+    classDef db fill:#336791,stroke:#fff,color:#fff
+    classDef msg fill:#231F20,stroke:#fff,color:#fff
+    classDef svc fill:#5C2D91,stroke:#fff,color:#fff
+
+    PropSvc[Property Service]:::svc -->|"1. Ghi dữ liệu"| PG[(PostgreSQL)]:::db
+    PG -->|"2. Đọc Log (CDC)"| Dbz([Debezium])
+    Dbz -->|"3. Bắn Event"| Kafka[[Apache Kafka]]:::msg
+    Kafka -->|"4. Consume liên tục"| SearchSvc[Search Service]:::svc
+    SearchSvc -->|"5. Cập nhật Index"| ES[(Elasticsearch)]:::db
