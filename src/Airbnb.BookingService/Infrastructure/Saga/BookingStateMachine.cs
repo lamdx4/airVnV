@@ -25,7 +25,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         // Bug #3 Fix: each schedule maps to its own dedicated token field
         Schedule(() => PaymentTimeout, x => x.PaymentTimeoutTokenId, x =>
         {
-            x.Delay = TimeSpan.FromMinutes(15);
+            x.Delay = TimeSpan.FromMinutes(1);
             x.Received = e => e.CorrelateById(context => context.Message.BookingId);
         });
 
@@ -38,7 +38,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         // ── Initially ─────────────────────────────────────────────────────────
         // Bug #1 Fix: split on BookingMode — RequestToBook does NOT initiate payment here
         Initially(
-            // NHÁNH 1: InstantBook → kéo tiền ngay
+            // NHÁNH 1: InstantBook → FE gọi InitiatePayment trực tiếp, Saga chỉ track state
             When(BookingCreated, ctx => ctx.Message.BookingMode == BookingMode.InstantBook)
                 .Then(ctx =>
                 {
@@ -51,12 +51,6 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                     ctx.Saga.BookingMode  = ctx.Message.BookingMode;
                     ctx.Saga.CreatedAt    = DateTimeOffset.UtcNow;
                 })
-                .Send(ctx => new InitiatePaymentCommand(
-                    ctx.Saga.BookingId,
-                    ctx.Saga.TotalPrice,
-                    ctx.Saga.CurrencyCode,
-                    ctx.Saga.CountryCode,
-                    ctx.Saga.GuestId))
                 .Schedule(PaymentTimeout, ctx => new PaymentTimeoutEvent(ctx.Saga.BookingId))
                 .TransitionTo(AwaitingPayment),
 
@@ -91,11 +85,16 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                     $"Payment failed: {ctx.Message.ErrorCode}"))
                 .TransitionTo(Cancelled),
 
-            When(PaymentTimeout.AnyReceived)
+            When(PaymentTimeout.Received)
                 .Publish(ctx => new BookingCancelledEvent(
                     ctx.Saga.BookingId,
                     ctx.Saga.PropertyId,
-                    "Payment timeout (15 minutes exceeded)"))
+                    "Payment timeout (5 minutes exceeded)"))
+                .TransitionTo(Cancelled),
+
+            // Guest hủy trong khi đang chờ thanh toán
+            When(BookingCancelled)
+                .Unschedule(PaymentTimeout)
                 .TransitionTo(Cancelled)
         );
 
@@ -106,7 +105,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
             // Host duyệt → domain raises BookingAwaitingApprovalEvent → Saga kéo tiền
             When(BookingAwaitingApproval)
                 .Unschedule(ApprovalTimeout)
-                .Send(ctx => new InitiatePaymentCommand(
+                .Publish(ctx => new InitiatePaymentCommand(
                     ctx.Saga.BookingId,
                     ctx.Saga.TotalPrice,
                     ctx.Saga.CurrencyCode,
@@ -121,12 +120,17 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                 .TransitionTo(Cancelled),
 
             // Timeout 24h → Cancel, KHÔNG refund (tiền chưa thu)
-            When(ApprovalTimeout.AnyReceived)
+            When(ApprovalTimeout.Received)
                 .Publish(ctx => new BookingCancelledEvent(
                     ctx.Saga.BookingId,
                     ctx.Saga.PropertyId,
                     "Host approval timeout (24 hours exceeded)"))
-                .TransitionTo(Cancelled)
+                .TransitionTo(Cancelled),
+
+            // Defensive ignores: events that should not arrive here
+            Ignore(PaymentSucceeded),
+            Ignore(PaymentFailed),
+            Ignore(BookingRefunding)
         );
 
         // ── Confirmed ─────────────────────────────────────────────────────────
@@ -135,8 +139,11 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         // RefundPaymentCommand and waits for the outcome before finalizing state.
         During(Confirmed,
             When(BookingRefunding)
-                .Send(ctx => new RefundPaymentCommand(ctx.Saga.BookingId, ctx.Message.Reason))
-                .TransitionTo(Refunding)
+                .Publish(ctx => new RefundPaymentCommand(ctx.Saga.BookingId, ctx.Message.Reason))
+                .TransitionTo(Refunding),
+
+            Ignore(BookingConfirmed),       // Duplicate domain event after transition
+            Ignore(BookingAwaitingApproval) // Stale event from RequestToBook flow
         );
 
         // ── Refunding ─────────────────────────────────────────────────────────
@@ -152,14 +159,43 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                 .TransitionTo(Cancelled),
 
             When(RefundPaymentFailed)
-                .TransitionTo(RefundFailed)
+                .TransitionTo(RefundFailed),
+
+            // Domain may have already set Booking.Status = Cancelled before Saga transitions.
+            // The Saga is authoritative for orchestration — just track and ignore domain echoes.
+            Ignore(BookingCancelled),      // Domain cancel event while refund is pending
+            Ignore(BookingRefunding),      // Duplicate refund trigger
+            Ignore(PaymentSucceeded)       // Stale payment event from previous flow
         );
 
         // ── RefundFailed ──────────────────────────────────────────────────────
         // Terminal state requiring Admin intervention. Booking is NOT cancelled.
         // The room stays locked until Admin manually resolves the refund.
-        During(RefundFailed
-            // No automatic transitions. Admin must trigger resolution out-of-band.
+        During(RefundFailed,
+            Ignore(RefundPaymentFailed), // Idempotency: duplicate failure events
+            Ignore(BookingCancelled),    // Domain may echo cancel; Saga stays in RefundFailed
+            Ignore(PaymentRefunded),     // Late refund event after failure recorded
+            Ignore(BookingRefunding)     // Duplicate trigger
+        );
+
+        // ── Idempotency: Ignore stale/duplicate events in terminal states ─────
+        // Stale messages can arrive from previous sessions or after retries.
+        // MassTransit throws UnhandledEventException if no handler exists →
+        // causes infinite retry loop. Ignore them explicitly to ACK and discard.
+        During(Cancelled,
+            Ignore(PaymentSucceeded),
+            Ignore(PaymentFailed),
+            Ignore(PaymentRefunded),
+            Ignore(RefundPaymentFailed),
+            Ignore(BookingRefunding),
+            Ignore(BookingCancelled),
+            Ignore(BookingConfirmed),      // Fix #2: was missing → UnhandledEventException
+            Ignore(BookingAwaitingApproval)
+        );
+
+        During(AwaitingPayment,
+            Ignore(BookingRefunding),      // Cannot refund before payment completes
+            Ignore(BookingAwaitingApproval) // Stale approval event from RequestToBook flow
         );
     }
 

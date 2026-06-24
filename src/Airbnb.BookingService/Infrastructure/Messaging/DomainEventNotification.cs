@@ -8,3 +8,4 @@ public record BookingConfirmedNotification(BookingConfirmedDomainEvent DomainEve
 public record BookingCancelledNotification(BookingCancelledDomainEvent DomainEvent) : INotification;
 // Bug #5 Fix: must exist before PolicyExecutor and Mapper can reference it
 public record BookingAwaitingApprovalNotification(BookingAwaitingApprovalDomainEvent DomainEvent) : INotification;
+public record BookingRefundingNotification(BookingRefundingDomainEvent DomainEvent) : INotification;

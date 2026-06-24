@@ -44,7 +44,7 @@ public class PaymentRefundedConsumer(
         else
         {
             // Fallback for any other states (e.g., admin-triggered refunds out-of-band).
-            booking.AdminCancel();
+            booking.SyncCancelled("Refunded by system");
         }
 
         await dbContext.SaveChangesAsync(context.CancellationToken);

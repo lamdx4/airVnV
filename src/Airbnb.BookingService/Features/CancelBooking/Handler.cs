@@ -14,24 +14,17 @@ public sealed class Handler(BookingDbContext db) : ICommandHandler<Request>
         if (booking == null)
             throw new NotFoundException("Booking not found.");
 
-        try
+        if (booking.Status == BookingStatus.Confirmed)
         {
-            if (booking.Status == BookingStatus.Confirmed)
-            {
-                // Confirmed bookings: refund must be processed first.
-                // Transitions to Refunding → Saga sends RefundPaymentCommand to PaymentService.
-                // Booking will be fully Cancelled only after PaymentService confirms the refund.
-                booking.CancelAndRequestRefund(req.UserId);
-            }
-            else
-            {
-                // Pending / AwaitingApproval: no payment was taken yet, cancel immediately.
-                booking.Cancel(req.UserId);
-            }
+            // Confirmed bookings: refund must be processed first.
+            // Transitions to Refunding → Saga sends RefundPaymentCommand to PaymentService.
+            // Booking will be fully Cancelled only after PaymentService confirms the refund.
+            booking.CancelAndRequestRefund(req.UserId);
         }
-        catch (InvalidOperationException ex)
+        else
         {
-            throw new BusinessException(ex.Message, "BOOKING_CANCEL_ERROR");
+            // Pending / AwaitingApproval: no payment was taken yet, cancel immediately.
+            booking.Cancel(req.UserId);
         }
 
         await db.SaveChangesAsync(ct);

@@ -209,18 +209,18 @@ public class Booking : AggregateRoot
         Version++;
     }
 
-    /// <summary>Admin override — bypasses guest/host ownership check (system timeouts, admin actions).</summary>
-    // Bug #4 Fix: BookingApprovalTimeoutConsumer must call AdminCancel(), not Cancel(Guid.Empty)
-    // Bug #7 Fix: passes PropertyId and Reason into the domain event
-    public void AdminCancel()
+    /// <summary>
+    /// Called by external Consumers (e.g. BookingCancelledConsumer) to sync Domain state
+    /// from an authoritative external signal (e.g. Saga). Does NOT raise a domain event
+    /// to prevent an infinite publish → consume loop.
+    /// </summary>
+    public void SyncCancelled(string reason)
     {
-        if (Status == BookingStatus.Cancelled)
-            throw new BusinessException("Booking is already cancelled.", "BOOKING_ALREADY_CANCELLED");
-
+        if (Status == BookingStatus.Cancelled) return; // Idempotent
         Status = BookingStatus.Cancelled;
         CancelledAt = DateTimeOffset.UtcNow;
-        CancelReason = "Cancelled by system";
+        CancelReason = reason;
         Version++;
-        Raise(new BookingCancelledDomainEvent(Id, PropertyId, "Cancelled by system", Version));
+        // Intentionally NO Raise() here — the event already came from outside.
     }
 }

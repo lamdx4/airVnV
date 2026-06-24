@@ -41,7 +41,10 @@ builder.Services.AddDbContext<Airbnb.BookingService.Infrastructure.Saga.BookingS
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<Airbnb.BookingService.Features.MasterData.MasterDataCacheInvalidationConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentSucceededConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentFailedConsumer>();
     x.AddConsumer<Airbnb.BookingService.Features.Consumers.PaymentRefundedConsumer>();
+    x.AddConsumer<Airbnb.BookingService.Features.Consumers.BookingCancelledConsumer>();
 
     // Saga Configuration
     x.AddSagaStateMachine<Airbnb.BookingService.Infrastructure.Saga.BookingStateMachine, Airbnb.BookingService.Infrastructure.Saga.BookingState>()
@@ -58,6 +61,8 @@ builder.Services.AddMassTransit(x =>
     });
 
     x.AddQuartz();
+    x.AddQuartzConsumers(); // BẮT BUỘC: Thêm consumer để Quartz nhận được lệnh Schedule từ Saga
+    builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -81,7 +86,7 @@ builder.Services.AddMassTransit(x =>
             r.Ignore<Airbnb.ServiceDefaults.Infrastructure.NotFoundException>();
         });
 
-        cfg.UsePublishMessageScheduler();
+        cfg.UseMessageScheduler(new Uri("queue:quartz")); // Send schedule cmds directly to Quartz queue
         cfg.ConfigureEndpoints(context);
     });
 });
