@@ -4,6 +4,7 @@ import { addDays, differenceInDays, format, isBefore, startOfDay, isFriday, isSa
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { useCreateBooking } from '../hooks';
+import { BookingMode } from '../types';
 import { useInitiatePayment } from '@/features/payment/hooks';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ interface BookingWidgetProps {
   serviceFee: number;
   weekendPremiumPercent: number;
   currencyCode: string;
+  bookingMode?: string;
 }
 
 export const BookingWidget: React.FC<BookingWidgetProps> = ({
@@ -30,7 +32,8 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
   cleaningFee,
   serviceFee,
   weekendPremiumPercent,
-  currencyCode
+  currencyCode,
+  bookingMode
 }) => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfDay(new Date()),
@@ -85,7 +88,15 @@ export const BookingWidget: React.FC<BookingWidgetProps> = ({
       guestCount
     }, {
       onSuccess: (data: any) => {
-        // Chain the payment initiation
+        // If explicitly RequestToBook, redirect to trips
+        if (bookingMode === BookingMode.RequestToBook) {
+          navigate('/trips');
+          return;
+        }
+
+        // Default behavior (InstantBook or undefined): chain the payment initiation
+
+        // If InstantBook, chain the payment initiation
         initiatePayment.mutate({ bookingId: data.bookingId }, {
           onSuccess: (paymentData) => {
             // Redirect to VNPay

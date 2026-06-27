@@ -8,6 +8,13 @@ export const BookingStatus = {
 
 export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
+export const BookingMode = {
+  RequestToBook: 'RequestToBook',
+  InstantBook: 'InstantBook',
+} as const;
+
+export type BookingMode = typeof BookingMode[keyof typeof BookingMode];
+
 // Represents the payload sent to the API
 export interface CreateBookingRequest {
   propertyId: string;
@@ -35,4 +42,5 @@ export interface BookingDto {
   totalPrice: number;
   currencyCode: string;
   status: BookingStatus;
+  bookingMode: string;
 }

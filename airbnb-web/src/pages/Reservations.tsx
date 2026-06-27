@@ -1,4 +1,4 @@
-import { useHostBookings, useApproveBooking, useRejectBooking, useCancelBooking, BookingStatus } from '@/features/booking';
+import { useHostBookings, useApproveBooking, useRejectBooking, useCancelBooking, BookingStatus, BookingMode } from '@/features/booking';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -56,6 +56,15 @@ export default function Reservations() {
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">Guest {booking.guestId?.substring(0,6)}</div>
                       <div className="text-gray-500">{booking.guestCount} guests</div>
+                      {booking.bookingMode && (
+                        <div className="mt-2 text-[10px] uppercase font-bold tracking-wider">
+                          {booking.bookingMode === BookingMode.InstantBook ? (
+                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 shadow-sm">⚡ Instant Book</span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200 shadow-sm">✉️ Request</span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-gray-600">
                       ID: {booking.propertyId.substring(0,8)}

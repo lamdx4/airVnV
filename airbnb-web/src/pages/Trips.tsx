@@ -1,4 +1,4 @@
-import { useGuestBookings, useCancelBooking, BookingStatus } from '@/features/booking';
+import { useGuestBookings, useCancelBooking, BookingStatus, BookingMode } from '@/features/booking';
 import { useInitiatePayment } from '@/features/payment/hooks';
 import { useProperty } from '@/features/properties/hooks/useProperties';
 import { format, parseISO } from 'date-fns';
@@ -41,21 +41,35 @@ function BookingCard({ booking, onPay, onCancel, isPaying }: {
         )}
       </div>
       <div className="p-5 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg text-gray-900 truncate">
-            {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="font-semibold text-lg text-gray-900 line-clamp-1 shrink pr-2" title={property?.title || 'Loading...'}>
+            {property?.title || 'Loading...'}
           </h3>
-          <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-            booking.status === BookingStatus.Confirmed ? 'bg-green-100 text-green-800' :
-            booking.status === BookingStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
-            booking.status === BookingStatus.AwaitingApproval ? 'bg-orange-100 text-orange-800' :
-            'bg-gray-100 text-gray-800'
-          }`}>
-            {booking.status === BookingStatus.AwaitingApproval ? t('trips.awaitingHostApproval') : booking.status}
-          </span>
+          <div className="flex shrink-0">
+            <span className={`whitespace-nowrap px-2 py-1 text-xs font-bold rounded-full ${
+              booking.status === BookingStatus.Confirmed ? 'bg-green-100 text-green-800' :
+              booking.status === BookingStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+              booking.status === BookingStatus.AwaitingApproval ? 'bg-orange-100 text-orange-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {booking.status === BookingStatus.AwaitingApproval ? t('trips.awaitingHostApproval') : booking.status}
+            </span>
+          </div>
         </div>
-        
-        <p className="text-sm text-gray-500 mb-4">
+
+        <p className="text-sm text-gray-600 mb-3 font-medium">
+          {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
+        </p>
+
+        <div className="flex items-center gap-2 mb-4">
+          {booking.bookingMode && (
+            <span className="whitespace-nowrap px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-blue-50 text-blue-700 border border-blue-200">
+              {booking.bookingMode === BookingMode.InstantBook ? '⚡ Instant Book' : '✉️ Request to Book'}
+            </span>
+          )}
+        </div>
+
+        <p className="text-sm text-gray-500 mb-4 mt-auto">
           {booking.nightCount} nights • {booking.guestCount} guests
         </p>
 
