@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useProperty } from '@/features/properties/hooks/useProperties';
 import { useReviews } from '@/features/reviews/hooks/useReviews';
 import { BookingWidget } from '@/features/booking';
+import { BookingMode } from '@/features/booking/types';
 import { MapPin, Star, Medal, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
@@ -154,6 +155,15 @@ export default function PropertyDetail() {
         {(property as any).isSuperhost && (
           <span className="flex items-center"><Medal className="w-4 h-4 mr-1" /> {t('propertyDetail.superhost')}</span>
         )}
+        {property.bookingMode === BookingMode.InstantBook ? (
+          <span className="flex items-center bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded border border-blue-200 font-bold tracking-wide uppercase text-[10px] shadow-sm">
+            ⚡ {t('propertyDetail.instantBook', 'Instant Book')}
+          </span>
+        ) : (
+          <span className="flex items-center bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded border border-gray-200 font-bold tracking-wide uppercase text-[10px] shadow-sm">
+            ✉️ {t('propertyDetail.requestToBook', 'Request to Book')}
+          </span>
+        )}
         <span className="flex items-center underline cursor-pointer"><MapPin className="w-4 h-4 mr-1" /> {property.displayAddress}</span>
       </div>
 
@@ -265,6 +275,7 @@ export default function PropertyDetail() {
               serviceFee={property.pricing.serviceFee}
               weekendPremiumPercent={property.pricing.weekendPremiumPercent}
               currencyCode={property.pricing.currencyCode}
+              bookingMode={property.bookingMode}
             />
           )}
         </div>

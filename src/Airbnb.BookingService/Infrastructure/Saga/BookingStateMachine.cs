@@ -25,7 +25,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         // Bug #3 Fix: each schedule maps to its own dedicated token field
         Schedule(() => PaymentTimeout, x => x.PaymentTimeoutTokenId, x =>
         {
-            x.Delay = TimeSpan.FromMinutes(1);
+            x.Delay = TimeSpan.FromMinutes(3);
             x.Received = e => e.CorrelateById(context => context.Message.BookingId);
         });
 

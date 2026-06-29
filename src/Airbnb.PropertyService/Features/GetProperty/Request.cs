@@ -17,7 +17,7 @@ public record PropertyDto(
     string Slug,
     PropertyType Type,
     PropertyStatus Status,
-    BookingMode BookingMode,
+    string BookingMode,
     double Latitude,
     double Longitude,
     string DisplayAddress,

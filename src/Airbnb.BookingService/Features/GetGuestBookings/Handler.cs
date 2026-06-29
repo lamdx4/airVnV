@@ -23,7 +23,8 @@ public sealed class Handler(BookingDbContext db) : IQueryHandler<Request, List<B
                 b.NightCount,
                 b.TotalPrice,
                 b.CurrencyCode,
-                b.Status.ToString()))
+                b.Status.ToString(),
+                b.BookingMode))
             .ToListAsync(ct);
     }
 }

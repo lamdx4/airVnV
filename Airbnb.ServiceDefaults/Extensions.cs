@@ -86,6 +86,7 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
+                    .AddSource("MassTransit") // Enable tracing for MassTransit & Sagas
                     .AddAspNetCoreInstrumentation(opts =>
                         opts.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)

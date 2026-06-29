@@ -52,7 +52,7 @@ public class VnpayLibrary
         var data = new StringBuilder();
         foreach (var kv in responseData)
         {
-            if (!string.IsNullOrEmpty(kv.Value) && kv.Key != "vnp_SecureHash")
+            if (!string.IsNullOrEmpty(kv.Value) && kv.Key != "vnp_SecureHash" && kv.Key != "vnp_SecureHashType")
             {
                 data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
             }

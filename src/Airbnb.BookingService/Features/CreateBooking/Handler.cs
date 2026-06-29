@@ -78,6 +78,12 @@ public sealed class Handler(
 
         var totalPrice = taxableAmount + pricing.ServiceFee + taxAmount;
 
+        var bookingMode = propertyInfo.BookingMode;
+        if (bookingMode != BookingMode.InstantBook && bookingMode != BookingMode.RequestToBook)
+        {
+            bookingMode = BookingMode.InstantBook;
+        }
+
         // 4. Create and Save Booking
         var booking = Booking.Create(
             req.PropertyId, 
@@ -93,7 +99,7 @@ public sealed class Handler(
             taxAmount,
             totalPrice, 
             pricing.CurrencyCode,
-            propertyInfo.BookingMode);
+            bookingMode);
 
         db.Bookings.Add(booking);
         await db.SaveChangesAsync(ct);

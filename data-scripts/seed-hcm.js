@@ -127,7 +127,7 @@ async function runSeeder() {
                     checkInTime: "14:00:00",
                     checkOutTime: "12:00:00",
                     flexibleCheckOut: faker.datatype.boolean(),
-                    bookingMode: faker.helpers.arrayElement([0, 1]) // Manual or Instant
+                    bookingMode: faker.helpers.arrayElement(['RequestToBook', 'InstantBook'])
                 };
 
                 const form = new FormData();

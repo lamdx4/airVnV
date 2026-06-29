@@ -13,7 +13,8 @@ public record BookingDto(
     int NightCount,
     decimal TotalPrice, 
     string CurrencyCode,
-    string Status);
+    string Status,
+    string BookingMode);
 
 public record Request : IQuery<List<BookingDto>>
 {

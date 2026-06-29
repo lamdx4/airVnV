@@ -44,7 +44,9 @@ public static class InfrastructureExtensions
             });
 
         // RabbitMQ – Domain Events + MassTransit Saga
-        var rabbit = builder.AddRabbitMQ("rabbit")
+        var rabbit = builder.AddRabbitMQ("rabbit",
+                userName: builder.AddParameter("rabbit-user", "admin", secret: false),
+                password: builder.AddParameter("rabbit-pass", "admin123", secret: true))
             .WithLifetime(ContainerLifetime.Persistent)
             .WithDataBindMount("./data/rabbit")
             .WithEndpoint("tcp", e => {

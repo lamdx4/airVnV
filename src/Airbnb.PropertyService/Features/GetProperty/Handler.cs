@@ -42,7 +42,7 @@ public sealed class Handler(AppDbContext db) : IQueryHandler<Request, PropertyDt
             property.Slug,
             property.Type,
             property.Status,
-            property.BookingMode,
+            property.BookingMode.ToString(),
             property.Latitude,
             property.Longitude,
             property.DisplayAddress,

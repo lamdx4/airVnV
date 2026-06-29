@@ -74,7 +74,7 @@ namespace Airbnb.BookingService.Migrations.BookingSagaDb
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingState");
+                    b.ToTable("BookingState", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>

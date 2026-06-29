@@ -60,6 +60,7 @@ export interface Property {
   slug: string;
   type: PropertyType;
   status: PropertyStatus;
+  bookingMode?: string;
   
   // Location
   latitude: number;
@@ -127,6 +128,7 @@ export interface PropertyBasicInfo {
   latitude: number;
   longitude: number;
   images: string[];
+  bookingMode?: string;
 }
 
 export interface Amenity {
